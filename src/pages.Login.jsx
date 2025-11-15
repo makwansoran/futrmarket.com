@@ -21,7 +21,8 @@ export function EmailForm({ label, onDone }){
       await sendCode(email.trim());
       setSent(true);
     }catch(e){ 
-      setErr(e.message || "Failed to send code. Please try again."); 
+      const errorMessage = e instanceof Error ? e.message : (typeof e === 'string' ? e : "Failed to send code. Please try again.");
+      setErr(errorMessage); 
     } finally {
       setLoading(false);
     }
@@ -41,7 +42,8 @@ export function EmailForm({ label, onDone }){
       await saveSession(email.trim());
       onDone && onDone(email.trim());
     }catch(e){ 
-      setErr(e.message || "Invalid code. Please try again."); 
+      const errorMessage = e instanceof Error ? e.message : (typeof e === 'string' ? e : "Invalid code. Please try again.");
+      setErr(errorMessage); 
     } finally {
       setLoading(false);
     }

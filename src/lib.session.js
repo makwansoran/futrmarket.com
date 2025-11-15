@@ -20,45 +20,99 @@ export async function sendCode(email) {
   console.log('🔵 CLIENT: Request URL: /api/send-code');
   console.log('🔵 CLIENT: Request body:', requestBody);
   
-  // Add cache-busting and ensure no caching
-  const r = await fetch('/api/send-code?_=' + Date.now(), {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache'
-    },
-    body: JSON.stringify(requestBody),
-    cache: 'no-store'
-  });
-  
-  console.log('🔵 CLIENT: Response status:', r.status);
-  console.log('🔵 CLIENT: Response URL:', r.url);
-  
-  const j = await r.json().catch((e) => {
-    console.error('🔵 CLIENT: Failed to parse response:', e);
-    return { ok: false, error: 'Failed to parse server response' };
-  });
-  
-  console.log('🔵 CLIENT: Send code response:', j, 'Status:', r.status);
-  
-  if (!r.ok || !j.ok) {
-    console.error('🔵 CLIENT: Send code error:', j.error, 'Status:', r.status, 'Response:', j);
-    throw new Error(j.error || 'Failed to send email');
+  try {
+    // Add cache-busting and ensure no caching
+    const r = await fetch('/api/send-code?_=' + Date.now(), {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      },
+      body: JSON.stringify(requestBody),
+      cache: 'no-store'
+    });
+    
+    console.log('🔵 CLIENT: Response status:', r.status);
+    console.log('🔵 CLIENT: Response URL:', r.url);
+    
+    // Handle non-OK responses
+    if (!r.ok) {
+      const errorText = await r.text().catch(() => '');
+      let errorMessage = `Server error (${r.status})`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorMessage;
+      } catch {
+        if (r.status === 404) {
+          errorMessage = 'Backend server not available. Please check if the server is running.';
+        } else if (r.status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const j = await r.json().catch((e) => {
+      console.error('🔵 CLIENT: Failed to parse response:', e);
+      throw new Error('Failed to parse server response');
+    });
+    
+    console.log('🔵 CLIENT: Send code response:', j, 'Status:', r.status);
+    
+    if (!j.ok) {
+      const errorMsg = typeof j.error === 'string' ? j.error : 'Failed to send email';
+      throw new Error(errorMsg);
+    }
+    return true;
+  } catch (e) {
+    // Ensure we always throw an Error with a string message
+    if (e instanceof Error) {
+      throw e;
+    }
+    throw new Error(typeof e === 'string' ? e : 'Failed to send verification code. Please check your connection.');
   }
-  return true;
 }
 
 export async function verifyCode(email, code) {
-  const r = await fetch('/api/verify-code', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, code })
-  })
-  const j = await r.json().catch(() => ({}))
-  if (!r.ok || !j.ok) throw new Error(j.error || 'Invalid code')
-  return true
+  try {
+    const r = await fetch('/api/verify-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code })
+    });
+    
+    // Handle non-OK responses
+    if (!r.ok) {
+      const errorText = await r.text().catch(() => '');
+      let errorMessage = `Server error (${r.status})`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorMessage;
+      } catch {
+        if (r.status === 404) {
+          errorMessage = 'Backend server not available. Please check if the server is running.';
+        } else if (r.status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const j = await r.json().catch(() => ({}));
+    if (!j.ok) {
+      const errorMsg = typeof j.error === 'string' ? j.error : 'Invalid code';
+      throw new Error(errorMsg);
+    }
+    return true;
+  } catch (e) {
+    // Ensure we always throw an Error with a string message
+    if (e instanceof Error) {
+      throw e;
+    }
+    throw new Error(typeof e === 'string' ? e : 'Failed to verify code. Please check your connection.');
+  }
 }
 
 // ----- Users & session -----
