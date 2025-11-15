@@ -64,5 +64,27 @@
     "noPrice": 0.5,
     "yesShares": 0,
     "noShares": 0
+  },
+  "ctr_1763219812383_24sz2lhcu61": {
+    "id": "ctr_1763219812383_24sz2lhcu61",
+    "question": "JONES VS ASPINAL",
+    "description": "",
+    "category": "Sports",
+    "marketPrice": 1,
+    "buyVolume": 0,
+    "sellVolume": 0,
+    "totalContracts": 0,
+    "volume": 0,
+    "traders": {},
+    "expirationDate": null,
+    "resolution": null,
+    "imageUrl": null,
+    "createdAt": 1763219812383,
+    "createdBy": "admin",
+    "featured": false,
+    "yesPrice": 0.5,
+    "noPrice": 0.5,
+    "yesShares": 0,
+    "noShares": 0
   }
 }

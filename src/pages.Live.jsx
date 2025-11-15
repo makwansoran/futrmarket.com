@@ -39,8 +39,12 @@ function MarketCard({ m }){
 }
 
 export default function LivePage({ markets = [] }){
+  // Ensure markets is always an array
+  const safeMarkets = Array.isArray(markets) ? markets : [];
+  
   // Filter for "live" markets - markets that are currently active (not resolved and not expired)
-  const liveMarkets = markets.filter(m => {
+  const liveMarkets = safeMarkets.filter(m => {
+    if (!m || !m.id) return false;
     if (m.resolution) return false; // Exclude resolved
     if (m.expirationDate) {
       const expiration = new Date(m.expirationDate);
@@ -134,14 +138,14 @@ export default function LivePage({ markets = [] }){
           {/* Grid of 4 Smaller Market Cards */}
           {gridMarkets.length > 0 && (
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {gridMarkets.map(m => <MarketCard key={m.id} m={m}/>)}
+              {gridMarkets.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
             </div>
           )}
           
           {/* Remaining markets in regular grid if more than 5 */}
           {sortedMarkets.length > 5 && (
             <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {sortedMarkets.slice(5).map(m => <MarketCard key={m.id} m={m}/>)}
+              {sortedMarkets.slice(5).filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
             </div>
           )}
         </>

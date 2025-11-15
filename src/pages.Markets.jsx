@@ -24,6 +24,11 @@ function MarketCard({ m }){
     );
   };
   
+  // Ensure m and m.id are valid
+  if (!m || !m.id || typeof m.id !== 'string') {
+    return null;
+  }
+  
   return (
     <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition block h-full relative">
       {getStatusBadge()}
@@ -59,6 +64,13 @@ function MarketCard({ m }){
 
 // Large Featured Market Card (like Kalshi)
 function FeaturedMarketCard({ m, markets = [] }){
+  const navigate = React.useNavigate();
+  
+  // Ensure m is valid
+  if (!m || !m.id) {
+    return null;
+  }
+  
   const yesPrice = Math.round((m.yesPrice||0.5)*100);
   const noPrice = Math.round((m.noPrice||0.5)*100);
   
@@ -88,9 +100,10 @@ function FeaturedMarketCard({ m, markets = [] }){
   const priceHistory = generatePriceHistory();
   
   // Find previous/next contracts for navigation
-  const currentIndex = markets.findIndex(mkt => mkt.id === m.id);
-  const prevContract = currentIndex > 0 ? markets[currentIndex - 1] : null;
-  const nextContract = currentIndex < markets.length - 1 ? markets[currentIndex + 1] : null;
+  const safeMarketsForNav = Array.isArray(markets) ? markets.filter(mkt => mkt && mkt.id) : [];
+  const currentIndex = safeMarketsForNav.findIndex(mkt => mkt.id === m.id);
+  const prevContract = currentIndex > 0 && safeMarketsForNav[currentIndex - 1] && safeMarketsForNav[currentIndex - 1].id ? safeMarketsForNav[currentIndex - 1] : null;
+  const nextContract = currentIndex < safeMarketsForNav.length - 1 && safeMarketsForNav[currentIndex + 1] && safeMarketsForNav[currentIndex + 1].id ? safeMarketsForNav[currentIndex + 1] : null;
   
   // Format expiration date
   const formatExpiration = () => {
@@ -197,28 +210,32 @@ function FeaturedMarketCard({ m, markets = [] }){
             <span className="text-white font-semibold">{m.volume || "$0"}</span> volume
           </span>
           <div className="flex items-center gap-4 text-xs text-gray-500">
-            {prevContract && (
+            {prevContract && prevContract.id && (
               <span 
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  window.location.href = `/market/${encodeURIComponent(prevContract.id)}`;
+                  if (prevContract.id && typeof prevContract.id === 'string') {
+                    navigate(`/market/${encodeURIComponent(prevContract.id)}`);
+                  }
                 }}
                 className="hover:text-white transition cursor-pointer"
               >
-                ← {prevContract.question.substring(0, 20)}...
+                ← {(prevContract.question || '').substring(0, 20)}...
               </span>
             )}
-            {nextContract && (
+            {nextContract && nextContract.id && (
               <span 
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  window.location.href = `/market/${encodeURIComponent(nextContract.id)}`;
+                  if (nextContract.id && typeof nextContract.id === 'string') {
+                    navigate(`/market/${encodeURIComponent(nextContract.id)}`);
+                  }
                 }}
                 className="hover:text-white transition cursor-pointer"
               >
-                {nextContract.question.substring(0, 20)}... →
+                {(nextContract.question || '').substring(0, 20)}... →
               </span>
             )}
           </div>
@@ -293,24 +310,26 @@ export default function MarketsPage({ markets=[], limit, category }){
   const params = useParams();
   const urlCategory = params.category || category;
   
-  let filteredMarkets = markets;
+  // Ensure markets is always an array
+  const safeMarkets = Array.isArray(markets) ? markets : [];
+  let filteredMarkets = safeMarkets;
   
   // Filter by category if specified
   if (urlCategory && urlCategory !== "all" && urlCategory !== "trending" && urlCategory !== "new") {
     const categoryName = CATEGORY_MAP[urlCategory] || urlCategory;
-    filteredMarkets = markets.filter(m => 
-      (m.category || "").toLowerCase() === categoryName.toLowerCase()
+    filteredMarkets = safeMarkets.filter(m => 
+      m && (m.category || "").toLowerCase() === categoryName.toLowerCase()
     );
   } else if (urlCategory === "trending") {
     // Sort by volume or traders for trending
-    filteredMarkets = [...markets].sort((a, b) => {
+    filteredMarkets = [...safeMarkets].sort((a, b) => {
       const aVol = parseFloat((a.volume || "$0").replace("$", "").replace(",", "")) || 0;
       const bVol = parseFloat((b.volume || "$0").replace("$", "").replace(",", "")) || 0;
       return bVol - aVol;
     });
   } else if (urlCategory === "new") {
     // Sort by creation date for new
-    filteredMarkets = [...markets].sort((a, b) => {
+    filteredMarkets = [...safeMarkets].sort((a, b) => {
       const aTime = a.createdAt || 0;
       const bTime = b.createdAt || 0;
       return bTime - aTime;
@@ -347,7 +366,7 @@ export default function MarketsPage({ markets=[], limit, category }){
               </div>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {liveMatches.map(m => <MarketCard key={m.id} m={m}/>)}
+              {liveMatches.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
             </div>
           </div>
         )}
@@ -360,7 +379,7 @@ export default function MarketsPage({ markets=[], limit, category }){
               <h2 className="text-2xl font-bold text-white">Upcoming Matches</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {upcomingMatches.map(m => <MarketCard key={m.id} m={m}/>)}
+              {upcomingMatches.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
             </div>
           </div>
         )}
@@ -373,7 +392,7 @@ export default function MarketsPage({ markets=[], limit, category }){
               <h2 className="text-2xl font-bold text-white">Finished Matches</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {finishedMatches.map(m => <MarketCard key={m.id} m={m}/>)}
+              {finishedMatches.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
             </div>
           </div>
         )}
@@ -386,7 +405,7 @@ export default function MarketsPage({ markets=[], limit, category }){
               <h2 className="text-2xl font-bold text-white">Cancelled Matches</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {cancelledMatches.map(m => <MarketCard key={m.id} m={m}/>)}
+              {cancelledMatches.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
             </div>
           </div>
         )}
@@ -417,21 +436,21 @@ export default function MarketsPage({ markets=[], limit, category }){
           {/* Featured Large Market Card */}
           {featuredMarket && (
             <div className="mb-6">
-              <FeaturedMarketCard m={featuredMarket} markets={markets} />
+              <FeaturedMarketCard m={featuredMarket} markets={safeMarkets} />
             </div>
           )}
           
           {/* Grid of 4 Smaller Market Cards */}
           {gridMarkets.length > 0 && (
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {gridMarkets.map(m => <MarketCard key={m.id} m={m}/>)}
+              {gridMarkets.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
             </div>
           )}
           
           {/* Remaining markets in regular grid if more than 5 */}
           {list.length > 5 && (
             <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {list.slice(5).map(m => <MarketCard key={m.id} m={m}/>)}
+              {list.slice(5).filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
             </div>
           )}
         </>

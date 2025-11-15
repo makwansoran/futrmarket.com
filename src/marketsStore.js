@@ -19,24 +19,39 @@ export async function fetchMarkets() {
       if (j.ok && Array.isArray(j.data)) {
         console.log("🔵 Found", j.data.length, "contracts");
         // Transform contract format to market format for compatibility
-        return j.data.map(c => ({
-          id: c.id,
-          question: c.question,
-          category: c.category,
-          yesPrice: c.yesPrice || 0.5,
-          noPrice: c.noPrice || 0.5,
-          volume: c.volume || "$0",
-          traders: c.traders || 0,
-          ends: c.expirationDate ? new Date(c.expirationDate).toLocaleDateString() : null,
-          image: c.imageUrl,
-          imageUrl: c.imageUrl,
-          description: c.description,
-          resolution: c.resolution,
-          createdAt: c.createdAt,
-          featured: c.featured || false,
-          expirationDate: c.expirationDate,
-          status: c.status || null
-        }));
+        // Filter out invalid contracts (missing ID or invalid ID format)
+        return j.data
+          .filter(c => {
+            // Ensure contract has a valid ID (string or number, not null/undefined)
+            if (!c || c.id === null || c.id === undefined) {
+              console.warn("🔵 Skipping contract with invalid ID:", c);
+              return false;
+            }
+            // Ensure ID is a valid string or number (not an object or array)
+            if (typeof c.id !== 'string' && typeof c.id !== 'number') {
+              console.warn("🔵 Skipping contract with non-string/number ID:", c.id, typeof c.id);
+              return false;
+            }
+            return true;
+          })
+          .map(c => ({
+            id: String(c.id), // Ensure ID is always a string
+            question: c.question || "",
+            category: c.category || "General",
+            yesPrice: c.yesPrice || 0.5,
+            noPrice: c.noPrice || 0.5,
+            volume: c.volume || "$0",
+            traders: c.traders || 0,
+            ends: c.expirationDate ? new Date(c.expirationDate).toLocaleDateString() : null,
+            image: c.imageUrl,
+            imageUrl: c.imageUrl,
+            description: c.description,
+            resolution: c.resolution,
+            createdAt: c.createdAt,
+            featured: c.featured || false,
+            expirationDate: c.expirationDate,
+            status: c.status || null
+          }));
       } else {
         console.warn("🔵 API response not ok or data not array:", j);
       }

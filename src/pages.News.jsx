@@ -37,8 +37,9 @@ export default function NewsPage({ markets = [] }) {
 
   // Get linked contract for each news item
   function getLinkedContract(newsItem) {
-    if (!newsItem.contractId) return null;
-    return markets.find(m => m.id === newsItem.contractId);
+    if (!newsItem || !newsItem.contractId) return null;
+    const safeMarkets = Array.isArray(markets) ? markets : [];
+    return safeMarkets.find(m => m && m.id === newsItem.contractId) || null;
   }
 
   const sortedNews = [...news].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
