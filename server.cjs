@@ -52,19 +52,37 @@ app.use((req, res, next) => {
   // Allow localhost for development
   const isLocalhost = origin && (origin.includes('localhost') || origin.includes('127.0.0.1'));
   
-  // Allow if it's in the allowed origins list, or localhost, or allow all if no restrictions
-  if (isLocalhost || (origin && allowedOrigins.includes(origin)) || allowedOrigins.length === 0) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  } else if (allowedOrigins.length > 0) {
-    // If we have specific origins but this one isn't allowed, check if it's futrmarket.com
-    if (origin && (origin.includes('futrmarket.com') || origin.includes('futrmarket-com.vercel.app'))) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
+  // Always allow futrmarket.com domains and ALL Vercel preview URLs (including project-specific ones)
+  const isFutrmarketDomain = origin && (
+    origin.includes('futrmarket.com') || 
+    origin.includes('futrmarket-com.vercel.app') ||
+    (origin.includes('futrmarket') && origin.includes('.vercel.app'))
+  );
+  
+  // Allow any Vercel preview URL (for flexibility during development)
+  const isVercelPreview = origin && origin.includes('.vercel.app');
+  
+  // Determine if we should allow this origin
+  let allowedOrigin = null;
+  
+  if (origin) {
+    if (isLocalhost || isFutrmarketDomain || isVercelPreview || allowedOrigins.includes(origin) || allowedOrigins.length === 0) {
+      allowedOrigin = origin; // Use the specific origin (required for credentials)
     }
-    // Otherwise don't set CORS (will be blocked)
   } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // No origin header (e.g., same-origin request or Postman) - allow it
+    allowedOrigin = '*';
   }
   
+  // Set CORS headers
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    if (allowedOrigin !== '*') {
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+  }
+  
+  // Always set these headers (they're safe to set even if origin is blocked)
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
   res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours

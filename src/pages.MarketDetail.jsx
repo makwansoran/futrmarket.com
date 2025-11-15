@@ -581,35 +581,76 @@ export default function MarketDetailPage({ markets=[], onBalanceUpdate }){
 
   // Load contract and user position
   React.useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+    
     (async () => {
       try {
         // Load session
         const session = await loadSession();
-        if (session?.email) setUserEmail(session.email);
+        if (!cancelled && session?.email) setUserEmail(session.email);
 
         // Load contract
-        const r = await fetch(getApiUrl(`/api/contracts/${id}`));
-        const j = await r.json();
-        if (j.ok) {
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+        const r = await fetch(getApiUrl(`/api/contracts/${id}`), {
+          signal: controller.signal,
+          cache: "no-store"
+        });
+        clearTimeout(timeoutId);
+        
+        if (cancelled) return;
+        
+        const j = await r.json().catch(() => ({}));
+        if (j.ok && j.data) {
           setContract(j.data);
           
           // Load user position if logged in
-          if (session?.email) {
-            const posR = await fetch(getApiUrl(`/api/positions?email=${encodeURIComponent(session.email)}`));
-            const posJ = await posR.json();
-            if (posJ.ok) {
-              const pos = posJ.data.positions.find(p => p.contractId === id);
-              setUserPosition(pos || { yesShares: 0, noShares: 0 });
+          if (session?.email && !cancelled) {
+            try {
+              const posController = new AbortController();
+              const posTimeoutId = setTimeout(() => posController.abort(), 10000);
+              const posR = await fetch(getApiUrl(`/api/positions?email=${encodeURIComponent(session.email)}`), {
+                signal: posController.signal,
+                cache: "no-store"
+              });
+              clearTimeout(posTimeoutId);
+              
+              if (!cancelled) {
+                const posJ = await posR.json().catch(() => ({}));
+                if (posJ.ok && posJ.data?.positions) {
+                  const pos = posJ.data.positions.find(p => p.contractId === id);
+                  setUserPosition(pos || { yesShares: 0, noShares: 0 });
+                }
+              }
+            } catch (e) {
+              if (e.name !== "AbortError" && !cancelled) {
+                console.error("Failed to load position:", e);
+              }
             }
           }
+        } else if (!cancelled) {
+          setError(j.error || "Contract not found");
         }
       } catch (e) {
-        console.error("Failed to load contract:", e);
-        setError("Failed to load contract");
+        if (e.name === "AbortError") {
+          if (!cancelled) {
+            setError("Request timed out. Please try again.");
+          }
+        } else if (!cancelled) {
+          console.error("Failed to load contract:", e);
+          setError("Failed to load contract");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
+    
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [id]);
 
   async function handleOrder() {

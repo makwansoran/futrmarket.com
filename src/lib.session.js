@@ -17,13 +17,29 @@ export async function sendCode(email) {
   }
   
   const requestBody = { email: emailTrimmed };
+  const apiUrl = getApiUrl('/api/send-code');
+  const fullUrl = apiUrl + '?_=' + Date.now();
+  
   console.log('🔵 CLIENT: Sending code request for email:', emailTrimmed);
-  console.log('🔵 CLIENT: Request URL: /api/send-code');
+  console.log('🔵 CLIENT: Request URL:', fullUrl);
+  console.log('🔵 CLIENT: API Base URL:', import.meta.env.VITE_API_URL || '(NOT SET - using relative path)');
   console.log('🔵 CLIENT: Request body:', requestBody);
+  
+  // Warn if using relative path in production
+  if (!import.meta.env.DEV && !import.meta.env.VITE_API_URL) {
+    console.error('❌ CRITICAL: Using relative path in production! This will fail.');
+    console.error('   The request will try to go to:', window.location.origin + fullUrl);
+    console.error('   But your backend is on Render, not Vercel!');
+  }
+  
+  const controller = new AbortController();
+  let timeoutId = null;
   
   try {
     // Add cache-busting and ensure no caching
-    const r = await fetch(getApiUrl('/api/send-code') + '?_=' + Date.now(), {
+    timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
+    const r = await fetch(fullUrl, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -32,8 +48,11 @@ export async function sendCode(email) {
         'Pragma': 'no-cache'
       },
       body: JSON.stringify(requestBody),
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: controller.signal
     });
+    
+    if (timeoutId) clearTimeout(timeoutId);
     
     console.log('🔵 CLIENT: Response status:', r.status);
     console.log('🔵 CLIENT: Response URL:', r.url);
@@ -47,9 +66,11 @@ export async function sendCode(email) {
         errorMessage = errorJson.error || errorMessage;
       } catch {
         if (r.status === 404) {
-          errorMessage = 'Backend server not available. Please check if the server is running.';
+          errorMessage = 'Backend server not available. Please check if the server is running and VITE_API_URL is set correctly.';
         } else if (r.status >= 500) {
           errorMessage = 'Server error. Please try again later.';
+        } else if (r.status === 0) {
+          errorMessage = 'Network error. Check if the backend URL is correct and CORS is configured.';
         }
       }
       throw new Error(errorMessage);
@@ -68,6 +89,27 @@ export async function sendCode(email) {
     }
     return true;
   } catch (e) {
+    if (timeoutId) clearTimeout(timeoutId);
+    
+    // Handle network errors
+    if (e instanceof TypeError && e.message.includes('fetch')) {
+      console.error('🔵 CLIENT: Network error:', e);
+      if (!import.meta.env.VITE_API_URL) {
+        throw new Error('VITE_API_URL is not set! Go to Vercel → Settings → Environment Variables → Add VITE_API_URL with your Render backend URL (e.g., https://futrmarket-api.onrender.com)');
+      }
+      throw new Error('Network error: Unable to reach the server. Please check your internet connection and ensure VITE_API_URL is set correctly in Vercel.');
+    }
+    
+    if (e.name === 'AbortError') {
+      console.error('🔵 CLIENT: Request timeout');
+      throw new Error('Request timed out. The server may be slow or unavailable.');
+    }
+    
+    // Check if we got a 404 and VITE_API_URL is not set
+    if (e.message && e.message.includes('404') && !import.meta.env.VITE_API_URL) {
+      throw new Error('404 Error: VITE_API_URL is not set in Vercel! The request is going to the wrong URL. Set VITE_API_URL to your Render backend URL in Vercel environment variables.');
+    }
+    
     // Ensure we always throw an Error with a string message
     if (e instanceof Error) {
       throw e;

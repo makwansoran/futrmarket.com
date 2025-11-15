@@ -6,10 +6,18 @@ import { getApiUrl } from '/src/api.js';
 export async function fetchMarkets() {
   try {
     // Try API first (new contract system)
-    const res = await fetch(getApiUrl("/api/contracts"), { cache: "no-store" });
+    const apiUrl = getApiUrl("/api/contracts");
+    console.log("🔵 Fetching contracts from:", apiUrl);
+    
+    const res = await fetch(apiUrl, { cache: "no-store" });
+    console.log("🔵 Contracts API response status:", res.status, res.statusText);
+    
     if (res.ok) {
       const j = await res.json();
+      console.log("🔵 Contracts API response:", j);
+      
       if (j.ok && Array.isArray(j.data)) {
+        console.log("🔵 Found", j.data.length, "contracts");
         // Transform contract format to market format for compatibility
         return j.data.map(c => ({
           id: c.id,
@@ -29,17 +37,26 @@ export async function fetchMarkets() {
           expirationDate: c.expirationDate,
           status: c.status || null
         }));
+      } else {
+        console.warn("🔵 API response not ok or data not array:", j);
       }
+    } else {
+      const errorText = await res.text().catch(() => "");
+      console.error("🔵 Contracts API error:", res.status, errorText);
     }
     
     // Fallback to old markets.json
+    console.log("🔵 Falling back to markets.json");
     const fallback = await fetch("/markets.json", { cache: "no-store" });
     if (fallback.ok) {
       const data = await fallback.json();
+      console.log("🔵 Loaded", Array.isArray(data) ? data.length : 0, "markets from markets.json");
       return Array.isArray(data) ? data : [];
     }
+    console.warn("🔵 No contracts found from API or markets.json");
     return [];
-  } catch {
+  } catch (e) {
+    console.error("🔵 Error fetching markets:", e);
     return [];
   }
 }
