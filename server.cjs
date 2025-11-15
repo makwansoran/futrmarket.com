@@ -1081,11 +1081,8 @@ app.patch("/api/contracts/:id", requireAdmin, (req, res) => {
   if (req.body.featured !== undefined) contract.featured = Boolean(req.body.featured);
   if (req.body.live !== undefined) {
     // Explicitly handle true/false to allow un-live
+    // Convert to boolean: true if explicitly true or "true", otherwise false
     contract.live = req.body.live === true || req.body.live === "true";
-    // If explicitly set to false, ensure it's false (not undefined)
-    if (req.body.live === false || req.body.live === "false") {
-      contract.live = false;
-    }
   }
   if (req.body.status !== undefined && ["upcoming", "live", "finished", "cancelled"].includes(req.body.status)) {
     contract.status = String(req.body.status);
