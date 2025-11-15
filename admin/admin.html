@@ -933,34 +933,45 @@
         return;
       }
       token = String(token).trim();
-      // Ensure we send a proper boolean value
-      // If live is explicitly false, send false; otherwise convert to boolean
-      var liveValue;
-      if (live === false || live === "false" || live === 0) {
-        liveValue = false;
-      } else {
-        liveValue = Boolean(live === true || live === "true" || live === 1);
-      }
-      console.log("🔵 Toggling live status:", { id: id, currentLive: live, newLive: liveValue });
+      // Convert to explicit boolean - this ensures false is sent as false, not undefined
+      var liveValue = live === true || live === "true" || live === 1;
+      console.log("🔵 Toggling live status:", { 
+        id: id, 
+        receivedValue: live, 
+        typeof: typeof live,
+        convertedValue: liveValue,
+        willSend: JSON.stringify({live: liveValue})
+      });
       var r=await fetch(apiEndpoint("/api/contracts/"+encodeURIComponent(id)),{ 
         method:"PATCH", 
         headers: { "Content-Type":"application/json","x-admin-token":token }, 
         body: JSON.stringify({live: liveValue}) 
       });
       if(!r.ok){
-        var j = await r.json().catch(()=>({}));
+        var errorText = await r.text().catch(() => "");
+        var j = await JSON.parse(errorText).catch(()=>({}));
+        console.error("❌ Update failed:", { status: r.status, error: j.error || errorText });
         if(r.status===401){
           alert("Unauthorized. Check your admin token (default: 'changeme')");
         }else{
-          alert("Update failed: "+(j.error||r.status));
+          alert("Update failed: "+(j.error||r.status||"Unknown error"));
         }
         return;
       }
-      var j=await r.json(); if(!j.ok){alert("Update failed: "+(j.error||"unknown"));return}
+      var j=await r.json(); 
+      if(!j.ok){
+        console.error("❌ Response not ok:", j);
+        alert("Update failed: "+(j.error||"unknown"));
+        return;
+      }
+      console.log("✅ Update successful:", j.data);
       loadContracts();
       loadSportsContracts();
-      alert(live ? "✅ Contract marked as LIVE! It will now appear on the /live page." : "✅ Contract un-marked as live. It will no longer appear on the /live page.");
-    }catch(e){ alert(e.message || "Could not update contract"); }
+      alert(liveValue ? "✅ Contract marked as LIVE! It will now appear on the /live page." : "✅ Contract un-marked as live. It will no longer appear on the /live page.");
+    }catch(e){ 
+      console.error("❌ Error in toggleLive:", e);
+      alert(e.message || "Could not update contract"); 
+    }
   }
 
   async function toggleFeatured(id, featured){
@@ -1560,4 +1571,5 @@
   loadNews();
 })();
 </script>
+
 

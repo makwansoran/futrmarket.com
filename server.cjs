@@ -1082,11 +1082,18 @@ app.patch("/api/contracts/:id", requireAdmin, (req, res) => {
   if (req.body.live !== undefined) {
     // Explicitly handle true/false to allow un-live
     // Convert to boolean: explicitly check for true/false
+    console.log("🔵 Updating live status:", { 
+      contractId: req.params.id, 
+      receivedValue: req.body.live, 
+      typeof: typeof req.body.live,
+      willSet: req.body.live === true || req.body.live === "true"
+    });
     if (req.body.live === true || req.body.live === "true") {
       contract.live = true;
     } else {
       contract.live = false; // Explicitly set to false for un-live
     }
+    console.log("✅ Live status updated to:", contract.live);
   }
   if (req.body.status !== undefined && ["upcoming", "live", "finished", "cancelled"].includes(req.body.status)) {
     contract.status = String(req.body.status);
