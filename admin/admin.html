@@ -53,7 +53,6 @@
     <div class="mt16 flex" style="gap:8px">
       <button id="saveToken">Save Settings</button>
       <button id="testConnection" style="background:#059669">Test Connection</button>
-      <button id="refreshStats" style="background:#7c3aed">Refresh Stats</button>
     </div>
     <div id="connectionStatus" class="mt8" style="display:none"></div>
     <div class="mt8 meta">
@@ -63,50 +62,30 @@
     </div>
   </div>
 
-  <!-- Statistics Dashboard -->
-  <div class="card" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border:1px solid #334155;">
-    <h2 style="margin-bottom:16px">📊 Statistics Dashboard</h2>
-    <div id="statsContainer" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px">
-      <div style="background:#0f172a;border:1px solid #1e2937;border-radius:8px;padding:16px;text-align:center">
-        <div style="font-size:32px;font-weight:bold;color:#3b82f6;margin-bottom:8px" id="statsContracts">-</div>
-        <div style="color:#9ca3af;font-size:14px">Total Contracts</div>
-        <div style="color:#64748b;font-size:12px;margin-top:8px">
-          <span id="statsLive" style="color:#dc2626">-</span> Live • 
-          <span id="statsUpcoming" style="color:#fff">-</span> Upcoming • 
-          <span id="statsFinished" style="color:#6b7280">-</span> Finished
-        </div>
-      </div>
-      <div style="background:#0f172a;border:1px solid #1e2937;border-radius:8px;padding:16px;text-align:center">
-        <div style="font-size:32px;font-weight:bold;color:#10b981;margin-bottom:8px" id="statsOrders">-</div>
-        <div style="color:#9ca3af;font-size:14px">Total Bets/Orders</div>
-        <div style="color:#64748b;font-size:12px;margin-top:8px">
-          <span id="statsActivePositions" style="color:#10b981">-</span> Active Positions
-        </div>
-      </div>
-      <div style="background:#0f172a;border:1px solid #1e2937;border-radius:8px;padding:16px;text-align:center">
-        <div style="font-size:32px;font-weight:bold;color:#f59e0b;margin-bottom:8px" id="statsNews">-</div>
-        <div style="color:#9ca3af;font-size:14px">News Articles</div>
-      </div>
-      <div style="background:#0f172a;border:1px solid #1e2937;border-radius:8px;padding:16px;text-align:center">
-        <div style="font-size:32px;font-weight:bold;color:#8b5cf6;margin-bottom:8px" id="statsUsers">-</div>
-        <div style="color:#9ca3af;font-size:14px">Total Users</div>
-      </div>
-    </div>
-    <div class="mt16 meta" style="text-align:center">
-      Last updated: <span id="statsLastUpdate" style="color:#3b82f6">Never</span>
-    </div>
-  </div>
-
   <!-- Tab Navigation -->
   <div class="tabs">
-    <button class="tab active" data-tab="news">News</button>
+    <button class="tab active" data-tab="stats">Statistics</button>
+    <button class="tab" data-tab="news">News</button>
     <button class="tab" data-tab="contracts">Contracts</button>
     <button class="tab" data-tab="sports">Sports</button>
     <button class="tab" data-tab="accounts">Accounts</button>
   </div>
 
+  <!-- Statistics Tab -->
+  <div id="tab-stats" class="tab-content active">
+    <div class="card">
+      <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h2>Platform Statistics</h2>
+        <button id="refreshStats" style="background:#059669">Refresh</button>
+      </div>
+      <div id="statsContent">
+        <div class="meta">Loading statistics...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- News Tab -->
-  <div id="tab-news" class="tab-content active">
+  <div id="tab-news" class="tab-content">
     <div class="card">
       <h2>Create News Article</h2>
       <label>Title</label><input id="newsTitle" placeholder="News article title">
@@ -297,7 +276,8 @@
       document.getElementById("tab-"+targetTab).classList.add("active");
       
       // Load data when switching tabs
-      if(targetTab === "accounts") loadAccounts();
+      if(targetTab === "stats") loadStats();
+      else if(targetTab === "accounts") loadAccounts();
       else if(targetTab === "contracts") loadContracts();
       else if(targetTab === "news") loadNews();
       else if(targetTab === "sports") loadSports();
@@ -435,6 +415,95 @@
 
     w.appendChild(L); w.appendChild(R); return w;
   }
+
+  // Statistics elements
+  var statsContent=document.getElementById("statsContent"),refreshStatsBtn=document.getElementById("refreshStats");
+
+  async function loadStats(){
+    try{
+      var token = getT();
+      if (!token) {
+        statsContent.innerHTML="<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
+        return;
+      }
+      
+      var r=await fetch(apiEndpoint("/api/stats"),{headers:{"x-admin-token":token}});
+      if(!r.ok){
+        if(r.status === 401){
+          statsContent.innerHTML="<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
+        }else{
+          statsContent.innerHTML="<div class='meta'>Failed to load statistics: "+r.status+"</div>";
+        }
+        return;
+      }
+      
+      var j=await r.json();
+      if(!j.ok){
+        statsContent.innerHTML="<div class='meta'>Failed: "+(j.error||"unknown")+"</div>";
+        return;
+      }
+      
+      var stats = j.data;
+      var html = "<div style='display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:16px;margin-top:16px'>";
+      
+      // Contracts Stats
+      html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
+      html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>Contracts</h3>";
+      html += "<div style='font-size:32px;font-weight:bold;color:#fff;margin-bottom:8px'>"+stats.contracts.total+"</div>";
+      html += "<div class='meta' style='margin-top:8px'>";
+      html += "<div>Active: <strong>"+stats.contracts.active+"</strong></div>";
+      html += "<div>Resolved: <strong>"+stats.contracts.resolved+"</strong></div>";
+      html += "<div>Sports: <strong>"+stats.contracts.sports+"</strong></div>";
+      html += "<div>Total Volume: <strong>$"+stats.contracts.totalVolume.toFixed(2)+"</strong></div>";
+      html += "</div></div>";
+      
+      // News Stats
+      html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
+      html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>News Articles</h3>";
+      html += "<div style='font-size:32px;font-weight:bold;color:#fff;margin-bottom:8px'>"+stats.news.total+"</div>";
+      html += "<div class='meta' style='margin-top:8px'>Total published articles</div>";
+      html += "</div>";
+      
+      // Orders/Bets Stats
+      html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
+      html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>Bets/Orders</h3>";
+      html += "<div style='font-size:32px;font-weight:bold;color:#fff;margin-bottom:8px'>"+stats.orders.total+"</div>";
+      html += "<div class='meta' style='margin-top:8px'>";
+      html += "<div>Buy Orders: <strong>"+stats.orders.buy+"</strong></div>";
+      html += "<div>Sell Orders: <strong>"+stats.orders.sell+"</strong></div>";
+      html += "<div>Total Volume: <strong>$"+stats.orders.totalVolume.toFixed(2)+"</strong></div>";
+      html += "</div></div>";
+      
+      // Users Stats
+      html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
+      html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>Users</h3>";
+      html += "<div style='font-size:32px;font-weight:bold;color:#fff;margin-bottom:8px'>"+stats.users.total+"</div>";
+      html += "<div class='meta' style='margin-top:8px'>";
+      html += "<div>With Positions: <strong>"+stats.users.withPositions+"</strong></div>";
+      html += "</div></div>";
+      
+      // Competitions Stats
+      html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
+      html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>Competitions</h3>";
+      html += "<div style='font-size:32px;font-weight:bold;color:#fff;margin-bottom:8px'>"+stats.competitions.total+"</div>";
+      html += "<div class='meta' style='margin-top:8px'>Sports competitions</div>";
+      html += "</div>";
+      
+      // Ideas Stats
+      html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
+      html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>Forum Ideas</h3>";
+      html += "<div style='font-size:32px;font-weight:bold;color:#fff;margin-bottom:8px'>"+stats.ideas.total+"</div>";
+      html += "<div class='meta' style='margin-top:8px'>User-submitted ideas</div>";
+      html += "</div>";
+      
+      html += "</div>";
+      statsContent.innerHTML = html;
+    }catch(e){
+      statsContent.innerHTML="<div class='meta' style='color:#ef4444'>Failed to load statistics: "+e.message+"</div>";
+    }
+  }
+
+  if(refreshStatsBtn) refreshStatsBtn.onclick=function(){loadStats();};
 
   async function loadNews(){
     var token = getT();
@@ -1426,73 +1495,10 @@
 
   if(createSportsContractBtn) createSportsContractBtn.onclick = function(){ createSportsContract(); };
 
-  // Load statistics
-  async function loadStats(){
-    var token = getT();
-    if (!token) {
-      document.getElementById("statsContracts").textContent = "?";
-      document.getElementById("statsOrders").textContent = "?";
-      document.getElementById("statsNews").textContent = "?";
-      document.getElementById("statsUsers").textContent = "?";
-      return;
-    }
-    try {
-      var r = await fetch(apiEndpoint("/api/stats"), { headers: { "x-admin-token": token } });
-      if (!r.ok) {
-        if (r.status === 401) {
-          document.getElementById("statsContracts").textContent = "Unauthorized";
-          document.getElementById("statsOrders").textContent = "Unauthorized";
-          document.getElementById("statsNews").textContent = "Unauthorized";
-          document.getElementById("statsUsers").textContent = "Unauthorized";
-        } else {
-          document.getElementById("statsContracts").textContent = "Error";
-          document.getElementById("statsOrders").textContent = "Error";
-          document.getElementById("statsNews").textContent = "Error";
-          document.getElementById("statsUsers").textContent = "Error";
-        }
-        return;
-      }
-      var j = await r.json();
-      if (j.ok && j.data) {
-        var d = j.data;
-        // Contracts
-        document.getElementById("statsContracts").textContent = d.contracts.total || 0;
-        document.getElementById("statsLive").textContent = d.contracts.live || 0;
-        document.getElementById("statsUpcoming").textContent = d.contracts.upcoming || 0;
-        document.getElementById("statsFinished").textContent = d.contracts.finished || 0;
-        // Orders/Bets
-        document.getElementById("statsOrders").textContent = d.orders.total || 0;
-        document.getElementById("statsActivePositions").textContent = d.orders.activePositions || 0;
-        // News
-        document.getElementById("statsNews").textContent = d.news.total || 0;
-        // Users
-        document.getElementById("statsUsers").textContent = d.users.total || 0;
-        // Last update time
-        var now = new Date();
-        document.getElementById("statsLastUpdate").textContent = now.toLocaleTimeString();
-      }
-    } catch (e) {
-      console.error("Failed to load stats:", e);
-      document.getElementById("statsContracts").textContent = "Error";
-      document.getElementById("statsOrders").textContent = "Error";
-      document.getElementById("statsNews").textContent = "Error";
-      document.getElementById("statsUsers").textContent = "Error";
-    }
-  }
-
-  // Refresh stats button
-  var refreshStatsBtn = document.getElementById("refreshStats");
-  if (refreshStatsBtn) {
-    refreshStatsBtn.onclick = function() { loadStats(); };
-  }
-
-  // Auto-refresh stats every 30 seconds
-  setInterval(loadStats, 30000);
-
   // Initial load
+  loadStats();
   loadContracts();
   loadNews();
-  loadStats();
 })();
 </script>
 

@@ -1643,59 +1643,93 @@ app.get("/api/stats", requireAdmin, (req, res) => {
     const contracts = loadJSON(CONTRACTS_FILE);
     const news = loadJSON(NEWS_FILE);
     const orders = loadJSON(ORDERS_FILE);
-    const positions = loadJSON(POSITIONS_FILE);
     const users = loadJSON(USERS_FILE);
+    const competitions = loadJSON(COMPETITIONS_FILE);
+    const ideas = loadJSON(IDEAS_FILE);
+    const positions = loadJSON(POSITIONS_FILE);
+    const balances = loadJSON(BALANCES_FILE);
     
-    // Count contracts by status
-    const contractsList = Object.values(contracts);
-    const contractsByStatus = {
-      total: contractsList.length,
-      live: contractsList.filter(c => c.status === "live").length,
-      upcoming: contractsList.filter(c => c.status === "upcoming").length,
-      finished: contractsList.filter(c => c.status === "finished" || c.resolution).length,
-      active: contractsList.filter(c => !c.resolution && c.status !== "finished" && c.status !== "cancelled").length
-    };
+    // Count contracts
+    const contractsCount = Object.keys(contracts).length;
+    const sportsContractsCount = Object.values(contracts).filter(c => 
+      (c.category || "").toLowerCase() === "sports"
+    ).length;
+    const resolvedContractsCount = Object.values(contracts).filter(c => 
+      c.resolution !== null && c.resolution !== undefined
+    ).length;
     
-    // Count total orders (bets)
+    // Count news articles
+    const newsCount = Object.keys(news).length;
+    
+    // Count total orders/bets (sum across all users)
     let totalOrders = 0;
+    let totalBuyOrders = 0;
+    let totalSellOrders = 0;
+    let totalOrderVolume = 0;
     Object.values(orders).forEach(userOrders => {
       if (Array.isArray(userOrders)) {
         totalOrders += userOrders.length;
-      }
-    });
-    
-    // Count active positions (users with open positions)
-    let activePositions = 0;
-    Object.values(positions).forEach(userPositions => {
-      if (userPositions && typeof userPositions === 'object') {
-        const hasPosition = Object.values(userPositions).some(pos => {
-          return (pos.contracts && pos.contracts > 0) || 
-                 (pos.yesShares && pos.yesShares > 0) || 
-                 (pos.noShares && pos.noShares > 0);
+        userOrders.forEach(order => {
+          if (order.type === "buy") {
+            totalBuyOrders++;
+            totalOrderVolume += Number(order.amountUSD || 0);
+          } else if (order.type === "sell") {
+            totalSellOrders++;
+            totalOrderVolume += Number(order.amountUSD || 0);
+          }
         });
-        if (hasPosition) activePositions++;
       }
     });
-    
-    // Count news articles
-    const newsList = Object.values(news);
     
     // Count users
-    const usersList = Object.values(users);
+    const usersCount = Object.keys(users).length;
+    
+    // Count competitions
+    const competitionsCount = Object.keys(competitions).length;
+    
+    // Count forum ideas
+    const ideasCount = Object.keys(ideas).length;
+    
+    // Count active positions (users with positions)
+    const activePositionsCount = Object.keys(positions).filter(email => {
+      const userPositions = positions[email];
+      return userPositions && Object.keys(userPositions).length > 0;
+    }).length;
+    
+    // Calculate total volume across all contracts
+    let totalContractVolume = 0;
+    Object.values(contracts).forEach(contract => {
+      totalContractVolume += Number(contract.volume || 0);
+    });
     
     res.json({
       ok: true,
       data: {
-        contracts: contractsByStatus,
+        contracts: {
+          total: contractsCount,
+          sports: sportsContractsCount,
+          resolved: resolvedContractsCount,
+          active: contractsCount - resolvedContractsCount,
+          totalVolume: totalContractVolume
+        },
         news: {
-          total: newsList.length
+          total: newsCount
         },
         orders: {
           total: totalOrders,
-          activePositions: activePositions
+          buy: totalBuyOrders,
+          sell: totalSellOrders,
+          totalVolume: totalOrderVolume
         },
         users: {
-          total: usersList.length
+          total: usersCount,
+          withPositions: activePositionsCount
+        },
+        competitions: {
+          total: competitionsCount
+        },
+        ideas: {
+          total: ideasCount
         }
       }
     });

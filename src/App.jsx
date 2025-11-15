@@ -35,7 +35,7 @@ function LoginPageWrapper({ navigate }) {
       }}
     />
   );
-}
+      }
 
 function SignupPageWrapper({ navigate }) {
   const { login } = useUser();
@@ -43,11 +43,11 @@ function SignupPageWrapper({ navigate }) {
     <SignupPage
       onLogin={async (email) => {
         await login(email);
-        navigate("/");
+    navigate("/");
       }}
     />
   );
-}
+  }
 
 function AppContent() {
   const navigate = useNavigate();
