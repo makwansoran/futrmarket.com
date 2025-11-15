@@ -53,12 +53,47 @@
     <div class="mt16 flex" style="gap:8px">
       <button id="saveToken">Save Settings</button>
       <button id="testConnection" style="background:#059669">Test Connection</button>
+      <button id="refreshStats" style="background:#7c3aed">Refresh Stats</button>
     </div>
     <div id="connectionStatus" class="mt8" style="display:none"></div>
     <div class="mt8 meta">
       <div><strong>Current API URL:</strong> <span id="currentApiUrl" style="color:#3b82f6">Loading...</span></div>
       <div class="mt4">API URL: Your backend server URL (local or deployed). Token is sent as <code>x-admin-token</code> header.</div>
       <div class="mt4" style="color:#f59e0b"><strong>Note:</strong> Image uploads use the admin server (localhost:8788). For production, you may need to configure image hosting separately.</div>
+    </div>
+  </div>
+
+  <!-- Statistics Dashboard -->
+  <div class="card" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border:1px solid #334155;">
+    <h2 style="margin-bottom:16px">📊 Statistics Dashboard</h2>
+    <div id="statsContainer" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px">
+      <div style="background:#0f172a;border:1px solid #1e2937;border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:32px;font-weight:bold;color:#3b82f6;margin-bottom:8px" id="statsContracts">-</div>
+        <div style="color:#9ca3af;font-size:14px">Total Contracts</div>
+        <div style="color:#64748b;font-size:12px;margin-top:8px">
+          <span id="statsLive" style="color:#dc2626">-</span> Live • 
+          <span id="statsUpcoming" style="color:#fff">-</span> Upcoming • 
+          <span id="statsFinished" style="color:#6b7280">-</span> Finished
+        </div>
+      </div>
+      <div style="background:#0f172a;border:1px solid #1e2937;border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:32px;font-weight:bold;color:#10b981;margin-bottom:8px" id="statsOrders">-</div>
+        <div style="color:#9ca3af;font-size:14px">Total Bets/Orders</div>
+        <div style="color:#64748b;font-size:12px;margin-top:8px">
+          <span id="statsActivePositions" style="color:#10b981">-</span> Active Positions
+        </div>
+      </div>
+      <div style="background:#0f172a;border:1px solid #1e2937;border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:32px;font-weight:bold;color:#f59e0b;margin-bottom:8px" id="statsNews">-</div>
+        <div style="color:#9ca3af;font-size:14px">News Articles</div>
+      </div>
+      <div style="background:#0f172a;border:1px solid #1e2937;border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:32px;font-weight:bold;color:#8b5cf6;margin-bottom:8px" id="statsUsers">-</div>
+        <div style="color:#9ca3af;font-size:14px">Total Users</div>
+      </div>
+    </div>
+    <div class="mt16 meta" style="text-align:center">
+      Last updated: <span id="statsLastUpdate" style="color:#3b82f6">Never</span>
     </div>
   </div>
 
@@ -1391,9 +1426,73 @@
 
   if(createSportsContractBtn) createSportsContractBtn.onclick = function(){ createSportsContract(); };
 
+  // Load statistics
+  async function loadStats(){
+    var token = getT();
+    if (!token) {
+      document.getElementById("statsContracts").textContent = "?";
+      document.getElementById("statsOrders").textContent = "?";
+      document.getElementById("statsNews").textContent = "?";
+      document.getElementById("statsUsers").textContent = "?";
+      return;
+    }
+    try {
+      var r = await fetch(apiEndpoint("/api/stats"), { headers: { "x-admin-token": token } });
+      if (!r.ok) {
+        if (r.status === 401) {
+          document.getElementById("statsContracts").textContent = "Unauthorized";
+          document.getElementById("statsOrders").textContent = "Unauthorized";
+          document.getElementById("statsNews").textContent = "Unauthorized";
+          document.getElementById("statsUsers").textContent = "Unauthorized";
+        } else {
+          document.getElementById("statsContracts").textContent = "Error";
+          document.getElementById("statsOrders").textContent = "Error";
+          document.getElementById("statsNews").textContent = "Error";
+          document.getElementById("statsUsers").textContent = "Error";
+        }
+        return;
+      }
+      var j = await r.json();
+      if (j.ok && j.data) {
+        var d = j.data;
+        // Contracts
+        document.getElementById("statsContracts").textContent = d.contracts.total || 0;
+        document.getElementById("statsLive").textContent = d.contracts.live || 0;
+        document.getElementById("statsUpcoming").textContent = d.contracts.upcoming || 0;
+        document.getElementById("statsFinished").textContent = d.contracts.finished || 0;
+        // Orders/Bets
+        document.getElementById("statsOrders").textContent = d.orders.total || 0;
+        document.getElementById("statsActivePositions").textContent = d.orders.activePositions || 0;
+        // News
+        document.getElementById("statsNews").textContent = d.news.total || 0;
+        // Users
+        document.getElementById("statsUsers").textContent = d.users.total || 0;
+        // Last update time
+        var now = new Date();
+        document.getElementById("statsLastUpdate").textContent = now.toLocaleTimeString();
+      }
+    } catch (e) {
+      console.error("Failed to load stats:", e);
+      document.getElementById("statsContracts").textContent = "Error";
+      document.getElementById("statsOrders").textContent = "Error";
+      document.getElementById("statsNews").textContent = "Error";
+      document.getElementById("statsUsers").textContent = "Error";
+    }
+  }
+
+  // Refresh stats button
+  var refreshStatsBtn = document.getElementById("refreshStats");
+  if (refreshStatsBtn) {
+    refreshStatsBtn.onclick = function() { loadStats(); };
+  }
+
+  // Auto-refresh stats every 30 seconds
+  setInterval(loadStats, 30000);
+
   // Initial load
   loadContracts();
   loadNews();
+  loadStats();
 })();
 </script>
 

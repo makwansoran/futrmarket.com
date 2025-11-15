@@ -1637,6 +1637,74 @@ app.patch("/api/users/:email", (req, res) => {
   res.json({ ok: true, data: user });
 });
 
+// ---- Statistics endpoint (admin only) ----
+app.get("/api/stats", requireAdmin, (req, res) => {
+  try {
+    const contracts = loadJSON(CONTRACTS_FILE);
+    const news = loadJSON(NEWS_FILE);
+    const orders = loadJSON(ORDERS_FILE);
+    const positions = loadJSON(POSITIONS_FILE);
+    const users = loadJSON(USERS_FILE);
+    
+    // Count contracts by status
+    const contractsList = Object.values(contracts);
+    const contractsByStatus = {
+      total: contractsList.length,
+      live: contractsList.filter(c => c.status === "live").length,
+      upcoming: contractsList.filter(c => c.status === "upcoming").length,
+      finished: contractsList.filter(c => c.status === "finished" || c.resolution).length,
+      active: contractsList.filter(c => !c.resolution && c.status !== "finished" && c.status !== "cancelled").length
+    };
+    
+    // Count total orders (bets)
+    let totalOrders = 0;
+    Object.values(orders).forEach(userOrders => {
+      if (Array.isArray(userOrders)) {
+        totalOrders += userOrders.length;
+      }
+    });
+    
+    // Count active positions (users with open positions)
+    let activePositions = 0;
+    Object.values(positions).forEach(userPositions => {
+      if (userPositions && typeof userPositions === 'object') {
+        const hasPosition = Object.values(userPositions).some(pos => {
+          return (pos.contracts && pos.contracts > 0) || 
+                 (pos.yesShares && pos.yesShares > 0) || 
+                 (pos.noShares && pos.noShares > 0);
+        });
+        if (hasPosition) activePositions++;
+      }
+    });
+    
+    // Count news articles
+    const newsList = Object.values(news);
+    
+    // Count users
+    const usersList = Object.values(users);
+    
+    res.json({
+      ok: true,
+      data: {
+        contracts: contractsByStatus,
+        news: {
+          total: newsList.length
+        },
+        orders: {
+          total: totalOrders,
+          activePositions: activePositions
+        },
+        users: {
+          total: usersList.length
+        }
+      }
+    });
+  } catch (e) {
+    console.error("Stats error:", e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // ---- Health check endpoint (for Render deployment) ----
 app.get("/", (req, res) => {
   res.json({ ok: true, message: "FutrMarket API is running", timestamp: Date.now() });
