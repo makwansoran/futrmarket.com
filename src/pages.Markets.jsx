@@ -356,14 +356,18 @@ export default function MarketsPage({ markets=[], limit, category }){
   
   // Ensure markets is always an array
   const safeMarkets = Array.isArray(markets) ? markets : [];
+  console.log("🔵 MarketsPage: Total markets:", safeMarkets.length);
+  console.log("🔵 MarketsPage: Markets sample:", safeMarkets.slice(0, 3).map(m => ({ id: m?.id, category: m?.category, question: m?.question })));
+  
   let filteredMarkets = safeMarkets;
   
-  // Filter by category if specified
-  if (urlCategory && urlCategory !== "all" && urlCategory !== "trending" && urlCategory !== "new") {
+  // Filter by category if specified (but NOT for sports - we handle sports separately)
+  if (urlCategory && urlCategory !== "all" && urlCategory !== "trending" && urlCategory !== "new" && urlCategory !== "sports") {
     const categoryName = CATEGORY_MAP[urlCategory] || urlCategory;
     filteredMarkets = safeMarkets.filter(m => 
       m && (m.category || "").toLowerCase() === categoryName.toLowerCase()
     );
+    console.log("🔵 MarketsPage: Filtered by category", categoryName, "to", filteredMarkets.length, "markets");
   } else if (urlCategory === "trending") {
     // Sort by volume or traders for trending
     filteredMarkets = [...safeMarkets].sort((a, b) => {
@@ -393,8 +397,12 @@ export default function MarketsPage({ markets=[], limit, category }){
   // Also filter by competition if competitionSlug is provided
   // IMPORTANT: Sports bets should appear on BOTH /markets/sports (all sports) AND /markets/sports/:competitionSlug (specific competition)
   if (urlCategory === "sports" || competitionSlug) {
-    // Start with all sports bets from the filtered list
-    let sportsMarkets = list;
+    console.log("🔵 MarketsPage: Processing sports page, urlCategory:", urlCategory, "competitionSlug:", competitionSlug);
+    console.log("🔵 MarketsPage: List before sports filter:", list.length);
+    
+    // Start with ALL sports bets from safeMarkets (not filtered list, which might be empty)
+    let sportsMarkets = safeMarkets.filter(m => m && (m.category || "").toLowerCase() === "sports");
+    console.log("🔵 MarketsPage: All sports markets found:", sportsMarkets.length);
     
     // Only filter by competition if we're on a specific competition page (competitionSlug exists)
     // If we're on /markets/sports (no competitionSlug), show ALL sports bets
