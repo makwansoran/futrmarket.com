@@ -1562,6 +1562,8 @@
       }
       console.log("✅ Status update successful:", j.data);
       await loadSportsContracts();
+      // Small delay to ensure UI updates
+      await new Promise(resolve => setTimeout(resolve, 100));
       alert("✅ Status updated to: " + newStatus);
     } catch (e) {
       console.error("❌ Error updating status:", e);
