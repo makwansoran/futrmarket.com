@@ -11,24 +11,37 @@ export default function CompetitionsNav() {
   useEffect(() => {
     async function fetchCompetitions() {
       try {
-        const res = await fetch(getApiUrl("/api/competitions"));
+        const apiUrl = getApiUrl("/api/competitions");
+        console.log("🔵 CompetitionsNav: Fetching competitions from:", apiUrl);
+        const res = await fetch(apiUrl);
+        console.log("🔵 CompetitionsNav: Response status:", res.status);
         if (res.ok) {
           const data = await res.json();
+          console.log("🔵 CompetitionsNav: Competitions data:", data);
           if (data.ok && Array.isArray(data.data)) {
+            console.log("🔵 CompetitionsNav: Found", data.data.length, "competitions");
             setCompetitions(data.data);
+          } else {
+            console.warn("🔵 CompetitionsNav: Invalid data format:", data);
           }
+        } else {
+          console.error("🔵 CompetitionsNav: Failed to fetch competitions, status:", res.status);
         }
       } catch (error) {
-        console.error("Failed to load competitions:", error);
+        console.error("🔵 CompetitionsNav: Failed to load competitions:", error);
       } finally {
         setLoading(false);
       }
     }
-    fetchCompetitions();
-  }, []);
+    // Only fetch if we're on a sports page
+    if (isSportsPage) {
+      fetchCompetitions();
+    }
+  }, [isSportsPage]);
 
-  // Only show on sports page
-  if (!location.pathname.startsWith("/markets/sports")) {
+  // Only show on sports page (including /markets/sports and /markets/sports/:competitionSlug)
+  const isSportsPage = location.pathname.startsWith("/markets/sports");
+  if (!isSportsPage) {
     return null;
   }
 
@@ -44,7 +57,13 @@ export default function CompetitionsNav() {
     );
   }
 
-  if (competitions.length === 0) {
+  if (competitions.length === 0 && !loading) {
+    console.log("🔵 CompetitionsNav: No competitions found, not rendering");
+    return null;
+  }
+  
+  if (competitions.length === 0 && loading) {
+    // Already handled by loading state above
     return null;
   }
 
