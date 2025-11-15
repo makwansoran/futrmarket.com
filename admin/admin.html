@@ -729,7 +729,11 @@
     liveBtn.style.background=isLive?"#dc2626":"#6b7280";
     liveBtn.style.color="#fff";
     liveBtn.disabled=!!c.resolution;
-    liveBtn.onclick=function(){toggleLive(c.id, !isLive)};
+    liveBtn.onclick=function(){
+      var newLiveValue = !isLive;
+      console.log("🔵 Button clicked:", { contractId: c.id, currentLive: isLive, newLiveValue: newLiveValue });
+      toggleLive(c.id, newLiveValue);
+    };
     var featuredBtn=document.createElement("button"); 
     featuredBtn.textContent=c.featured?"Unfeature":"Feature";
     featuredBtn.style.marginRight="4px";
@@ -1481,7 +1485,11 @@
     liveBtn.style.borderRadius = "4px";
     liveBtn.style.border = "none";
     liveBtn.disabled = !!c.resolution;
-    liveBtn.onclick = function(){ toggleLive(c.id, !isLive); };
+    liveBtn.onclick = function(){
+      var newLiveValue = !isLive;
+      console.log("🔵 Sports button clicked:", { contractId: c.id, currentLive: isLive, newLiveValue: newLiveValue });
+      toggleLive(c.id, newLiveValue);
+    };
     var statusSelect = document.createElement("select");
     statusSelect.style.marginRight = "8px";
     statusSelect.style.padding = "4px 8px";
