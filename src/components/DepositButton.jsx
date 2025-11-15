@@ -1,5 +1,6 @@
 import React from "react"
 import { X, Copy, Check, ExternalLink, RefreshCw, CheckCircle2 } from "lucide-react"
+import { getApiUrl } from "./lib/api.js"
 
 export default function DepositButton({ userEmail, onBalanceUpdate }) {
   const [open, setOpen] = React.useState(false)
@@ -15,7 +16,7 @@ export default function DepositButton({ userEmail, onBalanceUpdate }) {
 
   async function loadAddress(a="USDC"){
     if (!userEmail) return
-    const u = `/api/wallet/address?email=${encodeURIComponent(userEmail)}&asset=${encodeURIComponent(a)}`
+    const u = getApiUrl(`/api/wallet/address?email=${encodeURIComponent(userEmail)}&asset=${encodeURIComponent(a)}`)
     const r = await fetch(u)
     const j = await r.json().catch(()=>({}))
     if (j?.ok) { setAddr(j.data.address); setQr(j.data.qrDataUrl||"") }
@@ -25,7 +26,7 @@ export default function DepositButton({ userEmail, onBalanceUpdate }) {
     if (!userEmail) return
     setLoading(true)
     try {
-      const r = await fetch(`/api/deposits?email=${encodeURIComponent(userEmail)}`)
+      const r = await fetch(getApiUrl(`/api/deposits?email=${encodeURIComponent(userEmail)}`))
       const j = await r.json().catch(()=>({}))
       if (j?.ok) setDeposits(j.data || [])
     } catch(e) {
@@ -39,7 +40,7 @@ export default function DepositButton({ userEmail, onBalanceUpdate }) {
     if (!userEmail || scanning) return
     setScanning(true)
     try {
-      const r = await fetch("/api/deposits/scan", {
+      const r = await fetch(getApiUrl("/api/deposits/scan"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail })
@@ -51,7 +52,7 @@ export default function DepositButton({ userEmail, onBalanceUpdate }) {
           await loadDeposits()
           // Update balance in parent
           if (onBalanceUpdate) {
-            const balanceR = await fetch(`/api/balances?email=${encodeURIComponent(userEmail)}`)
+            const balanceR = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(userEmail)}`))
             const balanceJ = await balanceR.json().catch(()=>({}))
             if (balanceJ?.ok) onBalanceUpdate(balanceJ.data)
           }

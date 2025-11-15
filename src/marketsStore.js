@@ -1,10 +1,12 @@
+import { getApiUrl } from './lib/api.js';
+
 /**
  * Markets store: loads contracts from API
  */
 export async function fetchMarkets() {
   try {
     // Try API first (new contract system)
-    const res = await fetch("/api/contracts", { cache: "no-store" });
+    const res = await fetch(getApiUrl("/api/contracts"), { cache: "no-store" });
     if (res.ok) {
       const j = await res.json();
       if (j.ok && Array.isArray(j.data)) {

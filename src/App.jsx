@@ -37,7 +37,8 @@ export default function App() {
   // Sync balances from server
   async function syncBalancesFromServer(email) {
     try {
-      const r = await fetch(`/api/balances?email=${encodeURIComponent(email)}`);
+      const { getApiUrl } = await import('./lib/api.js');
+      const r = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(email)}`));
       const j = await r.json().catch(() => ({}));
       if (j?.ok && j.data) {
         setCash(Number(j.data.cash || 0));
@@ -45,7 +46,7 @@ export default function App() {
         // Calculate portfolio from positions
         let portfolioValue = Number(j.data.portfolio || 0);
         try {
-          const posR = await fetch(`/api/positions?email=${encodeURIComponent(email)}`);
+          const posR = await fetch(getApiUrl(`/api/positions?email=${encodeURIComponent(email)}`));
           const posJ = await posR.json().catch(() => ({}));
           if (posJ?.ok && posJ.data?.portfolioValue != null) {
             portfolioValue = Number(posJ.data.portfolioValue || 0);

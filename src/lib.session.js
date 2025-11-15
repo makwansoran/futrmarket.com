@@ -1,4 +1,5 @@
 import localforage from 'localforage'
+import { getApiUrl } from './api.js'
 
 localforage.config({ name: 'futurbet', storeName: 'futurbet_store' })
 
@@ -22,7 +23,7 @@ export async function sendCode(email) {
   
   try {
     // Add cache-busting and ensure no caching
-    const r = await fetch('/api/send-code?_=' + Date.now(), {
+    const r = await fetch(getApiUrl('/api/send-code') + '?_=' + Date.now(), {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -77,7 +78,7 @@ export async function sendCode(email) {
 
 export async function verifyCode(email, code) {
   try {
-    const r = await fetch('/api/verify-code', {
+    const r = await fetch(getApiUrl('/api/verify-code'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, code })
