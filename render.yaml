@@ -3,7 +3,7 @@ services:
     name: futrmarket-api
     env: node
     buildCommand: npm install
-    startCommand: npm run server
+    startCommand: node server.cjs
     envVars:
       - key: NODE_ENV
         value: production
