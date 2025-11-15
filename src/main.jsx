@@ -18,6 +18,28 @@ window.addEventListener("unhandledrejection", (event) => {
   event.preventDefault();
 });
 
+// Intercept fetch requests to log 404s
+const originalFetch = window.fetch;
+window.fetch = async function(...args) {
+  const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || 'unknown';
+  try {
+    const response = await originalFetch.apply(this, args);
+    if (!response.ok && response.status === 404) {
+      // Only log 404s for non-API resources (to avoid spam)
+      if (!url.includes('/api/') && !url.includes('logo.png')) {
+        console.warn(`⚠️ 404: Resource not found: ${url}`);
+      }
+    }
+    return response;
+  } catch (error) {
+    // Network errors (CORS, etc.) will be caught here
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      console.error(`❌ Network error (likely CORS): ${url}`, error.message);
+    }
+    throw error;
+  }
+};
+
 const root = createRoot(document.getElementById("root"));
 
 root.render(

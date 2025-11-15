@@ -76,6 +76,24 @@ export function getApiUrl(endpoint) {
  */
 export async function apiRequest(endpoint, options = {}) {
   const url = getApiUrl(endpoint);
-  return fetch(url, options);
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok && response.status === 404) {
+      console.error(`❌ 404 Error: ${url}`, {
+        endpoint,
+        url,
+        status: response.status,
+        statusText: response.statusText
+      });
+    }
+    return response;
+  } catch (error) {
+    console.error(`❌ API Request Failed: ${url}`, {
+      endpoint,
+      url,
+      error: error.message
+    });
+    throw error;
+  }
 }
 
