@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.cjs",
   "scripts": {
+    "start": "node server.cjs",
     "email": "node server.cjs",
     "server": "node server.cjs",
     "server:start": "pm2 start server.cjs --name futurbet-server",
