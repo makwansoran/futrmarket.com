@@ -1087,14 +1087,24 @@ app.patch("/api/contracts/:id", requireAdmin, (req, res) => {
       contractId: req.params.id, 
       receivedValue: req.body.live, 
       typeof: typeof req.body.live,
-      willSet: req.body.live === true || req.body.live === "true"
+      isTrue: req.body.live === true,
+      isStringTrue: req.body.live === "true",
+      isFalse: req.body.live === false,
+      isStringFalse: req.body.live === "false"
     });
-    if (req.body.live === true || req.body.live === "true") {
+    // Explicitly handle both true and false
+    if (req.body.live === true || req.body.live === "true" || req.body.live === 1) {
       contract.live = true;
+      console.log("✅ Setting live to TRUE");
+    } else if (req.body.live === false || req.body.live === "false" || req.body.live === 0 || req.body.live === null) {
+      contract.live = false;
+      console.log("✅ Setting live to FALSE");
     } else {
-      contract.live = false; // Explicitly set to false for un-live
+      // Default to false if value is unclear
+      contract.live = false;
+      console.log("⚠️ Unclear value, defaulting to FALSE");
     }
-    console.log("✅ Live status updated to:", contract.live);
+    console.log("✅ Live status updated to:", contract.live, "Type:", typeof contract.live);
   }
   if (req.body.status !== undefined && ["upcoming", "live", "finished", "cancelled"].includes(req.body.status)) {
     contract.status = String(req.body.status);

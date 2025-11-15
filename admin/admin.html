@@ -939,8 +939,13 @@
         return;
       }
       token = String(token).trim();
-      // Convert to explicit boolean - this ensures false is sent as false, not undefined
-      var liveValue = live === true || live === "true" || live === 1;
+      // Convert to explicit boolean - handle both true and false explicitly
+      var liveValue;
+      if (live === false || live === "false" || live === 0 || live === null) {
+        liveValue = false;
+      } else {
+        liveValue = live === true || live === "true" || live === 1;
+      }
       console.log("🔵 Toggling live status:", { 
         id: id, 
         receivedValue: live, 
