@@ -439,10 +439,10 @@ export default function MarketsPage({ markets=[], limit, category }){
         console.log("🔵 MarketsPage: Found competition:", competition);
         console.log("🔵 MarketsPage: Competition ID:", competition.id);
         // Filter to show only bets for this specific competition
-        const allSports = list.filter(m => m && m.category === "Sports");
-        console.log("🔵 MarketsPage: All sports bets:", allSports.map(m => ({ id: m.id, question: m.question, competitionId: m.competitionId })));
+        // Use sportsMarkets which already contains all sports bets
+        console.log("🔵 MarketsPage: All sports bets before competition filter:", sportsMarkets.map(m => ({ id: m.id, question: m.question, competitionId: m.competitionId })));
         
-        sportsMarkets = allSports.filter(m => {
+        sportsMarkets = sportsMarkets.filter(m => {
           const matches = m && m.competitionId === competition.id;
           if (matches) {
             console.log("🔵 MarketsPage: Match found:", m.id, m.question, "competitionId:", m.competitionId);
