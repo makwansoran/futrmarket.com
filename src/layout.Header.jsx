@@ -140,12 +140,17 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
         {/* LEFT: logo + brand */}
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition flex-shrink-0">
+          {/* Logo - only show if it exists */}
           <img 
             src="/logo.png" 
             alt="FutrMarket Logo" 
-            className="h-8 w-8 object-contain"
+            className="h-8 w-8 object-contain hidden"
+            onLoad={(e) => {
+              // Show logo if it loads successfully
+              e.target.classList.remove('hidden');
+            }}
             onError={(e) => {
-              // Fallback to text if logo doesn't exist
+              // Hide logo if it doesn't exist (404)
               e.target.style.display = 'none';
             }}
           />
