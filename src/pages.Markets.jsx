@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useParams } from "react-router-dom";
 import { Clock, TrendingUp } from "lucide-react";
+import { getApiUrl } from "/src/api.js";
 import Thumb from "./ui.Thumb.jsx";
 
 // Small Market Card (for grid)
@@ -309,6 +310,24 @@ const CATEGORY_MAP = {
 export default function MarketsPage({ markets=[], limit, category }){
   const params = useParams();
   const urlCategory = params.category || category;
+  const competitionSlug = params.competitionSlug; // For /markets/sports/:competitionSlug
+  
+  // State for competitions (to map slug to competitionId)
+  const [competitions, setCompetitions] = React.useState([]);
+  
+  // Load competitions if we're on a sports page
+  React.useEffect(() => {
+    if (urlCategory === "sports" || competitionSlug) {
+      fetch(getApiUrl("/api/competitions"))
+        .then(r => r.json())
+        .then(j => {
+          if (j.ok && Array.isArray(j.data)) {
+            setCompetitions(j.data);
+          }
+        })
+        .catch(e => console.error("Failed to load competitions:", e));
+    }
+  }, [urlCategory, competitionSlug]);
   
   // Ensure markets is always an array
   const safeMarkets = Array.isArray(markets) ? markets : [];
@@ -346,11 +365,24 @@ export default function MarketsPage({ markets=[], limit, category }){
   };
   
   // For sports category, group by status
-  if (urlCategory === "sports") {
-    const liveMatches = list.filter(m => m.status === "live");
-    const upcomingMatches = list.filter(m => m.status === "upcoming" || (!m.status && m.category === "Sports"));
-    const finishedMatches = list.filter(m => m.status === "finished");
-    const cancelledMatches = list.filter(m => m.status === "cancelled");
+  // Also filter by competition if competitionSlug is provided
+  if (urlCategory === "sports" || competitionSlug) {
+    // If we have a competition slug, filter by that competition
+    let sportsMarkets = list;
+    if (competitionSlug && competitions.length > 0) {
+      const competition = competitions.find(c => c.slug === competitionSlug);
+      if (competition) {
+        sportsMarkets = list.filter(m => m.competitionId === competition.id);
+      } else {
+        // Competition not found, show empty
+        sportsMarkets = [];
+      }
+    }
+    
+    const liveMatches = sportsMarkets.filter(m => m.status === "live");
+    const upcomingMatches = sportsMarkets.filter(m => m.status === "upcoming" || (!m.status && m.category === "Sports"));
+    const finishedMatches = sportsMarkets.filter(m => m.status === "finished");
+    const cancelledMatches = sportsMarkets.filter(m => m.status === "cancelled");
     
     return (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">

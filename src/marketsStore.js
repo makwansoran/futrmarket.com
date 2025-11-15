@@ -50,7 +50,8 @@ export async function fetchMarkets() {
             createdAt: c.createdAt,
             featured: c.featured || false,
             expirationDate: c.expirationDate,
-            status: c.status || null
+            status: c.status || null,
+            competitionId: c.competitionId || null // Include competitionId for filtering
           }));
       } else {
         console.warn("🔵 API response not ok or data not array:", j);

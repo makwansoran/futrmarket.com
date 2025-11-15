@@ -86,5 +86,27 @@
     "noPrice": 0.5,
     "yesShares": 0,
     "noShares": 0
+  },
+  "ctr_1763220411736_mffpws5sq8g": {
+    "id": "ctr_1763220411736_mffpws5sq8g",
+    "question": "Will lakers win the championship",
+    "description": "",
+    "category": "Sports",
+    "marketPrice": 1,
+    "buyVolume": 0,
+    "sellVolume": 0,
+    "totalContracts": 0,
+    "volume": 0,
+    "traders": {},
+    "expirationDate": "2026-01-01T00:00:00.000Z",
+    "resolution": null,
+    "imageUrl": null,
+    "createdAt": 1763220411736,
+    "createdBy": "admin",
+    "featured": false,
+    "yesPrice": 0.5,
+    "noPrice": 0.5,
+    "yesShares": 0,
+    "noShares": 0
   }
 }
