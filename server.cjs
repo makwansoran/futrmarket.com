@@ -70,11 +70,18 @@ app.use((req, res, next) => {
     // Log for debugging
     console.log(`🔵 CORS: Origin: ${origin}, isLocalhost: ${isLocalhost}, isFutrmarketDomain: ${isFutrmarketDomain}, isVercelPreview: ${isVercelPreview}`);
     
+    // ALWAYS allow Vercel preview URLs - be very permissive
     if (isLocalhost || isFutrmarketDomain || isVercelPreview || allowedOrigins.includes(origin) || allowedOrigins.length === 0) {
       allowedOrigin = origin; // Use the specific origin (required for credentials)
       console.log(`✅ CORS: Allowing origin: ${allowedOrigin}`);
     } else {
-      console.warn(`❌ CORS: Blocking origin: ${origin}`);
+      // Even if not explicitly allowed, allow it if it's a Vercel domain (safety net)
+      if (origin.includes('vercel.app') || origin.includes('vercel.com')) {
+        allowedOrigin = origin;
+        console.log(`✅ CORS: Allowing Vercel origin (safety net): ${allowedOrigin}`);
+      } else {
+        console.warn(`❌ CORS: Blocking origin: ${origin}`);
+      }
     }
   } else {
     // No origin header (e.g., same-origin request or Postman) - allow it

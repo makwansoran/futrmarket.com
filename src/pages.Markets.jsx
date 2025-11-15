@@ -314,13 +314,19 @@ export default function MarketsPage({ markets=[], limit, category }){
   // Debug: Log what we're getting from params
   console.log("🔵 MarketsPage: Route params:", params);
   console.log("🔵 MarketsPage: Location pathname:", location.pathname);
+  console.log("🔵 MarketsPage: Category prop:", category);
   
+  // Check if we're on a competition-specific sports page
   const competitionSlug = params.competitionSlug; // For /markets/sports/:competitionSlug
-  // If we have a competitionSlug, we're on a sports page, so set category to "sports"
-  // Otherwise use the category from params or props
-  const urlCategory = competitionSlug ? "sports" : (params.category || category);
+  const isCompetitionPage = !!competitionSlug;
   
-  console.log("🔵 MarketsPage: urlCategory:", urlCategory, "competitionSlug:", competitionSlug);
+  // Determine category:
+  // 1. If we have competitionSlug, we're on /markets/sports/:competitionSlug, so category is "sports"
+  // 2. If category prop is "sports", use it
+  // 3. Otherwise use params.category
+  const urlCategory = isCompetitionPage ? "sports" : (category || params.category);
+  
+  console.log("🔵 MarketsPage: urlCategory:", urlCategory, "competitionSlug:", competitionSlug, "isCompetitionPage:", isCompetitionPage);
   
   // State for competitions (to map slug to competitionId)
   const [competitions, setCompetitions] = React.useState([]);
