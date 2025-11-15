@@ -549,19 +549,15 @@ export default function MarketsPage({ markets=[], limit, category }){
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {!limit && urlCategory !== "sports" && <h2 className="text-2xl font-bold text-white mb-6">{getTitle()}</h2>}
       
-      {list.length === 0 ? (
-        <div className="text-gray-400 col-span-full text-center py-8">No markets found in this category.</div>
-      ) : (
-        <>
-          {/* Featured Large Market Card */}
-          {featuredMarket && (
-            <div className="mb-6">
-              <FeaturedMarketCard m={featuredMarket} markets={safeMarkets} />
-            </div>
-          )}
-          
-          {/* Feature Fields - Only show on homepage */}
-          {limit && (
+      {/* Featured Large Market Card */}
+      {featuredMarket && (
+        <div className="mb-6">
+          <FeaturedMarketCard m={featuredMarket} markets={safeMarkets} />
+        </div>
+      )}
+      
+      {/* Feature Fields - Only show on homepage */}
+      {limit && (
             <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Legal & regulated */}
               <div className="flex items-start gap-3 bg-gray-900/50 border border-gray-800 rounded-lg p-4">
