@@ -1,4 +1,4 @@
-import { getApiUrl } from './api.js';
+import { getApiUrl } from '/src/api.js';
 
 /**
  * Markets store: loads contracts from API

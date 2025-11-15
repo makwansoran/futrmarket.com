@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com blob:; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' http://localhost:8787 http://localhost:8788 ws://localhost:* wss://localhost:* https://fonts.googleapis.com; worker-src 'self' blob:;">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>FutrMarket</title>
+    <!-- Tailwind Play CDN -->
+    <script src='https://cdn.tailwindcss.com'></script>
+    <script>
+      // optional: tiny theme tweaks
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                blue: '#3b82f6'
+              }
+            },
+            fontFamily: {
+              sans: ['Roboto', 'system-ui', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index-CkCDcu6D.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DnFK39we.css">
+  </head>
+  <body class='bg-gray-950'>
+    <div id='root'></div>
+  </body>
+</html>
