@@ -70,7 +70,10 @@ export default function CompetitionsNav() {
 
   const handleCompetitionClick = (competition) => {
     // Navigate to sports page filtered by competition
-    navigate(`/markets/sports/${competition.slug}`);
+    // Ensure slug exists, or generate one from name
+    const slug = competition.slug || competition.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    console.log("🔵 CompetitionsNav: Navigating to competition:", { name: competition.name, slug, id: competition.id });
+    navigate(`/markets/sports/${slug}`);
   };
 
   return (
@@ -102,7 +105,10 @@ export default function CompetitionsNav() {
             </span>
           </button>
           {competitions.map((competition) => {
-            const isActive = location.pathname === `/markets/sports/${competition.slug}`;
+            // Ensure slug exists, or generate one from name (for old competitions)
+            const slug = competition.slug || competition.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+            const isActive = location.pathname === `/markets/sports/${slug}`;
+            console.log("🔵 CompetitionsNav: Competition:", { name: competition.name, slug, isActive, pathname: location.pathname });
             return (
             <button
               key={competition.id}

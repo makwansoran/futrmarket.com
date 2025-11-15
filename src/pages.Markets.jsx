@@ -376,14 +376,35 @@ export default function MarketsPage({ markets=[], limit, category }){
     // Only filter by competition if we're on a specific competition page (competitionSlug exists)
     // If we're on /markets/sports (no competitionSlug), show ALL sports bets
     if (competitionSlug && competitions.length > 0) {
-      const competition = competitions.find(c => c.slug === competitionSlug);
+      console.log("🔵 MarketsPage: Filtering by competition slug:", competitionSlug);
+      console.log("🔵 MarketsPage: Available competitions:", competitions.map(c => ({ id: c.id, name: c.name, slug: c.slug })));
+      
+      const competition = competitions.find(c => {
+        // Match by slug (case-insensitive)
+        const slugMatch = c.slug && c.slug.toLowerCase() === competitionSlug.toLowerCase();
+        // Also try matching by name as fallback (for old competitions without slugs)
+        const nameMatch = c.name && c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") === competitionSlug.toLowerCase();
+        return slugMatch || nameMatch;
+      });
+      
       if (competition) {
+        console.log("🔵 MarketsPage: Found competition:", competition);
         // Filter to show only bets for this specific competition
-        sportsMarkets = list.filter(m => m && m.competitionId === competition.id);
+        sportsMarkets = list.filter(m => {
+          const matches = m && m.competitionId === competition.id;
+          if (matches) {
+            console.log("🔵 MarketsPage: Match found:", m.id, m.question);
+          }
+          return matches;
+        });
+        console.log("🔵 MarketsPage: Filtered to", sportsMarkets.length, "bets for competition", competition.name);
       } else {
+        console.warn("🔵 MarketsPage: Competition not found for slug:", competitionSlug);
         // Competition not found, show empty
         sportsMarkets = [];
       }
+    } else if (competitionSlug) {
+      console.warn("🔵 MarketsPage: Competition slug provided but competitions not loaded yet");
     }
     // If no competitionSlug, sportsMarkets = list (all sports bets) - this is correct!
     

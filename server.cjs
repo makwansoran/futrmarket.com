@@ -1441,7 +1441,13 @@ app.delete("/api/news/:id", requireAdmin, (req, res) => {
 // Get all competitions
 app.get("/api/competitions", (req, res) => {
   const competitions = loadJSON(COMPETITIONS_FILE);
-  const competitionList = Object.values(competitions);
+  const competitionList = Object.values(competitions).map(c => {
+    // Ensure all competitions have a slug (for backwards compatibility)
+    if (!c.slug && c.name) {
+      c.slug = c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    }
+    return c;
+  });
   const sorted = competitionList.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   res.json({ ok: true, data: sorted });
 });
