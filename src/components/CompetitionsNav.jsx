@@ -72,11 +72,12 @@ export default function CompetitionsNav() {
     // Navigate to sports page filtered by competition
     // Ensure slug exists, or generate one from name
     const slug = competition.slug || competition.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    const targetPath = `/markets/sports/${encodeURIComponent(slug)}`;
+    // Don't encode the slug - React Router handles it
+    const targetPath = `/markets/sports/${slug}`;
     console.log("🔵 CompetitionsNav: Navigating to competition:", { name: competition.name, slug, id: competition.id, targetPath });
     
     // Use navigate with replace: false to ensure proper routing
-    navigate(targetPath, { replace: false });
+    navigate(targetPath);
   };
 
   return (
