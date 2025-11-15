@@ -366,18 +366,24 @@ export default function MarketsPage({ markets=[], limit, category }){
   
   // For sports category, group by status
   // Also filter by competition if competitionSlug is provided
+  // IMPORTANT: Sports bets should appear on BOTH /markets/sports (all sports) AND /markets/sports/:competitionSlug (specific competition)
   if (urlCategory === "sports" || competitionSlug) {
-    // If we have a competition slug, filter by that competition
+    // Start with all sports bets from the filtered list
     let sportsMarkets = list;
+    
+    // Only filter by competition if we're on a specific competition page (competitionSlug exists)
+    // If we're on /markets/sports (no competitionSlug), show ALL sports bets
     if (competitionSlug && competitions.length > 0) {
       const competition = competitions.find(c => c.slug === competitionSlug);
       if (competition) {
-        sportsMarkets = list.filter(m => m.competitionId === competition.id);
+        // Filter to show only bets for this specific competition
+        sportsMarkets = list.filter(m => m && m.competitionId === competition.id);
       } else {
         // Competition not found, show empty
         sportsMarkets = [];
       }
     }
+    // If no competitionSlug, sportsMarkets = list (all sports bets) - this is correct!
     
     const liveMatches = sportsMarkets.filter(m => m.status === "live");
     const upcomingMatches = sportsMarkets.filter(m => m.status === "upcoming" || (!m.status && m.category === "Sports"));
