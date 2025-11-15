@@ -88,6 +88,7 @@ function AppContent() {
           <Route path="/new" element={<MarketsPage markets={markets} category="new" />} />
           <Route path="/markets" element={<MarketsPage markets={markets} />} />
           <Route path="/markets/sports/:competitionSlug" element={<MarketsPage markets={markets} />} />
+          <Route path="/markets/sports" element={<MarketsPage markets={markets} category="sports" />} />
           <Route path="/markets/:category" element={<MarketsPage markets={markets} />} />
           <Route path="/market/:id" element={<MarketDetailPage />} />
           <Route path="/live" element={<LivePage markets={markets} />} />
