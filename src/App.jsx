@@ -25,6 +25,7 @@ import {
   getBalances,
   setBalances
 } from "./lib.session.js";
+import { getApiUrl } from "./lib/api.js";
 
 export default function App() {
   const navigate = useNavigate();
@@ -37,7 +38,6 @@ export default function App() {
   // Sync balances from server
   async function syncBalancesFromServer(email) {
     try {
-      const { getApiUrl } = await import('./lib/api.js');
       const r = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(email)}`));
       const j = await r.json().catch(() => ({}));
       if (j?.ok && j.data) {
