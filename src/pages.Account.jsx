@@ -1,13 +1,15 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Mail, Image as ImageIcon, Save, X, Wallet, Copy, Check, QrCode } from "lucide-react";
-import { loadSession, saveSession } from "./lib.session.js";
+import { saveSession } from "./lib.session.js";
 import { getApiUrl } from "/src/api.js";
+import { useUser } from "./contexts/UserContext.jsx";
 import WithdrawButton from "./components/WithdrawButton.jsx";
 
-export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, cash = 0 }) {
+export default function AccountPage() {
   const navigate = useNavigate();
-  const [userEmail, setUserEmail] = React.useState(propUserEmail || "");
+  const { userEmail, cash, userProfile, refreshProfile, syncBalancesFromServer } = useUser();
+  
   const [username, setUsername] = React.useState("");
   const [profilePicture, setProfilePicture] = React.useState("");
   const [newEmail, setNewEmail] = React.useState("");
@@ -18,51 +20,36 @@ export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, ca
   const [walletAddress, setWalletAddress] = React.useState("");
   const [walletQr, setWalletQr] = React.useState("");
   const [walletCopied, setWalletCopied] = React.useState(false);
-  const [balance, setBalance] = React.useState(cash);
 
   React.useEffect(() => {
+    if (!userEmail) {
+      navigate("/login");
+      return;
+    }
     loadAccountInfo();
-  }, []);
+  }, [userEmail, navigate]);
+
+  React.useEffect(() => {
+    if (userProfile) {
+      setUsername(userProfile.username || "");
+      setProfilePicture(userProfile.profilePicture || "");
+    }
+  }, [userProfile]);
 
   async function loadAccountInfo() {
+    if (!userEmail) return;
+    
     try {
-      const session = await loadSession();
-      const email = propUserEmail || session?.email;
-      
-      if (!email) {
-        navigate("/login");
-        return;
-      }
-
-      setUserEmail(email);
-      setNewEmail(email);
-
-      // Load user profile from server
-      const r = await fetch(getApiUrl(`/api/users/${encodeURIComponent(email)}`));
-      if (r.ok) {
-        const j = await r.json();
-        if (j.ok && j.data) {
-          setUsername(j.data.username || "");
-          setProfilePicture(j.data.profilePicture || "");
-        }
-      }
+      setLoading(true);
+      setNewEmail(userEmail);
 
       // Load wallet address
-      const walletR = await fetch(getApiUrl(`/api/wallet/address?email=${encodeURIComponent(email)}&asset=USDC`));
+      const walletR = await fetch(getApiUrl(`/api/wallet/address?email=${encodeURIComponent(userEmail)}&asset=USDC`));
       if (walletR.ok) {
         const walletJ = await walletR.json();
         if (walletJ?.ok) {
           setWalletAddress(walletJ.data.address);
           setWalletQr(walletJ.data.qrDataUrl || "");
-        }
-      }
-
-      // Load balance
-      const balanceR = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(email)}`));
-      if (balanceR.ok) {
-        const balanceJ = await balanceR.json();
-        if (balanceJ?.ok && balanceJ.data) {
-          setBalance(Number(balanceJ.data.cash || 0));
         }
       }
     } catch (e) {
@@ -106,14 +93,18 @@ export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, ca
         // If email changed, update session
         if (updates.email) {
           await saveSession(updates.email);
-          setUserEmail(updates.email);
-          if (onUserUpdate) {
-            onUserUpdate(updates.email);
-          }
           // Reload account info with new email
           setNewEmail(updates.email);
-        } else {
-          // Reload account info
+        }
+        
+        // Refresh user profile and balances from context
+        await Promise.all([
+          refreshProfile(),
+          syncBalancesFromServer()
+        ]);
+        
+        // Reload wallet if email changed
+        if (updates.email) {
           await loadAccountInfo();
         }
       } else {
@@ -257,16 +248,8 @@ export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, ca
             </label>
             <WithdrawButton 
               userEmail={userEmail} 
-              cash={balance}
-              onBalanceUpdate={async () => {
-                const balanceR = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(userEmail)}`));
-                if (balanceR.ok) {
-                  const balanceJ = await balanceR.json();
-                  if (balanceJ?.ok && balanceJ.data) {
-                    setBalance(Number(balanceJ.data.cash || 0));
-                  }
-                }
-              }}
+              cash={cash}
+              onBalanceUpdate={syncBalancesFromServer}
             />
           </div>
           
@@ -315,7 +298,7 @@ export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, ca
               <div className="bg-gray-800 border border-gray-700 rounded-lg p-3">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-400">Available Balance:</span>
-                  <span className="text-green-400 font-semibold">${balance.toFixed(2)}</span>
+                  <span className="text-green-400 font-semibold">${cash.toFixed(2)}</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   Withdraw funds to your personal wallet using the Withdraw button above.

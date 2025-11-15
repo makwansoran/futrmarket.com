@@ -1,4 +1,4 @@
-<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' http://localhost:8787 http://localhost:8788;"><title>FuturBet Admin</title>
+<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' http://localhost:8787 http://localhost:8788 http: https:;"><title>FuturBet Admin</title>
 <style>
   body{background:#0b0f19;color:#e5e7eb;font-family:system-ui,Segoe UI,Roboto,Arial;margin:0}
   .wrap{max-width:1200px;margin:0 auto;padding:32px}
@@ -45,12 +45,21 @@
   <h1>FuturBet Admin</h1>
 
   <div class="card auth-section">
-    <h2>Auth</h2>
+    <h2>Auth & Connection</h2>
     <div class="row">
+      <div><label>API URL</label><input id="apiUrl" placeholder="http://localhost:8787 or https://your-api.onrender.com"></div>
       <div><label>Admin Token</label><input id="token" placeholder="enter token"></div>
-      <div class="mt24"><button id="saveToken">Save Token</button></div>
     </div>
-    <div class="mt8 meta">Sent as <code>x-admin-token</code>. Set env <code>ADMIN_TOKEN</code> when starting the server.</div>
+    <div class="mt16 flex" style="gap:8px">
+      <button id="saveToken">Save Settings</button>
+      <button id="testConnection" style="background:#059669">Test Connection</button>
+    </div>
+    <div id="connectionStatus" class="mt8" style="display:none"></div>
+    <div class="mt8 meta">
+      <div><strong>Current API URL:</strong> <span id="currentApiUrl" style="color:#3b82f6">Loading...</span></div>
+      <div class="mt4">API URL: Your backend server URL (local or deployed). Token is sent as <code>x-admin-token</code> header.</div>
+      <div class="mt4" style="color:#f59e0b"><strong>Note:</strong> Image uploads use the admin server (localhost:8788). For production, you may need to configure image hosting separately.</div>
+    </div>
   </div>
 
   <!-- Tab Navigation -->
@@ -261,7 +270,7 @@
   });
 
   // Auth
-  var tokenBox=document.getElementById("token"),saveBtn=document.getElementById("saveToken");
+  var tokenBox=document.getElementById("token"),apiUrlBox=document.getElementById("apiUrl"),saveBtn=document.getElementById("saveToken");
   function getT(){
     var token = localStorage.getItem("fb_admin_token");
     if (!token) {
@@ -271,12 +280,89 @@
     return token;
   }
   function setT(v){localStorage.setItem("fb_admin_token",v||"changeme")}
-  saveBtn.onclick=function(){ setT(tokenBox.value||""); alert("Token saved"); };
-  tokenBox.value=getT()||"changeme"; 
+  function getApiUrl(){
+    var url = localStorage.getItem("fb_admin_api_url");
+    if (!url) {
+      url = "http://localhost:8787";
+      setApiUrl(url);
+    }
+    return url.replace(/\/+$/, ""); // Remove trailing slashes
+  }
+  function setApiUrl(v){localStorage.setItem("fb_admin_api_url",v||"http://localhost:8787")}
+  function apiEndpoint(endpoint){
+    var base = getApiUrl();
+    var cleanEndpoint = endpoint.startsWith("/") ? endpoint : "/" + endpoint;
+    return base + cleanEndpoint;
+  }
+  var currentApiUrlSpan = document.getElementById("currentApiUrl");
+  var connectionStatus = document.getElementById("connectionStatus");
+  var testConnectionBtn = document.getElementById("testConnection");
+  
+  function updateCurrentApiUrl() {
+    currentApiUrlSpan.textContent = getApiUrl();
+  }
+  
+  async function testConnection() {
+    var url = getApiUrl();
+    var token = getT();
+    if (!url || !token) {
+      connectionStatus.innerHTML = "<div style='color:#ef4444'>Please set API URL and token first</div>";
+      connectionStatus.style.display = "block";
+      return;
+    }
+    
+    testConnectionBtn.disabled = true;
+    testConnectionBtn.textContent = "Testing...";
+    connectionStatus.innerHTML = "<div style='color:#9ca3af'>Testing connection to " + url + "...</div>";
+    connectionStatus.style.display = "block";
+    
+    try {
+      // Test endpoint doesn't require auth, but we'll test with auth too
+      var r = await fetch(apiEndpoint("/api/test"), {
+        method: "GET"
+      });
+      
+      if (r.ok) {
+        var j = await r.json().catch(() => ({}));
+        connectionStatus.innerHTML = "<div style='color:#10b981'><strong>✓ Connected!</strong> Server is responding.</div>";
+      } else if (r.status === 401) {
+        connectionStatus.innerHTML = "<div style='color:#ef4444'><strong>✗ Unauthorized</strong> Check your admin token.</div>";
+      } else {
+        connectionStatus.innerHTML = "<div style='color:#f59e0b'><strong>⚠ Server responded</strong> but with status " + r.status + ". Check if the API URL is correct.</div>";
+      }
+    } catch (e) {
+      connectionStatus.innerHTML = "<div style='color:#ef4444'><strong>✗ Connection failed</strong> " + e.message + ". Make sure the API URL is correct and the server is running.</div>";
+    } finally {
+      testConnectionBtn.disabled = false;
+      testConnectionBtn.textContent = "Test Connection";
+    }
+  }
+  
+  saveBtn.onclick=function(){ 
+    setT(tokenBox.value||""); 
+    setApiUrl(apiUrlBox.value||"http://localhost:8787");
+    updateCurrentApiUrl();
+    alert("Settings saved! Test the connection to verify it works."); 
+  };
+  
+  testConnectionBtn.onclick = testConnection;
+  
+  tokenBox.value=getT()||"changeme";
+  apiUrlBox.value=getApiUrl()||"http://localhost:8787";
+  updateCurrentApiUrl();
+  
   if(!localStorage.getItem("fb_admin_token")){
     setT("changeme");
     tokenBox.value="changeme";
   }
+  if(!localStorage.getItem("fb_admin_api_url")){
+    setApiUrl("http://localhost:8787");
+    apiUrlBox.value="http://localhost:8787";
+    updateCurrentApiUrl();
+  }
+  
+  // Update current URL display when input changes
+  apiUrlBox.addEventListener("input", updateCurrentApiUrl);
 
   // News elements
   var newsTitle=document.getElementById("newsTitle"),newsSummary=document.getElementById("newsSummary"),
@@ -321,7 +407,7 @@
       newsList.innerHTML="<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
       return;
     }
-    var r=await fetch("http://localhost:8787/api/news",{headers:{"x-admin-token":token}});
+    var r=await fetch(apiEndpoint("/api/news"),{headers:{"x-admin-token":token}});
     if(!r.ok){
       if(r.status===401){
         newsList.innerHTML="<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
@@ -337,7 +423,7 @@
     
     // Populate contract dropdown
     newsContractId.innerHTML = "<option value=''>None</option>";
-    var contractR = await fetch("http://localhost:8787/api/contracts",{headers:{"x-admin-token":token}});
+    var contractR = await fetch(apiEndpoint("/api/contracts"),{headers:{"x-admin-token":token}});
     if(contractR.ok){
       var contractJ = await contractR.json();
       if(contractJ.ok && contractJ.data && contractJ.data.length){
@@ -385,7 +471,7 @@
         imageUrl: imageUrl 
       };
       
-      var r=await fetch("http://localhost:8787/api/news",{ 
+      var r=await fetch(apiEndpoint("/api/news"),{ 
         method:"POST", 
         headers: { "Content-Type":"application/json","x-admin-token":token }, 
         body: JSON.stringify(payload) 
@@ -403,7 +489,7 @@
       newsTitle.value=""; newsSummary.value=""; newsUrl.value=""; newsSource.value=""; 
       newsCategory.value="News"; newsContractId.value=""; newsImg.value=""; newsPreview.innerHTML="";
       loadNews();
-      alert("News article created!");
+      alert("News article created successfully!\n\nCreated on: " + getApiUrl() + "\n\nRefresh your website to see it.");
     }catch(e){ alert(e.message || "Could not create news article"); }
   }
 
@@ -458,7 +544,7 @@
       };
       if(imageUrl) payload.imageUrl = imageUrl;
       
-      var r=await fetch("http://localhost:8787/api/news/"+encodeURIComponent(id),{ 
+      var r=await fetch(apiEndpoint("/api/news/"+encodeURIComponent(id)),{ 
         method:"PATCH", 
         headers: { "Content-Type":"application/json","x-admin-token":token }, 
         body: JSON.stringify(payload) 
@@ -483,7 +569,7 @@
   async function removeNews(id){
     if (!confirm("Delete news article "+id+"? This cannot be undone.")) return;
     var token = getT();
-    var r=await fetch("http://localhost:8787/api/news/"+encodeURIComponent(id),{ 
+    var r=await fetch(apiEndpoint("/api/news/"+encodeURIComponent(id)),{ 
       method:"DELETE", 
       headers:{ "x-admin-token":token }
     });
@@ -557,7 +643,7 @@
       contractList.innerHTML="<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
       return;
     }
-    var r=await fetch("http://localhost:8787/api/contracts",{headers:{"x-admin-token":token}});
+    var r=await fetch(apiEndpoint("/api/contracts"),{headers:{"x-admin-token":token}});
     if(!r.ok){
       if(r.status===401){
         contractList.innerHTML="<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
@@ -601,30 +687,40 @@
         expirationDate: expirationDate,
         imageUrl: imageUrl 
       };
-      var r=await fetch("http://localhost:8787/api/contracts/create",{ 
+      var r=await fetch(apiEndpoint("/api/contracts/create"),{ 
         method:"POST", 
         headers: { "Content-Type":"application/json","x-admin-token":token }, 
         body: JSON.stringify(payload) 
       });
       if(!r.ok){
+        var errorText = await r.text().catch(() => "");
+        var errorJson = {};
+        try { errorJson = JSON.parse(errorText); } catch {}
+        
         if(r.status===401){
-          alert("Unauthorized. Check your admin token (default: 'changeme')");
+          alert("Unauthorized. Check your admin token. Make sure it matches the ADMIN_TOKEN on your server.\n\nCurrent API URL: " + getApiUrl());
+        }else if(r.status===0 || r.status===404){
+          alert("Connection failed. The server at " + getApiUrl() + " is not reachable.\n\nMake sure:\n1. The API URL is correct\n2. The server is running\n3. CORS is configured properly");
         }else{
-          alert("Create failed: "+r.status);
+          alert("Create failed (Status " + r.status + "): " + (errorJson.error || errorText || "Unknown error") + "\n\nAPI URL: " + getApiUrl());
         }
         return;
       }
-      var j=await r.json(); if(!j.ok){alert("Create failed: "+(j.error||"unknown"));return}
+      var j=await r.json(); 
+      if(!j.ok){
+        alert("Create failed: " + (j.error || "unknown") + "\n\nAPI URL: " + getApiUrl());
+        return;
+      }
       contractQ.value=""; contractDesc.value=""; contractExp.value=""; contractImg.value=""; contractPreview.innerHTML="";
       loadContracts();
-      alert("Contract created!");
+      alert("Contract created successfully!\n\nCreated on: " + getApiUrl() + "\nContract ID: " + (j.data?.id || "N/A") + "\n\nRefresh your website to see it.");
     }catch(e){ alert(e.message || "Could not create contract"); }
   }
 
   async function removeContract(id){
     if (!confirm("Delete contract "+id+"? This cannot be undone.")) return;
     var token = getT();
-    var r=await fetch("http://localhost:8787/api/contracts/"+encodeURIComponent(id),{ 
+    var r=await fetch(apiEndpoint("/api/contracts/"+encodeURIComponent(id)),{ 
       method:"DELETE", 
       headers:{ "x-admin-token":token }
     });
@@ -682,7 +778,7 @@
       };
       if(imageUrl) payload.imageUrl = imageUrl;
       
-      var r=await fetch("http://localhost:8787/api/contracts/"+encodeURIComponent(id),{ 
+      var r=await fetch(apiEndpoint("/api/contracts/"+encodeURIComponent(id)),{ 
         method:"PATCH", 
         headers: { "Content-Type":"application/json","x-admin-token":token }, 
         body: JSON.stringify(payload) 
@@ -706,7 +802,7 @@
   async function resolveContract(id){
     var resolution = prompt("Resolve as YES or NO?", "yes");
     if (!resolution || (resolution.toLowerCase() !== "yes" && resolution.toLowerCase() !== "no")) return;
-    var r=await fetch("http://localhost:8787/api/contracts/"+encodeURIComponent(id)+"/resolve",{ 
+      var r=await fetch(apiEndpoint("/api/contracts/"+encodeURIComponent(id)+"/resolve"),{ 
       method:"POST", 
       headers:{ "Content-Type":"application/json","x-admin-token":getT() }, 
       body: JSON.stringify({resolution: resolution.toLowerCase()})
@@ -725,7 +821,7 @@
         return;
       }
       token = String(token).trim();
-      var r=await fetch("http://localhost:8787/api/contracts/"+encodeURIComponent(id),{ 
+      var r=await fetch(apiEndpoint("/api/contracts/"+encodeURIComponent(id)),{ 
         method:"PATCH", 
         headers: { "Content-Type":"application/json","x-admin-token":token }, 
         body: JSON.stringify({featured: featured}) 
@@ -773,7 +869,7 @@
       accountsList.innerHTML="<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
       return;
     }
-    var r=await fetch("http://localhost:8787/api/users",{headers:{"x-admin-token":token}});
+    var r=await fetch(apiEndpoint("/api/users"),{headers:{"x-admin-token":token}});
     if(!r.ok){
       if(r.status===401){
         accountsList.innerHTML="<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
@@ -856,7 +952,7 @@
       competitionsList.innerHTML = "<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
       return;
     }
-    var r = await fetch("http://localhost:8787/api/competitions", { headers: { "x-admin-token": token } });
+    var r = await fetch(apiEndpoint("/api/competitions"), { headers: { "x-admin-token": token } });
     if (!r.ok) {
       if (r.status === 401) {
         competitionsList.innerHTML = "<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
@@ -933,7 +1029,7 @@
         imageUrl: imageUrl
       };
       
-      var r = await fetch("http://localhost:8787/api/competitions", {
+      var r = await fetch(apiEndpoint("/api/competitions"), {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-token": token },
         body: JSON.stringify(payload)
@@ -959,7 +1055,7 @@
       competitionImg.value = "";
       competitionPreview.innerHTML = "";
       loadSports();
-      alert("Competition created!");
+      alert("Competition created successfully!\n\nCreated on: " + getApiUrl() + "\nCompetition ID: " + (j.data?.id || "N/A") + "\n\nRefresh your website to see it.");
     } catch (e) {
       alert(e.message || "Could not create competition");
     }
@@ -968,7 +1064,7 @@
   async function removeCompetition(id){
     if (!confirm("Delete this competition? This cannot be undone.")) return;
     var token = getT();
-    var r = await fetch("http://localhost:8787/api/competitions/" + encodeURIComponent(id), {
+    var r = await fetch(apiEndpoint("/api/competitions/" + encodeURIComponent(id)), {
       method: "DELETE",
       headers: { "x-admin-token": token }
     });
@@ -1089,7 +1185,7 @@
     if (!token) return;
     
     sportsContractCompetition.innerHTML = "<option value=''>Select Competition</option>";
-    var r = await fetch("http://localhost:8787/api/competitions", { headers: { "x-admin-token": token } });
+    var r = await fetch(apiEndpoint("/api/competitions"), { headers: { "x-admin-token": token } });
     if (r.ok) {
       var j = await r.json();
       if (j.ok && j.data && j.data.length) {
@@ -1148,25 +1244,28 @@
         status: sportsContractStatus.value || "upcoming"
       };
       
-      var r = await fetch("http://localhost:8787/api/contracts/create", {
+      var r = await fetch(apiEndpoint("/api/contracts/create"), {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-token": token },
         body: JSON.stringify(payload)
       });
       if (!r.ok) {
+        var errorText = await r.text().catch(() => "");
+        var errorJson = {};
+        try { errorJson = JSON.parse(errorText); } catch {}
+        
         if (r.status === 401) {
-          alert("Unauthorized. Check your admin token (default: 'changeme')");
+          alert("Unauthorized. Check your admin token. Make sure it matches the ADMIN_TOKEN on your server.\n\nCurrent API URL: " + getApiUrl());
+        } else if (r.status === 0 || r.status === 404) {
+          alert("Connection failed. The server at " + getApiUrl() + " is not reachable.\n\nMake sure:\n1. The API URL is correct\n2. The server is running\n3. CORS is configured properly");
         } else {
-          var errorText = await r.text().catch(() => "");
-          var j;
-          try { j = JSON.parse(errorText); } catch { j = {}; }
-          alert("Create failed: " + (j.error || r.status || "Unknown error"));
+          alert("Create failed (Status " + r.status + "): " + (errorJson.error || errorText || "Unknown error") + "\n\nAPI URL: " + getApiUrl());
         }
         return;
       }
       var j = await r.json();
       if (!j.ok) {
-        alert("Create failed: " + (j.error || "unknown"));
+        alert("Create failed: " + (j.error || "unknown") + "\n\nAPI URL: " + getApiUrl());
         return;
       }
       sportsContractQ.value = "";
@@ -1177,7 +1276,7 @@
       sportsContractImg.value = "";
       sportsContractPreview.innerHTML = "";
       loadSportsContracts();
-      alert("Sports bet created!");
+      alert("Sports bet created successfully!\n\nCreated on: " + getApiUrl() + "\nContract ID: " + (j.data?.id || "N/A") + "\n\nRefresh your website to see it.");
     } catch (e) {
       alert(e.message || "Could not create sports bet");
     }
@@ -1237,7 +1336,7 @@
         alert("Please set admin token first");
         return;
       }
-      var r = await fetch("http://localhost:8787/api/contracts/" + encodeURIComponent(contractId), {
+      var r = await fetch(apiEndpoint("/api/contracts/" + encodeURIComponent(contractId)), {
         method: "PATCH",
         headers: { "Content-Type": "application/json", "x-admin-token": token },
         body: JSON.stringify({ status: newStatus })
@@ -1259,7 +1358,7 @@
       sportsContractsList.innerHTML = "<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
       return;
     }
-    var r = await fetch("http://localhost:8787/api/contracts", { headers: { "x-admin-token": token } });
+    var r = await fetch(apiEndpoint("/api/contracts"), { headers: { "x-admin-token": token } });
     if (!r.ok) {
       if (r.status === 401) {
         sportsContractsList.innerHTML = "<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
@@ -1297,3 +1396,4 @@
   loadNews();
 })();
 </script>
+

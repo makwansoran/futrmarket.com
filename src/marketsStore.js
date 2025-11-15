@@ -43,18 +43,10 @@ export async function fetchMarkets() {
     } else {
       const errorText = await res.text().catch(() => "");
       console.error("🔵 Contracts API error:", res.status, errorText);
+      // Don't fallback - API is the source of truth
+      // If API fails, return empty array (admin-created contracts won't show until API is fixed)
+      return [];
     }
-    
-    // Fallback to old markets.json
-    console.log("🔵 Falling back to markets.json");
-    const fallback = await fetch("/markets.json", { cache: "no-store" });
-    if (fallback.ok) {
-      const data = await fallback.json();
-      console.log("🔵 Loaded", Array.isArray(data) ? data.length : 0, "markets from markets.json");
-      return Array.isArray(data) ? data : [];
-    }
-    console.warn("🔵 No contracts found from API or markets.json");
-    return [];
   } catch (e) {
     console.error("🔵 Error fetching markets:", e);
     return [];

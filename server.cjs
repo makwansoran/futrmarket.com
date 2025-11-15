@@ -79,7 +79,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     if (allowedOrigin !== '*') {
       res.setHeader('Access-Control-Allow-Credentials', 'true');
-    }
+  }
   }
   
   // Always set these headers (they're safe to set even if origin is blocked)

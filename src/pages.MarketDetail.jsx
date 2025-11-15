@@ -2,7 +2,7 @@ import React from "react";
 import { getApiUrl } from "/src/api.js";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Thumb from "./ui.Thumb.jsx";
-import { loadSession } from "./lib.session.js";
+import { useUser } from "./contexts/UserContext.jsx";
 import { Clock, TrendingUp, TrendingDown, Heart, MessageCircle, Trash2 } from "lucide-react";
 
 // Price Chart Component
@@ -566,9 +566,10 @@ function Forum({ contractId, userEmail }) {
   );
 }
 
-export default function MarketDetailPage({ markets=[], onBalanceUpdate }){
+export default function MarketDetailPage({ onBalanceUpdate }){
   const { id } = useParams();
   const navigate = useNavigate();
+  const { userEmail, updateBalance } = useUser();
   const [contract, setContract] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [side, setSide] = React.useState("yes");
@@ -576,19 +577,20 @@ export default function MarketDetailPage({ markets=[], onBalanceUpdate }){
   const [amount, setAmount] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState("");
-  const [userEmail, setUserEmail] = React.useState(null);
   const [userPosition, setUserPosition] = React.useState(null);
 
   // Load contract and user position
   React.useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    
     let cancelled = false;
     const controller = new AbortController();
     
     (async () => {
       try {
-        // Load session
-        const session = await loadSession();
-        if (!cancelled && session?.email) setUserEmail(session.email);
 
         // Load contract
         const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
@@ -605,11 +607,11 @@ export default function MarketDetailPage({ markets=[], onBalanceUpdate }){
           setContract(j.data);
           
           // Load user position if logged in
-          if (session?.email && !cancelled) {
+          if (userEmail && !cancelled) {
             try {
               const posController = new AbortController();
               const posTimeoutId = setTimeout(() => posController.abort(), 10000);
-              const posR = await fetch(getApiUrl(`/api/positions?email=${encodeURIComponent(session.email)}`), {
+              const posR = await fetch(getApiUrl(`/api/positions?email=${encodeURIComponent(userEmail)}`), {
                 signal: posController.signal,
                 cache: "no-store"
               });
@@ -695,7 +697,9 @@ export default function MarketDetailPage({ markets=[], onBalanceUpdate }){
         if (onBalanceUpdate) {
           const balanceR = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(userEmail)}`));
           const balanceJ = await balanceR.json();
-          if (balanceJ.ok) onBalanceUpdate(balanceJ.data);
+          if (balanceJ.ok && updateBalance) {
+            updateBalance(balanceJ.data);
+          }
         }
 
         setAmount("");
