@@ -20,6 +20,11 @@ const RPC_URL = process.env.RPC_URL || "https://eth.llamarpc.com"; // Public RPC
 const resend = new Resend(RESEND_API_KEY);
 const USDC_ADDRESS = process.env.USDC_ADDRESS || "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // Mainnet USDC
 const DATA = path.join(process.cwd(), "data");
+// Ensure data directory exists
+if (!fs.existsSync(DATA)) {
+  fs.mkdirSync(DATA, { recursive: true });
+  console.log("Created data directory:", DATA);
+}
 const WALLETS_FILE = path.join(DATA, "wallets.json");
 const BALANCES_FILE = path.join(DATA, "balances.json");
 const MASTER_FILE = path.join(DATA, "master.json");
@@ -39,12 +44,24 @@ const COMPETITIONS_FILE = path.join(DATA, "competitions.json");
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   
-  // Allow specific origins or all for development
-  if (origin && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
+  // Get allowed origins from environment or use defaults
+  const allowedOrigins = process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : [];
+  
+  // Allow localhost for development
+  const isLocalhost = origin && (origin.includes('localhost') || origin.includes('127.0.0.1'));
+  
+  // Allow if it's in the allowed origins list, or localhost, or allow all if no restrictions
+  if (isLocalhost || (origin && allowedOrigins.includes(origin)) || allowedOrigins.length === 0) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  } else if (allowedOrigins.length > 0) {
+    // If we have specific origins but this one isn't allowed, don't set CORS
+    // This will cause the browser to block the request
   } else {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
+  
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token');
   res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
