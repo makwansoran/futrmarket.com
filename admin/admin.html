@@ -1,0 +1,1299 @@
+<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' http://localhost:8787 http://localhost:8788;"><title>FuturBet Admin</title>
+<style>
+  body{background:#0b0f19;color:#e5e7eb;font-family:system-ui,Segoe UI,Roboto,Arial;margin:0}
+  .wrap{max-width:1200px;margin:0 auto;padding:32px}
+  .card{background:#111827;border:1px solid #1f2937;border-radius:12px;padding:20px}
+  h1{margin:0 0 16px;font-size:28px} h2{margin:0 0 12px;font-size:20px}
+  input,select,textarea{width:100%;padding:12px;border-radius:8px;border:1px solid #374151;background:#0f172a;color:#e5e7eb;box-sizing:border-box}
+  label{font-size:14px;color:#93a3b8;margin-bottom:6px;display:block}
+  button{background:#2563eb;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:14px}
+  button:hover{background:#1d4ed8}
+  button:disabled{background:#374151;cursor:not-allowed;opacity:0.5}
+  .danger{background:#b91c1c}.danger:hover{background:#991b1b}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .mt8{margin-top:8px}.mt16{margin-top:16px}.mt24{margin-top:24px}
+  .list-item{display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid #1f2937;border-radius:8px;margin-bottom:12px;background:#0f172a;position:relative}
+  .meta{color:#9ca3af;font-size:12px}.flex{display:flex;gap:8px;align-items:center}
+  img.thumb{width:64px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #1f2937}
+  img.logo{width:48px;height:48px;object-fit:cover;border-radius:50%;border:2px solid #374151}
+  .status-badge{position:absolute;top:8px;right:8px;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;z-index:10;box-shadow:0 2px 4px rgba(0,0,0,0.3)}
+  .status-live{background:#dc2626;color:#fff}
+  .status-upcoming{background:#fff;color:#000;border:1px solid #374151}
+  .status-finished{background:#000;color:#fff}
+  .status-cancelled{background:#6b7280;color:#fff}
+  
+  /* Tab Navigation */
+  .tabs{display:flex;gap:8px;border-bottom:2px solid #1f2937;margin-bottom:24px;padding-bottom:0}
+  .tab{background:transparent;border:none;padding:12px 24px;cursor:pointer;color:#9ca3af;border-bottom:2px solid transparent;margin-bottom:-2px;font-size:16px;font-weight:500}
+  .tab:hover{color:#e5e7eb;background:#1f2937}
+  .tab.active{color:#3b82f6;border-bottom-color:#3b82f6}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+  
+  /* Sports Sub Navigation */
+  .sports-nav{display:flex;gap:8px;border-bottom:2px solid #1f2937;margin-bottom:24px;padding-bottom:0;position:relative;z-index:10}
+  .sports-nav-btn{background:transparent;border:none;padding:10px 20px;cursor:pointer !important;color:#9ca3af;border-bottom:2px solid transparent;margin-bottom:-2px;font-size:14px;font-weight:500;position:relative;z-index:11;pointer-events:auto !important;user-select:none;-webkit-user-select:none}
+  .sports-nav-btn:hover{color:#e5e7eb;background:#1f2937}
+  .sports-nav-btn.active{color:#3b82f6;border-bottom-color:#3b82f6}
+  .sports-section{display:none}
+  .sports-section.active{display:block}
+  
+  /* Auth section always visible */
+  .auth-section{margin-bottom:24px}
+</style>
+<div class="wrap">
+  <h1>FuturBet Admin</h1>
+
+  <div class="card auth-section">
+    <h2>Auth</h2>
+    <div class="row">
+      <div><label>Admin Token</label><input id="token" placeholder="enter token"></div>
+      <div class="mt24"><button id="saveToken">Save Token</button></div>
+    </div>
+    <div class="mt8 meta">Sent as <code>x-admin-token</code>. Set env <code>ADMIN_TOKEN</code> when starting the server.</div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs">
+    <button class="tab active" data-tab="news">News</button>
+    <button class="tab" data-tab="contracts">Contracts</button>
+    <button class="tab" data-tab="sports">Sports</button>
+    <button class="tab" data-tab="accounts">Accounts</button>
+  </div>
+
+  <!-- News Tab -->
+  <div id="tab-news" class="tab-content active">
+    <div class="card">
+      <h2>Create News Article</h2>
+      <label>Title</label><input id="newsTitle" placeholder="News article title">
+      <label class="mt16">Summary/Description</label><textarea id="newsSummary" placeholder="Brief summary of the news article..." style="min-height:80px;resize:vertical"></textarea>
+      
+      <div class="row mt16">
+        <div><label>Article URL</label><input id="newsUrl" type="url" placeholder="https://example.com/article"></div>
+        <div><label>Source (optional)</label><input id="newsSource" placeholder="CNN, Reuters, etc."></div>
+      </div>
+
+      <div class="row mt16">
+        <div><label>Category</label>
+          <select id="newsCategory">
+            <option>News</option>
+            <option>Politics</option>
+            <option>Finance</option>
+            <option>Crypto</option>
+            <option>Economics</option>
+            <option>Tech & Science</option>
+            <option>World</option>
+            <option>Culture</option>
+          </select>
+        </div>
+        <div><label>Link to Contract (optional)</label>
+          <select id="newsContractId">
+            <option value="">None</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt16">
+        <label>Image (optional)</label>
+        <input id="newsImg" type="file" accept="image/*">
+        <div id="newsPreview" class="mt8"></div>
+      </div>
+
+      <div class="mt16"><button id="createNews">Create News Article</button></div>
+      <div class="mt8 meta">Create a news article that can be linked to a contract. Users can read the article and see related markets.</div>
+    </div>
+
+    <div class="card mt16">
+      <h2>Existing News Articles</h2>
+      <div id="newsList"></div>
+      <div class="mt8 meta">Published news articles.</div>
+    </div>
+  </div>
+
+  <!-- Contracts Tab -->
+  <div id="tab-contracts" class="tab-content">
+    <div class="card">
+      <h2>Create Contract</h2>
+      <label>Question</label><input id="contractQ" placeholder="Will BTC hit $100k in 2025?">
+      <label class="mt16">Description (optional)</label><textarea id="contractDesc" placeholder="Additional details about this contract..." style="min-height:80px;resize:vertical"></textarea>
+
+      <div class="row mt16">
+        <div><label>Category</label>
+          <select id="contractCat">
+            <option>General</option>
+            <option>Politics</option>
+            <option>Financial</option>
+            <option>Crypto</option>
+            <option>Economics</option>
+            <option>Tech & Science</option>
+            <option>Health</option>
+            <option>World</option>
+            <option>Climate</option>
+            <option>Culture</option>
+          </select>
+        </div>
+        <div><label>Expiration Date</label><input id="contractExp" type="date"></div>
+      </div>
+
+      <div class="mt16">
+        <label>Image (optional)</label>
+        <input id="contractImg" type="file" accept="image/*">
+        <div id="contractPreview" class="mt8"></div>
+      </div>
+
+      <div class="mt16"><button id="createContract">Create Contract</button></div>
+      <div class="mt8 meta">Creates a new tradeable contract. Prices start at $1 and adjust based on trading activity. Note: Sports contracts (bets) are created in the Sports section.</div>
+    </div>
+
+    <div class="card mt16">
+      <h2>Existing Contracts</h2>
+      <div id="contractList"></div>
+      <div class="mt8 meta">Tradeable contracts with AMM pricing.</div>
+    </div>
+  </div>
+
+  <!-- Sports Tab -->
+  <div id="tab-sports" class="tab-content">
+    <!-- Sports Sub Navigation -->
+    <div class="sports-nav">
+      <button class="sports-nav-btn active" data-section="competitions">Competitions</button>
+      <button class="sports-nav-btn" data-section="contracts">Create Sports Bet</button>
+    </div>
+
+    <!-- Competitions Section -->
+    <div id="sports-section-competitions" class="sports-section active">
+      <div class="card">
+        <h2>Create Competition</h2>
+        <label>Competition Name</label>
+        <input id="competitionName" placeholder="e.g., Champions League, NBA, Premier League">
+        <div class="mt16">
+          <label>Logo Image (circular, will appear in navbar)</label>
+          <input id="competitionImg" type="file" accept="image/*">
+          <div id="competitionPreview" class="mt8"></div>
+        </div>
+        <div class="mt16"><button id="createCompetition">Create Competition</button></div>
+        <div class="mt8 meta">Create competition types that will appear in the sports navigation. Upload a circular logo for each competition.</div>
+      </div>
+
+      <div class="card mt16">
+        <h2>Existing Competitions</h2>
+        <div id="competitionsList"></div>
+        <div class="mt8 meta">All competition types. These will appear in the sports navigation bar.</div>
+      </div>
+    </div>
+
+    <!-- Create Sports Contract Section -->
+    <div id="sports-section-contracts" class="sports-section">
+      <div class="card">
+        <h2>Create Sports Bet</h2>
+        <label>Question</label>
+        <input id="sportsContractQ" placeholder="Will the Lakers win the NBA championship?">
+        <label class="mt16">Description (optional)</label>
+        <textarea id="sportsContractDesc" placeholder="Additional details about this sports bet..." style="min-height:80px;resize:vertical"></textarea>
+
+        <div class="row mt16">
+          <div><label>Competition</label>
+            <select id="sportsContractCompetition">
+              <option value="">Select Competition</option>
+            </select>
+          </div>
+          <div><label>Status</label>
+            <select id="sportsContractStatus">
+              <option value="upcoming">Upcoming</option>
+              <option value="live">Live</option>
+              <option value="finished">Finished</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mt16">
+          <div><label>Expiration Date</label><input id="sportsContractExp" type="date"></div>
+        </div>
+
+        <div class="mt16">
+          <label>Image (optional)</label>
+          <input id="sportsContractImg" type="file" accept="image/*">
+          <div id="sportsContractPreview" class="mt8"></div>
+        </div>
+
+        <div class="mt16"><button id="createSportsContract">Create Sports Bet</button></div>
+        <div class="mt8 meta">Creates a new tradeable sports bet. Prices start at $1 and adjust based on trading activity.</div>
+      </div>
+
+      <div class="card mt16">
+        <h2>Existing Sports Bets</h2>
+        <div id="sportsContractsList"></div>
+        <div class="mt8 meta">All sports bets. These are contracts with category "Sports".</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accounts Tab -->
+  <div id="tab-accounts" class="tab-content">
+    <div class="card">
+      <h2>User Accounts</h2>
+      <div id="accountsList"></div>
+      <div class="mt8 meta">All registered user accounts with balances and account information.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Tab switching
+  var tabs = document.querySelectorAll(".tab");
+  var tabContents = document.querySelectorAll(".tab-content");
+  tabs.forEach(function(tab){
+    tab.onclick = function(){
+      var targetTab = tab.getAttribute("data-tab");
+      tabs.forEach(function(t){t.classList.remove("active")});
+      tabContents.forEach(function(tc){tc.classList.remove("active")});
+      tab.classList.add("active");
+      document.getElementById("tab-"+targetTab).classList.add("active");
+      
+      // Load data when switching tabs
+      if(targetTab === "accounts") loadAccounts();
+      else if(targetTab === "contracts") loadContracts();
+      else if(targetTab === "news") loadNews();
+      else if(targetTab === "sports") loadSports();
+    };
+  });
+
+  // Auth
+  var tokenBox=document.getElementById("token"),saveBtn=document.getElementById("saveToken");
+  function getT(){
+    var token = localStorage.getItem("fb_admin_token");
+    if (!token) {
+      token = "changeme";
+      setT(token);
+    }
+    return token;
+  }
+  function setT(v){localStorage.setItem("fb_admin_token",v||"changeme")}
+  saveBtn.onclick=function(){ setT(tokenBox.value||""); alert("Token saved"); };
+  tokenBox.value=getT()||"changeme"; 
+  if(!localStorage.getItem("fb_admin_token")){
+    setT("changeme");
+    tokenBox.value="changeme";
+  }
+
+  // News elements
+  var newsTitle=document.getElementById("newsTitle"),newsSummary=document.getElementById("newsSummary"),
+      newsUrl=document.getElementById("newsUrl"),newsSource=document.getElementById("newsSource"),
+      newsCategory=document.getElementById("newsCategory"),newsContractId=document.getElementById("newsContractId"),
+      newsImg=document.getElementById("newsImg"),newsPreview=document.getElementById("newsPreview"),
+      createNewsBtn=document.getElementById("createNews"),newsList=document.getElementById("newsList");
+
+  newsImg.onchange = function(){
+    newsPreview.innerHTML = "";
+    if (newsImg.files && newsImg.files[0]) {
+      var url = URL.createObjectURL(newsImg.files[0]);
+      var el = document.createElement("img");
+      el.src = url; el.className = "thumb";
+      newsPreview.appendChild(el);
+    }
+  };
+
+  function newsRow(n){
+    var w=document.createElement("div"); w.className="list-item";
+    var L=document.createElement("div");
+    var top=document.createElement("div"); top.style.display="flex"; top.style.gap="10px"; top.style.alignItems="center";
+    if (n.imageUrl) { var im=document.createElement("img"); im.src=n.imageUrl; im.className="thumb"; top.appendChild(im); }
+    var title=document.createElement("div"); title.textContent=n.title; top.appendChild(title);
+    var meta=document.createElement("div"); meta.className="meta";
+    meta.textContent=(n.category||"News")+" · "+(n.source||"Unknown source")+(n.contractId ? " · Linked to contract" : "");
+    L.appendChild(top); L.appendChild(meta);
+
+    var R=document.createElement("div"); R.className="flex";
+    var editBtn=document.createElement("button"); editBtn.textContent="Edit"; editBtn.style.marginRight="4px";
+    editBtn.onclick=function(){editNews(n)};
+    var del=document.createElement("button"); del.className="danger"; del.textContent="Delete";
+    del.onclick=function(){removeNews(n.id)};
+    R.appendChild(editBtn); R.appendChild(del);
+
+    w.appendChild(L); w.appendChild(R); return w;
+  }
+
+  async function loadNews(){
+    var token = getT();
+    if (!token) {
+      newsList.innerHTML="<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
+      return;
+    }
+    var r=await fetch("http://localhost:8787/api/news",{headers:{"x-admin-token":token}});
+    if(!r.ok){
+      if(r.status===401){
+        newsList.innerHTML="<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
+      }else{
+        newsList.innerHTML="<div class='meta'>Failed to load news: "+r.status+"</div>";
+      }
+      return;
+    }
+    var j=await r.json(); if(!j.ok){newsList.innerHTML="<div class='meta'>Failed: "+(j.error||"unknown")+"</div>";return}
+    newsList.innerHTML="";
+    if(!j.data||!j.data.length){ var e=document.createElement("div");e.className="meta";e.textContent="No news articles yet.";newsList.appendChild(e);return;}
+    for(var i=0;i<j.data.length;i++) newsList.appendChild(newsRow(j.data[i]));
+    
+    // Populate contract dropdown
+    newsContractId.innerHTML = "<option value=''>None</option>";
+    var contractR = await fetch("http://localhost:8787/api/contracts",{headers:{"x-admin-token":token}});
+    if(contractR.ok){
+      var contractJ = await contractR.json();
+      if(contractJ.ok && contractJ.data && contractJ.data.length){
+        for(var i=0;i<contractJ.data.length;i++){
+          var opt = document.createElement("option");
+          opt.value = contractJ.data[i].id;
+          opt.textContent = contractJ.data[i].question;
+          newsContractId.appendChild(opt);
+        }
+      }
+    }
+  }
+
+  async function uploadNewsImage(){
+    if (!newsImg.files || !newsImg.files[0]) return null;
+    var fd = new FormData();
+    fd.append("image", newsImg.files[0]);
+    var r = await fetch("http://localhost:8788/api/upload",{ method:"POST", headers:{ "x-admin-token":getT() }, body: fd });
+    if (!r.ok) { throw new Error("Upload failed: "+r.status); }
+    var j = await r.json();
+    if (!j.ok) { throw new Error("Upload failed: "+(j.error||"unknown")); }
+    return j.url;
+  }
+
+  async function createNews(){
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      if(!newsTitle.value.trim()){alert("Title required");return}
+      if(!newsSummary.value.trim()){alert("Summary required");return}
+      if(!newsUrl.value.trim()){alert("Article URL required");return}
+      
+      var imageUrl = await uploadNewsImage();
+      var payload = { 
+        title: newsTitle.value.trim(), 
+        summary: newsSummary.value.trim(), 
+        url: newsUrl.value.trim(),
+        source: newsSource.value.trim() || null,
+        category: newsCategory.value, 
+        contractId: newsContractId.value || null,
+        imageUrl: imageUrl 
+      };
+      
+      var r=await fetch("http://localhost:8787/api/news",{ 
+        method:"POST", 
+        headers: { "Content-Type":"application/json","x-admin-token":token }, 
+        body: JSON.stringify(payload) 
+      });
+      if(!r.ok){
+        if(r.status===401){
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        }else{
+          var j = await r.json().catch(()=>({}));
+          alert("Create failed: "+(j.error||r.status));
+        }
+        return;
+      }
+      var j=await r.json(); if(!j.ok){alert("Create failed: "+(j.error||"unknown")+"</div>");return}
+      newsTitle.value=""; newsSummary.value=""; newsUrl.value=""; newsSource.value=""; 
+      newsCategory.value="News"; newsContractId.value=""; newsImg.value=""; newsPreview.innerHTML="";
+      loadNews();
+      alert("News article created!");
+    }catch(e){ alert(e.message || "Could not create news article"); }
+  }
+
+  function editNews(n){
+    newsTitle.value=n.title||"";
+    newsSummary.value=n.summary||"";
+    newsUrl.value=n.url||"";
+    newsSource.value=n.source||"";
+    newsCategory.value=n.category||"News";
+    newsContractId.value=n.contractId||"";
+    newsImg.value="";
+    newsPreview.innerHTML="";
+    if(n.imageUrl){
+      var img=document.createElement("img");
+      img.src=n.imageUrl;
+      img.className="thumb";
+      newsPreview.appendChild(img);
+    }
+    
+    var btn=createNewsBtn;
+    var originalText=btn.textContent;
+    btn.textContent="Update News Article";
+    btn.onclick=function(){
+      updateNews(n.id);
+      btn.textContent=originalText;
+      btn.onclick=function(){createNews();};
+    };
+    
+    document.querySelector("#newsTitle").scrollIntoView({behavior:"smooth",block:"center"});
+  }
+
+  async function updateNews(id){
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      if(!newsTitle.value.trim()){alert("Title required");return}
+      if(!newsSummary.value.trim()){alert("Summary required");return}
+      if(!newsUrl.value.trim()){alert("Article URL required");return}
+      
+      var imageUrl = await uploadNewsImage();
+      var payload = { 
+        title: newsTitle.value.trim(), 
+        summary: newsSummary.value.trim(), 
+        url: newsUrl.value.trim(),
+        source: newsSource.value.trim() || null,
+        category: newsCategory.value, 
+        contractId: newsContractId.value || null
+      };
+      if(imageUrl) payload.imageUrl = imageUrl;
+      
+      var r=await fetch("http://localhost:8787/api/news/"+encodeURIComponent(id),{ 
+        method:"PATCH", 
+        headers: { "Content-Type":"application/json","x-admin-token":token }, 
+        body: JSON.stringify(payload) 
+      });
+      if(!r.ok){
+        var j = await r.json().catch(()=>({}));
+        if(r.status===401){
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        }else{
+          alert("Update failed: "+(j.error||r.status));
+        }
+        return;
+      }
+      var j=await r.json(); if(!j.ok){alert("Update failed: "+(j.error||"unknown"));return}
+      newsTitle.value=""; newsSummary.value=""; newsUrl.value=""; newsSource.value=""; 
+      newsCategory.value="News"; newsContractId.value=""; newsImg.value=""; newsPreview.innerHTML="";
+      loadNews();
+      alert("News article updated!");
+    }catch(e){ alert(e.message || "Could not update news article"); }
+  }
+
+  async function removeNews(id){
+    if (!confirm("Delete news article "+id+"? This cannot be undone.")) return;
+    var token = getT();
+    var r=await fetch("http://localhost:8787/api/news/"+encodeURIComponent(id),{ 
+      method:"DELETE", 
+      headers:{ "x-admin-token":token }
+    });
+    if(!r.ok){
+      var j = await r.json().catch(()=>({}));
+      alert("Delete failed: "+(j.error||r.status));
+      return;
+    }
+    loadNews();
+    alert("News article deleted!");
+  }
+
+  // Contracts elements
+  var contractQ=document.getElementById("contractQ"),contractDesc=document.getElementById("contractDesc"),
+      contractCat=document.getElementById("contractCat"),contractExp=document.getElementById("contractExp"),
+      contractImg=document.getElementById("contractImg"),contractPreview=document.getElementById("contractPreview"),
+      createContractBtn=document.getElementById("createContract"),contractList=document.getElementById("contractList");
+
+  contractImg.onchange = function(){
+    contractPreview.innerHTML = "";
+    if (contractImg.files && contractImg.files[0]) {
+      var url = URL.createObjectURL(contractImg.files[0]);
+      var el = document.createElement("img");
+      el.src = url; el.className = "thumb";
+      contractPreview.appendChild(el);
+    }
+  };
+
+  function contractRow(c){
+    var w=document.createElement("div"); w.className="list-item";
+    var L=document.createElement("div");
+    var top=document.createElement("div"); top.style.display="flex"; top.style.gap="10px"; top.style.alignItems="center";
+    if (c.imageUrl) { var im=document.createElement("img"); im.src=c.imageUrl; im.className="thumb"; top.appendChild(im); }
+    var title=document.createElement("div"); 
+    if (c.featured) {
+      var star=document.createElement("span"); star.textContent="⭐ "; star.style.color="#fbbf24";
+      title.appendChild(star);
+    }
+    title.appendChild(document.createTextNode(c.question));
+    top.appendChild(title);
+    var meta=document.createElement("div"); meta.className="meta";
+    var resolution = c.resolution ? " · RESOLVED: " + c.resolution.toUpperCase() : "";
+    var featured = c.featured ? " · ⭐ FEATURED" : "";
+    meta.textContent=c.category+" · YES "+Math.round((c.yesPrice||0.5)*100)+"¢ · NO "+Math.round((c.noPrice||0.5)*100)+"¢ · Volume "+c.volume+featured+resolution;
+    L.appendChild(top); L.appendChild(meta);
+
+    var R=document.createElement("div"); R.className="flex";
+    var code=document.createElement("code"); code.textContent=c.id; code.style.fontSize="11px";
+    var featuredBtn=document.createElement("button"); 
+    featuredBtn.textContent=c.featured?"Unfeature":"Feature";
+    featuredBtn.style.marginRight="4px";
+    featuredBtn.style.background=c.featured?"#f59e0b":"#10b981";
+    featuredBtn.disabled=!!c.resolution;
+    featuredBtn.onclick=function(){toggleFeatured(c.id, !c.featured)};
+    var editBtn=document.createElement("button"); editBtn.textContent="Edit"; editBtn.style.marginRight="4px";
+    editBtn.disabled=!!c.resolution;
+    editBtn.onclick=function(){editContract(c)};
+    var resolveBtn=document.createElement("button"); resolveBtn.textContent=c.resolution?"Resolved":"Resolve";
+    resolveBtn.disabled=!!c.resolution;
+    resolveBtn.onclick=function(){resolveContract(c.id)};
+    var del=document.createElement("button"); del.className="danger"; del.textContent="Delete";
+    del.onclick=function(){removeContract(c.id)};
+    R.appendChild(code); R.appendChild(featuredBtn); R.appendChild(editBtn); R.appendChild(resolveBtn); R.appendChild(del);
+
+    w.appendChild(L); w.appendChild(R); return w;
+  }
+
+  async function loadContracts(){
+    var token = getT();
+    if (!token) {
+      contractList.innerHTML="<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
+      return;
+    }
+    var r=await fetch("http://localhost:8787/api/contracts",{headers:{"x-admin-token":token}});
+    if(!r.ok){
+      if(r.status===401){
+        contractList.innerHTML="<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
+      }else{
+        contractList.innerHTML="<div class='meta'>Failed to load contracts: "+r.status+"</div>";
+      }
+      return;
+    }
+    var j=await r.json(); if(!j.ok){contractList.innerHTML="<div class='meta'>Failed: "+(j.error||"unknown")+"</div>";return}
+    contractList.innerHTML="";
+    if(!j.data||!j.data.length){ var e=document.createElement("div");e.className="meta";e.textContent="No contracts yet.";contractList.appendChild(e);return;}
+    for(var i=0;i<j.data.length;i++) contractList.appendChild(contractRow(j.data[i]));
+  }
+
+  async function uploadContractImage(){
+    if (!contractImg.files || !contractImg.files[0]) return null;
+    var fd = new FormData();
+    fd.append("image", contractImg.files[0]);
+    var r = await fetch("http://localhost:8788/api/upload",{ method:"POST", headers:{ "x-admin-token":getT() }, body: fd });
+    if (!r.ok) { throw new Error("Upload failed: "+r.status); }
+    var j = await r.json();
+    if (!j.ok) { throw new Error("Upload failed: "+(j.error||"unknown")); }
+    return j.url;
+  }
+
+  async function createContract(){
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      if(!contractQ.value.trim()){alert("Question required");return}
+      var imageUrl = await uploadContractImage();
+      var expirationDate = contractExp.value ? new Date(contractExp.value).toISOString() : null;
+      var payload = { 
+        question: contractQ.value.trim(), 
+        description: contractDesc.value.trim(), 
+        category: contractCat.value, 
+        expirationDate: expirationDate,
+        imageUrl: imageUrl 
+      };
+      var r=await fetch("http://localhost:8787/api/contracts/create",{ 
+        method:"POST", 
+        headers: { "Content-Type":"application/json","x-admin-token":token }, 
+        body: JSON.stringify(payload) 
+      });
+      if(!r.ok){
+        if(r.status===401){
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        }else{
+          alert("Create failed: "+r.status);
+        }
+        return;
+      }
+      var j=await r.json(); if(!j.ok){alert("Create failed: "+(j.error||"unknown"));return}
+      contractQ.value=""; contractDesc.value=""; contractExp.value=""; contractImg.value=""; contractPreview.innerHTML="";
+      loadContracts();
+      alert("Contract created!");
+    }catch(e){ alert(e.message || "Could not create contract"); }
+  }
+
+  async function removeContract(id){
+    if (!confirm("Delete contract "+id+"? This cannot be undone.")) return;
+    var token = getT();
+    var r=await fetch("http://localhost:8787/api/contracts/"+encodeURIComponent(id),{ 
+      method:"DELETE", 
+      headers:{ "x-admin-token":token }
+    });
+    if(!r.ok){
+      var j=await r.json().catch(()=>({}));
+      alert("Delete failed: "+(j.error||r.status));
+      return;
+    }
+    loadContracts();
+    alert("Contract deleted!");
+  }
+
+  function editContract(c){
+    contractQ.value=c.question||"";
+    contractDesc.value=c.description||"";
+    contractCat.value=c.category||"General";
+    contractExp.value=c.expirationDate ? new Date(c.expirationDate).toISOString().split('T')[0] : "";
+    contractImg.value="";
+    contractPreview.innerHTML="";
+    if(c.imageUrl){
+      var img=document.createElement("img");
+      img.src=c.imageUrl;
+      img.className="thumb";
+      contractPreview.appendChild(img);
+    }
+    
+    var btn=createContractBtn;
+    var originalText=btn.textContent;
+    btn.textContent="Update Contract";
+    btn.onclick=function(){
+      updateContract(c.id);
+      btn.textContent=originalText;
+      btn.onclick=function(){createContract();};
+    };
+    
+    document.querySelector("#contractQ").scrollIntoView({behavior:"smooth",block:"center"});
+  }
+
+  async function updateContract(id){
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      if(!contractQ.value.trim()){alert("Question required");return}
+      var imageUrl = await uploadContractImage();
+      var expirationDate = contractExp.value ? new Date(contractExp.value).toISOString() : null;
+      var payload = { 
+        question: contractQ.value.trim(), 
+        description: contractDesc.value.trim(), 
+        category: contractCat.value, 
+        expirationDate: expirationDate
+      };
+      if(imageUrl) payload.imageUrl = imageUrl;
+      
+      var r=await fetch("http://localhost:8787/api/contracts/"+encodeURIComponent(id),{ 
+        method:"PATCH", 
+        headers: { "Content-Type":"application/json","x-admin-token":token }, 
+        body: JSON.stringify(payload) 
+      });
+      if(!r.ok){
+        var j=await r.json().catch(()=>({}));
+        if(r.status===401){
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        }else{
+          alert("Update failed: "+(j.error||r.status));
+        }
+        return;
+      }
+      var j=await r.json(); if(!j.ok){alert("Update failed: "+(j.error||"unknown"));return}
+      contractQ.value=""; contractDesc.value=""; contractExp.value=""; contractImg.value=""; contractPreview.innerHTML="";
+      loadContracts();
+      alert("Contract updated!");
+    }catch(e){ alert(e.message || "Could not update contract"); }
+  }
+
+  async function resolveContract(id){
+    var resolution = prompt("Resolve as YES or NO?", "yes");
+    if (!resolution || (resolution.toLowerCase() !== "yes" && resolution.toLowerCase() !== "no")) return;
+    var r=await fetch("http://localhost:8787/api/contracts/"+encodeURIComponent(id)+"/resolve",{ 
+      method:"POST", 
+      headers:{ "Content-Type":"application/json","x-admin-token":getT() }, 
+      body: JSON.stringify({resolution: resolution.toLowerCase()})
+    });
+    if(!r.ok){alert("Resolve failed: "+r.status);return}
+    var j=await r.json(); if(!j.ok){alert("Resolve failed: "+(j.error||"unknown"));return}
+    loadContracts();
+    alert("Contract resolved! Winners have been paid.");
+  }
+
+  async function toggleFeatured(id, featured){
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      var r=await fetch("http://localhost:8787/api/contracts/"+encodeURIComponent(id),{ 
+        method:"PATCH", 
+        headers: { "Content-Type":"application/json","x-admin-token":token }, 
+        body: JSON.stringify({featured: featured}) 
+      });
+      if(!r.ok){
+        var j = await r.json().catch(()=>({}));
+        if(r.status===401){
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        }else{
+          alert("Update failed: "+(j.error||r.status));
+        }
+        return;
+      }
+      var j=await r.json(); if(!j.ok){alert("Update failed: "+(j.error||"unknown"));return}
+      loadContracts();
+      alert(featured ? "Contract featured!" : "Contract unfeatured!");
+    }catch(e){ alert(e.message || "Could not update contract"); }
+  }
+
+  // Accounts elements
+  var accountsList=document.getElementById("accountsList");
+
+  function accountRow(user){
+    var w=document.createElement("div"); w.className="list-item";
+    var L=document.createElement("div");
+    var top=document.createElement("div"); top.style.fontWeight="500"; top.style.marginBottom="4px";
+    top.textContent=user.email;
+    var meta=document.createElement("div"); meta.className="meta";
+    var createdDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown";
+    meta.textContent="Username: "+(user.username||"Not set")+" · Created: "+createdDate;
+    var balance=document.createElement("div"); balance.style.marginTop="8px"; balance.style.color="#10b981";
+    balance.textContent="Cash: $"+user.cash.toFixed(2)+" · Portfolio: $"+user.portfolio.toFixed(2)+" · Total: $"+user.totalBalance.toFixed(2);
+    L.appendChild(top); L.appendChild(meta); L.appendChild(balance);
+
+    var R=document.createElement("div"); R.className="flex";
+    var code=document.createElement("code"); code.textContent=user.email; code.style.fontSize="11px"; code.style.color="#9ca3af";
+    R.appendChild(code);
+
+    w.appendChild(L); w.appendChild(R); return w;
+  }
+
+  async function loadAccounts(){
+    var token = getT();
+    if (!token) {
+      accountsList.innerHTML="<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
+      return;
+    }
+    var r=await fetch("http://localhost:8787/api/users",{headers:{"x-admin-token":token}});
+    if(!r.ok){
+      if(r.status===401){
+        accountsList.innerHTML="<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
+      }else{
+        accountsList.innerHTML="<div class='meta'>Failed to load accounts: "+r.status+"</div>";
+      }
+      return;
+    }
+    var j=await r.json(); 
+    if(!j.ok){
+      accountsList.innerHTML="<div class='meta'>Failed: "+(j.error||"unknown")+"</div>";
+      return;
+    }
+    accountsList.innerHTML="";
+    if(!j.data||!j.data.length){ 
+      var e=document.createElement("div");
+      e.className="meta";
+      e.textContent="No user accounts yet.";
+      accountsList.appendChild(e);
+      return;
+    }
+    for(var i=0;i<j.data.length;i++) accountsList.appendChild(accountRow(j.data[i]));
+  }
+
+  // Event listeners
+  if(createContractBtn) createContractBtn.onclick=function(){ createContract(); };
+  if(createNewsBtn) createNewsBtn.onclick=function(){ createNews(); };
+
+  // Sports elements
+  var competitionName = document.getElementById("competitionName"),
+      competitionImg = document.getElementById("competitionImg"),
+      competitionPreview = document.getElementById("competitionPreview"),
+      createCompetitionBtn = document.getElementById("createCompetition"),
+      competitionsList = document.getElementById("competitionsList");
+
+  if(competitionImg && competitionPreview) {
+    competitionImg.onchange = function(){
+      competitionPreview.innerHTML = "";
+      if (competitionImg.files && competitionImg.files[0]) {
+        var url = URL.createObjectURL(competitionImg.files[0]);
+        var el = document.createElement("img");
+        el.src = url; el.className = "logo";
+        competitionPreview.appendChild(el);
+      }
+    };
+  }
+
+  function competitionRow(c){
+    var w = document.createElement("div"); w.className = "list-item";
+    var L = document.createElement("div");
+    var top = document.createElement("div"); top.style.display = "flex"; top.style.gap = "10px"; top.style.alignItems = "center";
+    if (c.imageUrl) { 
+      var im = document.createElement("img"); 
+      im.src = c.imageUrl; 
+      im.className = "logo"; 
+      top.appendChild(im); 
+    }
+    var title = document.createElement("div"); 
+    title.textContent = c.name; 
+    title.style.fontWeight = "500";
+    top.appendChild(title);
+    L.appendChild(top);
+
+    var R = document.createElement("div"); R.className = "flex";
+    var code = document.createElement("code"); code.textContent = c.id; code.style.fontSize = "11px";
+    var del = document.createElement("button"); del.className = "danger"; del.textContent = "Delete";
+    del.onclick = function(){ removeCompetition(c.id); };
+    R.appendChild(code); R.appendChild(del);
+
+    w.appendChild(L); w.appendChild(R); return w;
+  }
+
+  async function loadSports(){
+    var token = getT();
+    if (!competitionsList) {
+      console.error("competitionsList element not found");
+      return;
+    }
+    if (!token) {
+      competitionsList.innerHTML = "<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
+      return;
+    }
+    var r = await fetch("http://localhost:8787/api/competitions", { headers: { "x-admin-token": token } });
+    if (!r.ok) {
+      if (r.status === 401) {
+        competitionsList.innerHTML = "<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
+      } else {
+        competitionsList.innerHTML = "<div class='meta'>Failed to load competitions: " + r.status + "</div>";
+      }
+      return;
+    }
+    var j = await r.json();
+    if (!j.ok) {
+      competitionsList.innerHTML = "<div class='meta'>Failed: " + (j.error || "unknown") + "</div>";
+      return;
+    }
+    competitionsList.innerHTML = "";
+    if (!j.data || !j.data.length) {
+      var e = document.createElement("div");
+      e.className = "meta";
+      e.textContent = "No competitions yet. Create one above.";
+      competitionsList.appendChild(e);
+      return;
+    }
+    for (var i = 0; i < j.data.length; i++) {
+      competitionsList.appendChild(competitionRow(j.data[i]));
+    }
+    
+    // Initialize sports nav after loading
+    setTimeout(function(){
+      sportsNavInitialized = false; // Reset flag
+      initSportsNav();
+    }, 100);
+  }
+
+  async function uploadCompetitionImage(){
+    if (!competitionImg.files || !competitionImg.files[0]) return null;
+    try {
+      var fd = new FormData();
+      fd.append("image", competitionImg.files[0]);
+      var r = await fetch("http://localhost:8788/api/upload", { 
+        method: "POST", 
+        headers: { "x-admin-token": getT() }, 
+        body: fd 
+      });
+      if (!r.ok) { 
+        var errorText = await r.text();
+        throw new Error("Upload failed: " + r.status + " - " + errorText); 
+      }
+      var j = await r.json();
+      if (!j.ok) { throw new Error("Upload failed: " + (j.error || "unknown")); }
+      // Return the full URL path that will work on the main server
+      return j.url;
+    } catch (e) {
+      console.error("Upload error:", e);
+      throw e;
+    }
+  }
+
+  async function createCompetition(){
+    try {
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      if (!competitionName.value.trim()) {
+        alert("Competition name required");
+        return;
+      }
+      
+      var imageUrl = await uploadCompetitionImage();
+      
+      var payload = {
+        name: competitionName.value.trim(),
+        imageUrl: imageUrl
+      };
+      
+      var r = await fetch("http://localhost:8787/api/competitions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) {
+        if (r.status === 401) {
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        } else {
+          var errorText = await r.text().catch(() => "");
+          var j;
+          try { j = JSON.parse(errorText); } catch { j = {}; }
+          console.error("Competition creation failed:", r.status, errorText);
+          alert("Create failed: " + (j.error || r.status || "Unknown error") + "\n\nMake sure the main server (port 8787) is running and has been restarted after the latest changes.");
+        }
+        return;
+      }
+      var j = await r.json();
+      if (!j.ok) {
+        alert("Create failed: " + (j.error || "unknown"));
+        return;
+      }
+      competitionName.value = "";
+      competitionImg.value = "";
+      competitionPreview.innerHTML = "";
+      loadSports();
+      alert("Competition created!");
+    } catch (e) {
+      alert(e.message || "Could not create competition");
+    }
+  }
+
+  async function removeCompetition(id){
+    if (!confirm("Delete this competition? This cannot be undone.")) return;
+    var token = getT();
+    var r = await fetch("http://localhost:8787/api/competitions/" + encodeURIComponent(id), {
+      method: "DELETE",
+      headers: { "x-admin-token": token }
+    });
+    if (!r.ok) {
+      var j = await r.json().catch(() => ({}));
+      alert("Delete failed: " + (j.error || r.status));
+      return;
+    }
+    loadSports();
+    alert("Competition deleted!");
+  }
+
+  if(createCompetitionBtn) createCompetitionBtn.onclick = function(){ createCompetition(); };
+
+  // Sports sub-navigation
+  var sportsNavInitialized = false;
+  function initSportsNav(){
+    if(sportsNavInitialized) {
+      console.log("Sports nav already initialized");
+      return; // Already initialized
+    }
+    var sportsNavBtns = document.querySelectorAll(".sports-nav-btn");
+    var sportsSections = document.querySelectorAll(".sports-section");
+    console.log("Initializing sports nav, found buttons:", sportsNavBtns.length);
+    if(sportsNavBtns.length === 0) {
+      console.log("No sports nav buttons found");
+      return; // Elements not ready yet
+    }
+    
+    sportsNavBtns.forEach(function(btn, index){
+      console.log("Setting up button", index, btn.getAttribute("data-section"));
+      // Remove any existing handlers
+      btn.onclick = null;
+      // Use a new function to avoid closure issues
+      (function(button, sectionName){
+        button.onclick = function(e){
+          console.log("Button clicked:", sectionName);
+          if(e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          var section = button.getAttribute("data-section");
+          console.log("Section:", section);
+          if(!section) return;
+          
+          // Update active states
+          document.querySelectorAll(".sports-nav-btn").forEach(function(b){ b.classList.remove("active"); });
+          document.querySelectorAll(".sports-section").forEach(function(s){ s.classList.remove("active"); });
+          button.classList.add("active");
+          
+          var targetSection = document.getElementById("sports-section-"+section);
+          console.log("Target section element:", targetSection);
+          if(targetSection) {
+            targetSection.classList.add("active");
+          }
+          
+          // Load data when switching sections
+          if(section === "contracts") {
+            loadSportsContracts();
+            populateCompetitionDropdown();
+          }
+        };
+      })(btn, btn.getAttribute("data-section"));
+    });
+    sportsNavInitialized = true;
+    console.log("Sports nav initialized");
+  }
+  
+  // Initialize sports nav when sports tab is clicked - hook into existing tab system
+  // Find the sports tab and add initialization
+  setTimeout(function(){
+    var sportsTab = document.querySelector('.tab[data-tab="sports"]');
+    if(sportsTab) {
+      var originalClick = sportsTab.onclick;
+      sportsTab.onclick = function(){
+        if(originalClick) originalClick();
+        setTimeout(function(){
+          sportsNavInitialized = false; // Reset to allow re-initialization
+          initSportsNav();
+        }, 150);
+      };
+    }
+    
+    // Also initialize on page load if sports tab is already active
+    if(document.getElementById("tab-sports") && document.getElementById("tab-sports").classList.contains("active")) {
+      setTimeout(function(){
+        sportsNavInitialized = false;
+        initSportsNav();
+      }, 200);
+    }
+  }, 100);
+
+  // Sports contract elements
+  var sportsContractQ = document.getElementById("sportsContractQ"),
+      sportsContractDesc = document.getElementById("sportsContractDesc"),
+      sportsContractCompetition = document.getElementById("sportsContractCompetition"),
+      sportsContractStatus = document.getElementById("sportsContractStatus"),
+      sportsContractExp = document.getElementById("sportsContractExp"),
+      sportsContractImg = document.getElementById("sportsContractImg"),
+      sportsContractPreview = document.getElementById("sportsContractPreview"),
+      createSportsContractBtn = document.getElementById("createSportsContract"),
+      sportsContractsList = document.getElementById("sportsContractsList");
+
+  if(sportsContractImg && sportsContractPreview) {
+    sportsContractImg.onchange = function(){
+      sportsContractPreview.innerHTML = "";
+      if (sportsContractImg.files && sportsContractImg.files[0]) {
+        var url = URL.createObjectURL(sportsContractImg.files[0]);
+        var el = document.createElement("img");
+        el.src = url; el.className = "thumb";
+        sportsContractPreview.appendChild(el);
+      }
+    };
+  }
+
+  async function populateCompetitionDropdown(){
+    var token = getT();
+    if (!token) return;
+    
+    sportsContractCompetition.innerHTML = "<option value=''>Select Competition</option>";
+    var r = await fetch("http://localhost:8787/api/competitions", { headers: { "x-admin-token": token } });
+    if (r.ok) {
+      var j = await r.json();
+      if (j.ok && j.data && j.data.length) {
+        for (var i = 0; i < j.data.length; i++) {
+          var opt = document.createElement("option");
+          opt.value = j.data[i].id;
+          opt.textContent = j.data[i].name;
+          sportsContractCompetition.appendChild(opt);
+        }
+      }
+    }
+  }
+
+  async function uploadSportsContractImage(){
+    if (!sportsContractImg.files || !sportsContractImg.files[0]) return null;
+    var fd = new FormData();
+    fd.append("image", sportsContractImg.files[0]);
+    var r = await fetch("http://localhost:8788/api/upload", { 
+      method: "POST", 
+      headers: { "x-admin-token": getT() }, 
+      body: fd 
+    });
+    if (!r.ok) { throw new Error("Upload failed: " + r.status); }
+    var j = await r.json();
+    if (!j.ok) { throw new Error("Upload failed: " + (j.error || "unknown")); }
+    return j.url;
+  }
+
+  async function createSportsContract(){
+    try {
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      if (!sportsContractQ.value.trim()) {
+        alert("Question required");
+        return;
+      }
+      if (!sportsContractCompetition.value) {
+        alert("Please select a competition");
+        return;
+      }
+      
+      var imageUrl = await uploadSportsContractImage();
+      var expirationDate = sportsContractExp.value ? new Date(sportsContractExp.value).toISOString() : null;
+      
+      var payload = {
+        question: sportsContractQ.value.trim(),
+        description: sportsContractDesc.value.trim(),
+        category: "Sports",
+        expirationDate: expirationDate,
+        imageUrl: imageUrl,
+        competitionId: sportsContractCompetition.value,
+        status: sportsContractStatus.value || "upcoming"
+      };
+      
+      var r = await fetch("http://localhost:8787/api/contracts/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) {
+        if (r.status === 401) {
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        } else {
+          var errorText = await r.text().catch(() => "");
+          var j;
+          try { j = JSON.parse(errorText); } catch { j = {}; }
+          alert("Create failed: " + (j.error || r.status || "Unknown error"));
+        }
+        return;
+      }
+      var j = await r.json();
+      if (!j.ok) {
+        alert("Create failed: " + (j.error || "unknown"));
+        return;
+      }
+      sportsContractQ.value = "";
+      sportsContractDesc.value = "";
+      sportsContractCompetition.value = "";
+      sportsContractStatus.value = "upcoming";
+      sportsContractExp.value = "";
+      sportsContractImg.value = "";
+      sportsContractPreview.innerHTML = "";
+      loadSportsContracts();
+      alert("Sports bet created!");
+    } catch (e) {
+      alert(e.message || "Could not create sports bet");
+    }
+  }
+
+  function sportsContractRow(c){
+    var w = document.createElement("div"); w.className = "list-item";
+    var L = document.createElement("div");
+    var top = document.createElement("div"); top.style.display = "flex"; top.style.gap = "10px"; top.style.alignItems = "center";
+    if (c.imageUrl) { var im = document.createElement("img"); im.src = c.imageUrl; im.className = "thumb"; top.appendChild(im); }
+    var title = document.createElement("div");
+    if (c.featured) {
+      var star = document.createElement("span"); star.textContent = "⭐ "; star.style.color = "#fbbf24";
+      title.appendChild(star);
+    }
+    title.appendChild(document.createTextNode(c.question));
+    top.appendChild(title);
+    var meta = document.createElement("div"); meta.className = "meta";
+    var resolution = c.resolution ? " · RESOLVED: " + c.resolution.toUpperCase() : "";
+    var featured = c.featured ? " · ⭐ FEATURED" : "";
+    meta.textContent = c.category + " · YES " + Math.round((c.yesPrice || 0.5) * 100) + "¢ · NO " + Math.round((c.noPrice || 0.5) * 100) + "¢ · Volume " + c.volume + featured + resolution;
+    L.appendChild(top); L.appendChild(meta);
+
+    // Status badge
+    var status = c.status || "upcoming";
+    var statusBadge = document.createElement("div");
+    statusBadge.className = "status-badge status-" + status;
+    statusBadge.textContent = status;
+    w.appendChild(statusBadge);
+
+    var R = document.createElement("div"); R.className = "flex";
+    var statusSelect = document.createElement("select");
+    statusSelect.style.marginRight = "8px";
+    statusSelect.style.padding = "4px 8px";
+    statusSelect.style.background = "#0f172a";
+    statusSelect.style.color = "#e5e7eb";
+    statusSelect.style.border = "1px solid #374151";
+    statusSelect.style.borderRadius = "4px";
+    statusSelect.style.fontSize = "12px";
+    statusSelect.value = status;
+    statusSelect.innerHTML = "<option value='upcoming'>Upcoming</option><option value='live'>Live</option><option value='finished'>Finished</option><option value='cancelled'>Cancelled</option>";
+    statusSelect.onchange = function(){
+      updateSportsBetStatus(c.id, statusSelect.value);
+    };
+    var code = document.createElement("code"); code.textContent = c.id; code.style.fontSize = "11px";
+    var del = document.createElement("button"); del.className = "danger"; del.textContent = "Delete";
+    del.onclick = function(){ removeContract(c.id); };
+    R.appendChild(statusSelect); R.appendChild(code); R.appendChild(del);
+
+    w.appendChild(L); w.appendChild(R); return w;
+  }
+
+  async function updateSportsBetStatus(contractId, newStatus){
+    try {
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first");
+        return;
+      }
+      var r = await fetch("http://localhost:8787/api/contracts/" + encodeURIComponent(contractId), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!r.ok) {
+        var j = await r.json().catch(() => ({}));
+        alert("Update failed: " + (j.error || r.status));
+        return;
+      }
+      loadSportsContracts();
+    } catch (e) {
+      alert("Could not update status: " + e.message);
+    }
+  }
+
+  async function loadSportsContracts(){
+    var token = getT();
+    if (!token) {
+      sportsContractsList.innerHTML = "<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
+      return;
+    }
+    var r = await fetch("http://localhost:8787/api/contracts", { headers: { "x-admin-token": token } });
+    if (!r.ok) {
+      if (r.status === 401) {
+        sportsContractsList.innerHTML = "<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
+      } else {
+        sportsContractsList.innerHTML = "<div class='meta'>Failed to load contracts: " + r.status + "</div>";
+      }
+      return;
+    }
+    var j = await r.json();
+    if (!j.ok) {
+      sportsContractsList.innerHTML = "<div class='meta'>Failed: " + (j.error || "unknown") + "</div>";
+      return;
+    }
+    // Filter only Sports contracts
+    var sportsContracts = (j.data || []).filter(function(c) {
+      return (c.category || "").toLowerCase() === "sports";
+    });
+    sportsContractsList.innerHTML = "";
+    if (!sportsContracts.length) {
+      var e = document.createElement("div");
+      e.className = "meta";
+      e.textContent = "No sports bets yet.";
+      sportsContractsList.appendChild(e);
+      return;
+    }
+    for (var i = 0; i < sportsContracts.length; i++) {
+      sportsContractsList.appendChild(sportsContractRow(sportsContracts[i]));
+    }
+  }
+
+  if(createSportsContractBtn) createSportsContractBtn.onclick = function(){ createSportsContract(); };
+
+  // Initial load
+  loadContracts();
+  loadNews();
+})();
+</script>

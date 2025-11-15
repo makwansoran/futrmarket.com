@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide scrollbar for category nav */
+.overflow-x-auto::-webkit-scrollbar {
+  display: none;
+}
