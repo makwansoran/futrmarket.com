@@ -1,5 +1,6 @@
 import React from "react";
 import { X, ArrowDownLeft, Wallet, Copy, Check, AlertCircle } from "lucide-react";
+import { getApiUrl } from "/src/api.js";
 
 export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
   const [open, setOpen] = React.useState(false);
@@ -24,7 +25,7 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
   async function loadCustodialAddress() {
     if (!userEmail) return;
     try {
-      const r = await fetch(`/api/wallet/address?email=${encodeURIComponent(userEmail)}&asset=${asset}`);
+      const r = await fetch(getApiUrl(`/api/wallet/address?email=${encodeURIComponent(userEmail)}&asset=${asset}`));
       const j = await r.json().catch(() => ({}));
       if (j?.ok) {
         setCustodialAddress(j.data.address);
@@ -38,7 +39,7 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
   async function loadWithdrawals() {
     if (!userEmail) return;
     try {
-      const r = await fetch(`/api/withdrawals?email=${encodeURIComponent(userEmail)}`);
+      const r = await fetch(getApiUrl(`/api/withdrawals?email=${encodeURIComponent(userEmail)}`));
       const j = await r.json().catch(() => ({}));
       if (j?.ok) {
         setWithdrawals(j.data || []);
@@ -91,7 +92,7 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
 
     setLoading(true);
     try {
-      const r = await fetch("/api/wallet/withdraw", {
+      const r = await fetch(getApiUrl("/api/wallet/withdraw"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

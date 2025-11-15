@@ -1,4 +1,5 @@
 import React from "react";
+import { getApiUrl } from "/src/api.js";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Thumb from "./ui.Thumb.jsx";
 import { loadSession } from "./lib.session.js";
@@ -200,7 +201,7 @@ function ContractNews({ contractId }) {
 
   async function loadNews() {
     try {
-      const r = await fetch("/api/news");
+      const r = await fetch(getApiUrl("/api/news"));
       const j = await r.json();
       if (j.ok) {
         // Filter news articles linked to this contract
@@ -296,7 +297,7 @@ function Forum({ contractId, userEmail }) {
 
   async function loadComments() {
     try {
-      const r = await fetch(`/api/forum/${contractId}`);
+      const r = await fetch(getApiUrl(`/api/forum/${contractId}`));
       const j = await r.json();
       if (j.ok) {
         const commentsData = j.data || [];
@@ -318,7 +319,7 @@ function Forum({ contractId, userEmail }) {
     await Promise.all(
       emails.map(async (email) => {
         try {
-          const r = await fetch(`/api/users/${encodeURIComponent(email)}`);
+          const r = await fetch(getApiUrl(`/api/users/${encodeURIComponent(email)}`));
           const j = await r.json();
           if (j.ok && j.data) {
             profiles[email] = j.data;
@@ -341,7 +342,7 @@ function Forum({ contractId, userEmail }) {
 
     setSubmitting(true);
     try {
-      const r = await fetch(`/api/forum/${contractId}`, {
+      const r = await fetch(getApiUrl(`/api/forum/${contractId}`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -371,7 +372,7 @@ function Forum({ contractId, userEmail }) {
       return;
     }
     try {
-      const r = await fetch(`/api/forum/${contractId}/like`, {
+      const r = await fetch(getApiUrl(`/api/forum/${contractId}/like`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -391,7 +392,7 @@ function Forum({ contractId, userEmail }) {
   async function handleDelete(commentId) {
     if (!confirm("Delete this comment?")) return;
     try {
-      const r = await fetch(`/api/forum/${contractId}/${commentId}?email=${encodeURIComponent(userEmail)}`, {
+      const r = await fetch(getApiUrl(`/api/forum/${contractId}/${commentId}?email=${encodeURIComponent(userEmail)}`), {
         method: "DELETE"
       });
       const j = await r.json();
@@ -587,14 +588,14 @@ export default function MarketDetailPage({ markets=[], onBalanceUpdate }){
         if (session?.email) setUserEmail(session.email);
 
         // Load contract
-        const r = await fetch(`/api/contracts/${id}`);
+        const r = await fetch(getApiUrl(`/api/contracts/${id}`));
         const j = await r.json();
         if (j.ok) {
           setContract(j.data);
           
           // Load user position if logged in
           if (session?.email) {
-            const posR = await fetch(`/api/positions?email=${encodeURIComponent(session.email)}`);
+            const posR = await fetch(getApiUrl(`/api/positions?email=${encodeURIComponent(session.email)}`));
             const posJ = await posR.json();
             if (posJ.ok) {
               const pos = posJ.data.positions.find(p => p.contractId === id);
@@ -625,7 +626,7 @@ export default function MarketDetailPage({ markets=[], onBalanceUpdate }){
     setSubmitting(true);
     setError("");
     try {
-      const r = await fetch(`/api/contracts/${id}/order`, {
+      const r = await fetch(getApiUrl(`/api/contracts/${id}/order`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -638,11 +639,11 @@ export default function MarketDetailPage({ markets=[], onBalanceUpdate }){
       const j = await r.json();
       if (j.ok) {
         // Refresh contract and position
-        const contractR = await fetch(`/api/contracts/${id}`);
+        const contractR = await fetch(getApiUrl(`/api/contracts/${id}`));
         const contractJ = await contractR.json();
         if (contractJ.ok) setContract(contractJ.data);
 
-        const posR = await fetch(`/api/positions?email=${encodeURIComponent(userEmail)}`);
+        const posR = await fetch(getApiUrl(`/api/positions?email=${encodeURIComponent(userEmail)}`));
         const posJ = await posR.json();
         if (posJ.ok) {
           const pos = posJ.data.positions.find(p => p.contractId === id);
@@ -651,7 +652,7 @@ export default function MarketDetailPage({ markets=[], onBalanceUpdate }){
 
         // Update balance
         if (onBalanceUpdate) {
-          const balanceR = await fetch(`/api/balances?email=${encodeURIComponent(userEmail)}`);
+          const balanceR = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(userEmail)}`));
           const balanceJ = await balanceR.json();
           if (balanceJ.ok) onBalanceUpdate(balanceJ.data);
         }

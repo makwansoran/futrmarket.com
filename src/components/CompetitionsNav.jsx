@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getApiUrl } from "/src/api.js";
 
 export default function CompetitionsNav() {
   const [competitions, setCompetitions] = useState([]);
@@ -10,7 +11,7 @@ export default function CompetitionsNav() {
   useEffect(() => {
     async function fetchCompetitions() {
       try {
-        const res = await fetch("/api/competitions");
+        const res = await fetch(getApiUrl("/api/competitions"));
         if (res.ok) {
           const data = await res.json();
           if (data.ok && Array.isArray(data.data)) {

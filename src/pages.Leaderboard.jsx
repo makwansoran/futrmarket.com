@@ -1,4 +1,5 @@
 import React from "react";
+import { getApiUrl } from "/src/api.js";
 
 export default function LeaderboardPage(){
   const [leaderboard, setLeaderboard] = React.useState([]);
@@ -14,7 +15,7 @@ export default function LeaderboardPage(){
       setLoading(true);
       setError("");
       
-      const r = await fetch("/api/leaderboard", {
+      const r = await fetch(getApiUrl("/api/leaderboard"), {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

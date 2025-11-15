@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Mail, Image as ImageIcon, Save, X, Wallet, Copy, Check, QrCode } from "lucide-react";
 import { loadSession, saveSession } from "./lib.session.js";
+import { getApiUrl } from "/src/api.js";
 import WithdrawButton from "./components/WithdrawButton.jsx";
 
 export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, cash = 0 }) {
@@ -37,7 +38,7 @@ export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, ca
       setNewEmail(email);
 
       // Load user profile from server
-      const r = await fetch(`/api/users/${encodeURIComponent(email)}`);
+      const r = await fetch(getApiUrl(`/api/users/${encodeURIComponent(email)}`));
       if (r.ok) {
         const j = await r.json();
         if (j.ok && j.data) {
@@ -47,7 +48,7 @@ export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, ca
       }
 
       // Load wallet address
-      const walletR = await fetch(`/api/wallet/address?email=${encodeURIComponent(email)}&asset=USDC`);
+      const walletR = await fetch(getApiUrl(`/api/wallet/address?email=${encodeURIComponent(email)}&asset=USDC`));
       if (walletR.ok) {
         const walletJ = await walletR.json();
         if (walletJ?.ok) {
@@ -57,7 +58,7 @@ export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, ca
       }
 
       // Load balance
-      const balanceR = await fetch(`/api/balances?email=${encodeURIComponent(email)}`);
+      const balanceR = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(email)}`));
       if (balanceR.ok) {
         const balanceJ = await balanceR.json();
         if (balanceJ?.ok && balanceJ.data) {
@@ -92,7 +93,7 @@ export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, ca
         return;
       }
 
-      const r = await fetch(`/api/users/${encodeURIComponent(userEmail)}`, {
+      const r = await fetch(getApiUrl(`/api/users/${encodeURIComponent(userEmail)}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates)
@@ -258,7 +259,7 @@ export default function AccountPage({ userEmail: propUserEmail, onUserUpdate, ca
               userEmail={userEmail} 
               cash={balance}
               onBalanceUpdate={async () => {
-                const balanceR = await fetch(`/api/balances?email=${encodeURIComponent(userEmail)}`);
+                const balanceR = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(userEmail)}`));
                 if (balanceR.ok) {
                   const balanceJ = await balanceR.json();
                   if (balanceJ?.ok && balanceJ.data) {

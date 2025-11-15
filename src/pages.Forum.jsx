@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { MessageSquare, Plus, Heart, Clock, Trash2 } from "lucide-react";
 import { loadSession } from "./lib.session.js";
+import { getApiUrl } from "/src/api.js";
 
 export default function ForumPage() {
   const [ideas, setIdeas] = React.useState([]);
@@ -24,7 +25,7 @@ export default function ForumPage() {
 
   async function loadIdeas() {
     try {
-      const r = await fetch("/api/ideas");
+      const r = await fetch(getApiUrl("/api/ideas"));
       const j = await r.json();
       if (j.ok) {
         const ideasData = j.data || [];
@@ -46,7 +47,7 @@ export default function ForumPage() {
     await Promise.all(
       emails.map(async (email) => {
         try {
-          const r = await fetch(`/api/users/${encodeURIComponent(email)}`);
+          const r = await fetch(getApiUrl(`/api/users/${encodeURIComponent(email)}`));
           const j = await r.json();
           if (j.ok && j.data) {
             profiles[email] = j.data;
@@ -69,7 +70,7 @@ export default function ForumPage() {
 
     setSubmitting(true);
     try {
-      const r = await fetch("/api/ideas", {
+      const r = await fetch(getApiUrl("/api/ideas"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -98,7 +99,7 @@ export default function ForumPage() {
       return;
     }
     try {
-      const r = await fetch(`/api/ideas/${ideaId}/like`, {
+      const r = await fetch(getApiUrl(`/api/ideas/${ideaId}/like`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail })
@@ -115,7 +116,7 @@ export default function ForumPage() {
   async function handleDelete(ideaId) {
     if (!confirm("Delete this idea?")) return;
     try {
-      const r = await fetch(`/api/ideas/${ideaId}?email=${encodeURIComponent(userEmail)}`, {
+      const r = await fetch(getApiUrl(`/api/ideas/${ideaId}?email=${encodeURIComponent(userEmail)}`), {
         method: "DELETE"
       });
       const j = await r.json();

@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ExternalLink, Calendar, Link as LinkIcon } from "lucide-react";
+import { getApiUrl } from "/src/api.js";
 import Thumb from "./ui.Thumb.jsx";
 
 export default function NewsPage({ markets = [] }) {
@@ -13,7 +14,7 @@ export default function NewsPage({ markets = [] }) {
 
   async function loadNews() {
     try {
-      const r = await fetch("/api/news");
+      const r = await fetch(getApiUrl("/api/news"));
       const j = await r.json();
       if (j.ok) {
         setNews(j.data || []);
