@@ -309,27 +309,50 @@ const CATEGORY_MAP = {
 
 export default function MarketsPage({ markets=[], limit, category }){
   const params = useParams();
+  const location = React.useLocation();
+  
+  // Debug: Log what we're getting from params
+  console.log("🔵 MarketsPage: Route params:", params);
+  console.log("🔵 MarketsPage: Location pathname:", location.pathname);
+  
   const competitionSlug = params.competitionSlug; // For /markets/sports/:competitionSlug
   // If we have a competitionSlug, we're on a sports page, so set category to "sports"
   // Otherwise use the category from params or props
   const urlCategory = competitionSlug ? "sports" : (params.category || category);
   
+  console.log("🔵 MarketsPage: urlCategory:", urlCategory, "competitionSlug:", competitionSlug);
+  
   // State for competitions (to map slug to competitionId)
   const [competitions, setCompetitions] = React.useState([]);
+  const [competitionsLoaded, setCompetitionsLoaded] = React.useState(false);
   
   // Load competitions if we're on a sports page
   React.useEffect(() => {
-    if (urlCategory === "sports" || competitionSlug) {
+    const isSportsPage = urlCategory === "sports" || competitionSlug || location.pathname.startsWith("/markets/sports");
+    console.log("🔵 MarketsPage: Should load competitions?", isSportsPage);
+    
+    if (isSportsPage) {
+      console.log("🔵 MarketsPage: Fetching competitions...");
       fetch(getApiUrl("/api/competitions"))
-        .then(r => r.json())
+        .then(r => {
+          console.log("🔵 MarketsPage: Competitions API response status:", r.status);
+          return r.json();
+        })
         .then(j => {
+          console.log("🔵 MarketsPage: Competitions API response:", j);
           if (j.ok && Array.isArray(j.data)) {
+            console.log("🔵 MarketsPage: Loaded", j.data.length, "competitions:", j.data.map(c => ({ id: c.id, name: c.name, slug: c.slug })));
             setCompetitions(j.data);
+            setCompetitionsLoaded(true);
+          } else {
+            console.warn("🔵 MarketsPage: Invalid competitions response:", j);
           }
         })
-        .catch(e => console.error("Failed to load competitions:", e));
+        .catch(e => {
+          console.error("🔵 MarketsPage: Failed to load competitions:", e);
+        });
     }
-  }, [urlCategory, competitionSlug]);
+  }, [urlCategory, competitionSlug, location.pathname]);
   
   // Ensure markets is always an array
   const safeMarkets = Array.isArray(markets) ? markets : [];
@@ -375,36 +398,58 @@ export default function MarketsPage({ markets=[], limit, category }){
     
     // Only filter by competition if we're on a specific competition page (competitionSlug exists)
     // If we're on /markets/sports (no competitionSlug), show ALL sports bets
-    if (competitionSlug && competitions.length > 0) {
+    if (competitionSlug) {
       console.log("🔵 MarketsPage: Filtering by competition slug:", competitionSlug);
+      console.log("🔵 MarketsPage: Competitions loaded?", competitionsLoaded, "Count:", competitions.length);
       console.log("🔵 MarketsPage: Available competitions:", competitions.map(c => ({ id: c.id, name: c.name, slug: c.slug })));
+      console.log("🔵 MarketsPage: All markets count:", list.length);
+      console.log("🔵 MarketsPage: Sports markets before filter:", list.filter(m => m && m.category === "Sports").length);
+      
+      if (competitions.length === 0) {
+        console.warn("🔵 MarketsPage: No competitions loaded yet, waiting...");
+        // Return loading state or wait for competitions
+        return (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+            <div className="text-center text-gray-400">Loading competitions...</div>
+          </section>
+        );
+      }
       
       const competition = competitions.find(c => {
         // Match by slug (case-insensitive)
         const slugMatch = c.slug && c.slug.toLowerCase() === competitionSlug.toLowerCase();
         // Also try matching by name as fallback (for old competitions without slugs)
         const nameMatch = c.name && c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") === competitionSlug.toLowerCase();
-        return slugMatch || nameMatch;
+        const found = slugMatch || nameMatch;
+        if (found) {
+          console.log("🔵 MarketsPage: Matched competition:", c);
+        }
+        return found;
       });
       
       if (competition) {
         console.log("🔵 MarketsPage: Found competition:", competition);
+        console.log("🔵 MarketsPage: Competition ID:", competition.id);
         // Filter to show only bets for this specific competition
-        sportsMarkets = list.filter(m => {
+        const allSports = list.filter(m => m && m.category === "Sports");
+        console.log("🔵 MarketsPage: All sports bets:", allSports.map(m => ({ id: m.id, question: m.question, competitionId: m.competitionId })));
+        
+        sportsMarkets = allSports.filter(m => {
           const matches = m && m.competitionId === competition.id;
           if (matches) {
-            console.log("🔵 MarketsPage: Match found:", m.id, m.question);
+            console.log("🔵 MarketsPage: Match found:", m.id, m.question, "competitionId:", m.competitionId);
           }
           return matches;
         });
         console.log("🔵 MarketsPage: Filtered to", sportsMarkets.length, "bets for competition", competition.name);
       } else {
         console.warn("🔵 MarketsPage: Competition not found for slug:", competitionSlug);
+        console.warn("🔵 MarketsPage: Tried to match against:", competitions.map(c => ({ slug: c.slug, name: c.name })));
         // Competition not found, show empty
         sportsMarkets = [];
       }
-    } else if (competitionSlug) {
-      console.warn("🔵 MarketsPage: Competition slug provided but competitions not loaded yet");
+    } else {
+      console.log("🔵 MarketsPage: No competitionSlug, showing ALL sports bets");
     }
     // If no competitionSlug, sportsMarkets = list (all sports bets) - this is correct!
     
