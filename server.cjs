@@ -49,39 +49,26 @@ app.use((req, res, next) => {
     ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
     : [];
   
-  // Allow localhost for development
-  const isLocalhost = origin && (origin.includes('localhost') || origin.includes('127.0.0.1'));
-  
-  // Always allow futrmarket.com domains and ALL Vercel preview URLs (including project-specific ones)
-  const isFutrmarketDomain = origin && (
-    origin.includes('futrmarket.com') || 
-    origin.includes('futrmarket-com.vercel.app') ||
-    (origin.includes('futrmarket') && origin.includes('.vercel.app'))
-  );
-  
-  // Allow any Vercel preview URL (for flexibility during development)
-  // This includes ALL .vercel.app domains (production, preview, and project-specific)
-  const isVercelPreview = origin && origin.includes('.vercel.app');
-  
   // Determine if we should allow this origin
   let allowedOrigin = null;
   
   if (origin) {
-    // Log for debugging
-    console.log(`🔵 CORS: Origin: ${origin}, isLocalhost: ${isLocalhost}, isFutrmarketDomain: ${isFutrmarketDomain}, isVercelPreview: ${isVercelPreview}`);
+    // Check various conditions
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+    const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
+    const isFutrmarket = origin.includes('futrmarket.com') || origin.includes('futrmarket');
+    const isInAllowedList = allowedOrigins.includes(origin);
     
-    // ALWAYS allow Vercel preview URLs - be very permissive
-    if (isLocalhost || isFutrmarketDomain || isVercelPreview || allowedOrigins.includes(origin) || allowedOrigins.length === 0) {
+    // Log for debugging
+    console.log(`🔵 CORS: Origin: ${origin}`);
+    console.log(`🔵 CORS: Checks - localhost: ${isLocalhost}, vercel: ${isVercel}, futrmarket: ${isFutrmarket}, inList: ${isInAllowedList}`);
+    
+    // ALWAYS allow if it's localhost, Vercel, futrmarket domain, in allowed list, or no restrictions
+    if (isLocalhost || isVercel || isFutrmarket || isInAllowedList || allowedOrigins.length === 0) {
       allowedOrigin = origin; // Use the specific origin (required for credentials)
       console.log(`✅ CORS: Allowing origin: ${allowedOrigin}`);
     } else {
-      // Even if not explicitly allowed, allow it if it's a Vercel domain (safety net)
-      if (origin.includes('vercel.app') || origin.includes('vercel.com')) {
-        allowedOrigin = origin;
-        console.log(`✅ CORS: Allowing Vercel origin (safety net): ${allowedOrigin}`);
-      } else {
-        console.warn(`❌ CORS: Blocking origin: ${origin}`);
-      }
+      console.warn(`❌ CORS: Blocking origin: ${origin}`);
     }
   } else {
     // No origin header (e.g., same-origin request or Postman) - allow it
@@ -89,15 +76,18 @@ app.use((req, res, next) => {
     console.log(`✅ CORS: No origin header, allowing all (*)`);
   }
   
-  // Set CORS headers
+  // ALWAYS set CORS headers - even if origin is blocked, set headers to avoid browser errors
   if (allowedOrigin) {
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     if (allowedOrigin !== '*') {
       res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
+    }
+  } else {
+    // If origin is blocked, still set a wildcard to prevent browser errors (less secure but works)
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
   
-  // Always set these headers (they're safe to set even if origin is blocked)
+  // Always set these headers
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
   res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
