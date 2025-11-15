@@ -1527,7 +1527,7 @@
     var code = document.createElement("code"); code.textContent = c.id; code.style.fontSize = "11px";
     var del = document.createElement("button"); del.className = "danger"; del.textContent = "Delete";
     del.onclick = function(){ removeContract(c.id); };
-    R.appendChild(liveBtn); R.appendChild(statusSelect); R.appendChild(code); R.appendChild(del);
+    R.appendChild(statusSelect); R.appendChild(code); R.appendChild(del);
 
     w.appendChild(L); w.appendChild(R); return w;
   }
