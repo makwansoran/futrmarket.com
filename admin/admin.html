@@ -723,7 +723,9 @@
     var R=document.createElement("div"); R.className="flex";
     var code=document.createElement("code"); code.textContent=c.id; code.style.fontSize="11px";
     var liveBtn=document.createElement("button");
-    var isLive = c.live === true;
+    // Explicitly check for live field - handle undefined, null, false, and true
+    var isLive = c.live === true || c.live === "true" || c.live === 1;
+    console.log("🔵 Rendering contract button:", { id: c.id, live: c.live, isLive: isLive });
     liveBtn.textContent=isLive?"🔴 Un-Live":"⚪ Mark Live";
     liveBtn.style.marginRight="4px";
     liveBtn.style.background=isLive?"#dc2626":"#6b7280";
@@ -1475,7 +1477,9 @@
 
     var R = document.createElement("div"); R.className = "flex";
     var liveBtn = document.createElement("button");
-    var isLive = c.live === true;
+    // Explicitly check for live field - handle undefined, null, false, and true
+    var isLive = c.live === true || c.live === "true" || c.live === 1;
+    console.log("🔵 Rendering sports contract button:", { id: c.id, live: c.live, isLive: isLive });
     liveBtn.textContent = isLive ? "🔴 Un-Live" : "⚪ Mark Live";
     liveBtn.style.marginRight = "4px";
     liveBtn.style.background = isLive ? "#dc2626" : "#6b7280";

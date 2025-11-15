@@ -826,7 +826,8 @@ app.get("/api/contracts", (req, res) => {
       marketPrice: marketPrice, // Ensure marketPrice is always set
       traders: c.traders ? (Array.isArray(c.traders) ? c.traders.length : Object.keys(c.traders).length) : 0,
       volume: `$${c.volume.toFixed(2)}`,
-      featured: c.featured || false
+      featured: c.featured || false,
+      live: c.live === true // Explicitly include live field (default to false if not set)
     };
   }).sort((a, b) => {
     // Featured contracts first, then by creation date
