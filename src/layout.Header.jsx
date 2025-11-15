@@ -1,13 +1,56 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, User } from "lucide-react";
+import { getApiUrl } from "/src/api.js";
 import DepositButton from "./components/DepositButton.jsx";
 import PortfolioButton from "./components/PortfolioButton.jsx";
 import CashButton from "./components/CashButton.jsx";
 
 function AccountMenu({ userEmail, onLogout }) {
   const [open, setOpen] = React.useState(false);
+  const [username, setUsername] = React.useState(null);
+  const [profilePicture, setProfilePicture] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  // Load user profile
+  async function loadUserProfile() {
+    if (!userEmail) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const r = await fetch(getApiUrl(`/api/users/${encodeURIComponent(userEmail)}`));
+      if (r.ok) {
+        const j = await r.json();
+        if (j.ok && j.data) {
+          setUsername(j.data.username || null);
+          setProfilePicture(j.data.profilePicture || null);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load user profile:", e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  React.useEffect(() => {
+    loadUserProfile();
+  }, [userEmail]);
+
+  // Refresh profile when dropdown opens (in case username was updated)
+  React.useEffect(() => {
+    if (open) {
+      loadUserProfile();
+    }
+  }, [open]);
+
   if (!userEmail) return null;
+
+  // Display username if available, otherwise show email prefix (before @)
+  const displayName = username || (userEmail ? userEmail.split("@")[0] : "");
 
   return (
     <div className="relative">
@@ -15,7 +58,21 @@ function AccountMenu({ userEmail, onLogout }) {
         onClick={() => setOpen(v => !v)}
         className="px-3 py-2 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-sm flex items-center gap-2"
       >
-        <span className="hidden sm:inline text-gray-200">{userEmail}</span>
+        {profilePicture ? (
+          <img 
+            src={profilePicture} 
+            alt={displayName}
+            className="w-6 h-6 rounded-full object-cover border border-gray-700"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="w-6 h-6 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center flex-shrink-0">
+            <User className="w-3.5 h-3.5 text-gray-400" />
+          </div>
+        )}
+        <span className="hidden sm:inline text-gray-200">{displayName}</span>
         <ChevronDown className="w-4 h-4 text-gray-400" />
       </button>
       {open && (
