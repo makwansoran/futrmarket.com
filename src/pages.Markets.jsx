@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import { Clock, TrendingUp } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import Thumb from "./ui.Thumb.jsx";
