@@ -722,6 +722,13 @@
 
     var R=document.createElement("div"); R.className="flex";
     var code=document.createElement("code"); code.textContent=c.id; code.style.fontSize="11px";
+    var liveBtn=document.createElement("button");
+    liveBtn.textContent=(c.live?"🔴 Live":"⚪ Not Live");
+    liveBtn.style.marginRight="4px";
+    liveBtn.style.background=c.live?"#dc2626":"#6b7280";
+    liveBtn.style.color="#fff";
+    liveBtn.disabled=!!c.resolution;
+    liveBtn.onclick=function(){toggleLive(c.id, !c.live)};
     var featuredBtn=document.createElement("button"); 
     featuredBtn.textContent=c.featured?"Unfeature":"Feature";
     featuredBtn.style.marginRight="4px";
@@ -736,7 +743,7 @@
     resolveBtn.onclick=function(){resolveContract(c.id)};
     var del=document.createElement("button"); del.className="danger"; del.textContent="Delete";
     del.onclick=function(){removeContract(c.id)};
-    R.appendChild(code); R.appendChild(featuredBtn); R.appendChild(editBtn); R.appendChild(resolveBtn); R.appendChild(del);
+    R.appendChild(code); R.appendChild(liveBtn); R.appendChild(featuredBtn); R.appendChild(editBtn); R.appendChild(resolveBtn); R.appendChild(del);
 
     w.appendChild(L); w.appendChild(R); return w;
   }
@@ -915,6 +922,35 @@
     var j=await r.json(); if(!j.ok){alert("Resolve failed: "+(j.error||"unknown"));return}
     loadContracts();
     alert("Contract resolved! Winners have been paid.");
+  }
+
+  async function toggleLive(id, live){
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      var r=await fetch(apiEndpoint("/api/contracts/"+encodeURIComponent(id)),{ 
+        method:"PATCH", 
+        headers: { "Content-Type":"application/json","x-admin-token":token }, 
+        body: JSON.stringify({live: live}) 
+      });
+      if(!r.ok){
+        var j = await r.json().catch(()=>({}));
+        if(r.status===401){
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        }else{
+          alert("Update failed: "+(j.error||r.status));
+        }
+        return;
+      }
+      var j=await r.json(); if(!j.ok){alert("Update failed: "+(j.error||"unknown"));return}
+      loadContracts();
+      loadSportsContracts();
+      alert(live ? "Contract marked as LIVE! It will now appear on the /live page." : "Contract removed from live page.");
+    }catch(e){ alert(e.message || "Could not update contract"); }
   }
 
   async function toggleFeatured(id, featured){
@@ -1412,6 +1448,17 @@
     w.appendChild(statusBadge);
 
     var R = document.createElement("div"); R.className = "flex";
+    var liveBtn = document.createElement("button");
+    liveBtn.textContent = (c.live ? "🔴 Live" : "⚪ Not Live");
+    liveBtn.style.marginRight = "4px";
+    liveBtn.style.background = c.live ? "#dc2626" : "#6b7280";
+    liveBtn.style.color = "#fff";
+    liveBtn.style.padding = "4px 8px";
+    liveBtn.style.fontSize = "12px";
+    liveBtn.style.borderRadius = "4px";
+    liveBtn.style.border = "none";
+    liveBtn.disabled = !!c.resolution;
+    liveBtn.onclick = function(){ toggleLive(c.id, !c.live); };
     var statusSelect = document.createElement("select");
     statusSelect.style.marginRight = "8px";
     statusSelect.style.padding = "4px 8px";
@@ -1428,7 +1475,7 @@
     var code = document.createElement("code"); code.textContent = c.id; code.style.fontSize = "11px";
     var del = document.createElement("button"); del.className = "danger"; del.textContent = "Delete";
     del.onclick = function(){ removeContract(c.id); };
-    R.appendChild(statusSelect); R.appendChild(code); R.appendChild(del);
+    R.appendChild(liveBtn); R.appendChild(statusSelect); R.appendChild(code); R.appendChild(del);
 
     w.appendChild(L); w.appendChild(R); return w;
   }

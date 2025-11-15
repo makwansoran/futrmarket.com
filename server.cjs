@@ -798,6 +798,7 @@ app.post("/api/contracts/create", requireAdmin, (req, res) => {
     imageUrl: imageUrl || null,
     competitionId: competitionId ? String(competitionId).trim() : null, // Link to competition if sports contract
     status: validStatus, // Status for sports bets: "upcoming", "live", or "finished"
+    live: req.body.live === true || req.body.live === "true", // Explicitly marked as live for /live page
     createdAt: Date.now(),
     createdBy: "admin",
     featured: false,
@@ -1078,6 +1079,7 @@ app.patch("/api/contracts/:id", requireAdmin, (req, res) => {
   if (req.body.expirationDate !== undefined) contract.expirationDate = req.body.expirationDate || null;
   if (req.body.imageUrl !== undefined) contract.imageUrl = req.body.imageUrl || null;
   if (req.body.featured !== undefined) contract.featured = Boolean(req.body.featured);
+  if (req.body.live !== undefined) contract.live = req.body.live === true || req.body.live === "true";
   if (req.body.status !== undefined && ["upcoming", "live", "finished", "cancelled"].includes(req.body.status)) {
     contract.status = String(req.body.status);
   }

@@ -42,16 +42,19 @@ export default function LivePage({ markets = [] }){
   // Ensure markets is always an array
   const safeMarkets = Array.isArray(markets) ? markets : [];
   
-  // Filter for "live" markets - markets that are currently active (not resolved and not expired)
+  // Filter for "live" markets - only show contracts explicitly marked as live
   const liveMarkets = safeMarkets.filter(m => {
     if (!m || !m.id) return false;
     if (m.resolution) return false; // Exclude resolved
+    // Only show if explicitly marked as live
+    if (m.live !== true) return false;
+    // Optional: also check expiration date if present
     if (m.expirationDate) {
       const expiration = new Date(m.expirationDate);
       const now = new Date();
       return expiration > now; // Only show if not expired
     }
-    return true; // Include if no expiration date
+    return true; // Include if marked as live
   });
 
   // Sort by volume or traders (most active first)
