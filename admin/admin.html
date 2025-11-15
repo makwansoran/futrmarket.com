@@ -733,7 +733,7 @@
     liveBtn.disabled=!!c.resolution;
     liveBtn.onclick=function(){
       var newLiveValue = !isLive;
-      console.log("🔵 Button clicked:", { contractId: c.id, currentLive: isLive, newLiveValue: newLiveValue });
+      console.log("🔵 Regular contract button clicked:", { contractId: c.id, currentLive: isLive, newLiveValue: newLiveValue, typeof: typeof newLiveValue });
       toggleLive(c.id, newLiveValue);
     };
     var featuredBtn=document.createElement("button"); 
@@ -976,9 +976,12 @@
         return;
       }
       console.log("✅ Update successful:", j.data);
-      loadContracts();
-      loadSportsContracts();
-      alert(liveValue ? "✅ Contract marked as LIVE! It will now appear on the /live page." : "✅ Contract un-marked as live. It will no longer appear on the /live page.");
+      console.log("🔵 Reloading contracts...");
+      await loadContracts();
+      await loadSportsContracts();
+      var message = liveValue ? "✅ Contract marked as LIVE! It will now appear on the /live page." : "✅ Contract un-marked as live. It will no longer appear on the /live page.";
+      console.log("🔵 Showing alert:", message);
+      alert(message);
     }catch(e){ 
       console.error("❌ Error in toggleLive:", e);
       alert(e.message || "Could not update contract"); 
@@ -1527,18 +1530,32 @@
         alert("Please set admin token first");
         return;
       }
+      token = String(token).trim();
+      console.log("🔵 Updating sports bet status:", { contractId: contractId, newStatus: newStatus });
       var r = await fetch(apiEndpoint("/api/contracts/" + encodeURIComponent(contractId)), {
         method: "PATCH",
         headers: { "Content-Type": "application/json", "x-admin-token": token },
         body: JSON.stringify({ status: newStatus })
       });
       if (!r.ok) {
-        var j = await r.json().catch(() => ({}));
-        alert("Update failed: " + (j.error || r.status));
+        var errorText = await r.text().catch(() => "");
+        var j = {};
+        try { j = JSON.parse(errorText); } catch {}
+        console.error("❌ Status update failed:", { status: r.status, error: j.error || errorText });
+        alert("Update failed: " + (j.error || r.status || "Unknown error"));
         return;
       }
-      loadSportsContracts();
+      var j = await r.json();
+      if (!j.ok) {
+        console.error("❌ Response not ok:", j);
+        alert("Update failed: " + (j.error || "unknown"));
+        return;
+      }
+      console.log("✅ Status update successful:", j.data);
+      await loadSportsContracts();
+      alert("✅ Status updated to: " + newStatus);
     } catch (e) {
+      console.error("❌ Error updating status:", e);
       alert("Could not update status: " + e.message);
     }
   }
