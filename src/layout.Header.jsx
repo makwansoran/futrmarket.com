@@ -38,13 +38,15 @@ function AccountMenu({ userEmail, onLogout }) {
 
   React.useEffect(() => {
     loadUserProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userEmail]);
 
   // Refresh profile when dropdown opens (in case username was updated)
   React.useEffect(() => {
-    if (open) {
+    if (open && userEmail) {
       loadUserProfile();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   if (!userEmail) return null;
