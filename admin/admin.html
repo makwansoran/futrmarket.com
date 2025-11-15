@@ -984,8 +984,10 @@
       }
       console.log("✅ Update successful:", j.data);
       console.log("🔵 Reloading contracts...");
-      await loadContracts();
-      await loadSportsContracts();
+      // Reload both lists
+      await Promise.all([loadContracts(), loadSportsContracts()]);
+      // Small delay to ensure UI updates
+      await new Promise(resolve => setTimeout(resolve, 100));
       var message = liveValue ? "✅ Contract marked as LIVE! It will now appear on the /live page." : "✅ Contract un-marked as live. It will no longer appear on the /live page.";
       console.log("🔵 Showing alert:", message);
       alert(message);
