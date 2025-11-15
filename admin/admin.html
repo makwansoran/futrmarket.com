@@ -1381,7 +1381,8 @@
         expirationDate: expirationDate,
         imageUrl: imageUrl,
         competitionId: sportsContractCompetition.value,
-        status: sportsContractStatus.value || "upcoming"
+        status: sportsContractStatus.value || "upcoming",
+        live: false // Default to not live - admin must explicitly mark it
       };
       
       var r = await fetch(apiEndpoint("/api/contracts/create"), {
