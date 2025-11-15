@@ -566,7 +566,7 @@ function Forum({ contractId, userEmail }) {
   );
 }
 
-export default function MarketDetailPage({ onBalanceUpdate }){
+export default function MarketDetailPage(){
   const { id } = useParams();
   const navigate = useNavigate();
   const { userEmail, updateBalance } = useUser();
@@ -581,8 +581,10 @@ export default function MarketDetailPage({ onBalanceUpdate }){
 
   // Load contract and user position
   React.useEffect(() => {
-    if (!id) {
+    // Validate id parameter
+    if (!id || typeof id !== 'string' || id.trim() === '') {
       setLoading(false);
+      setError("Invalid contract ID");
       return;
     }
     
@@ -591,10 +593,10 @@ export default function MarketDetailPage({ onBalanceUpdate }){
     
     (async () => {
       try {
-
         // Load contract
         const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-        const r = await fetch(getApiUrl(`/api/contracts/${id}`), {
+        const contractUrl = getApiUrl(`/api/contracts/${encodeURIComponent(id)}`);
+        const r = await fetch(contractUrl, {
           signal: controller.signal,
           cache: "no-store"
         });
@@ -602,12 +604,30 @@ export default function MarketDetailPage({ onBalanceUpdate }){
         
         if (cancelled) return;
         
+        if (!r.ok) {
+          if (r.status === 404) {
+            setError("Contract not found");
+          } else {
+            setError(`Failed to load contract (${r.status})`);
+          }
+          setLoading(false);
+          return;
+        }
+        
         const j = await r.json().catch(() => ({}));
         if (j.ok && j.data) {
+          // Validate contract data
+          if (!j.data.id || typeof j.data.id !== 'string') {
+            console.error("Invalid contract data received:", j.data);
+            setError("Invalid contract data");
+            setLoading(false);
+            return;
+          }
+          
           setContract(j.data);
           
           // Load user position if logged in
-          if (userEmail && !cancelled) {
+          if (userEmail && !cancelled && typeof userEmail === 'string') {
             try {
               const posController = new AbortController();
               const posTimeoutId = setTimeout(() => posController.abort(), 10000);
@@ -619,8 +639,8 @@ export default function MarketDetailPage({ onBalanceUpdate }){
               
               if (!cancelled) {
                 const posJ = await posR.json().catch(() => ({}));
-                if (posJ.ok && posJ.data?.positions) {
-                  const pos = posJ.data.positions.find(p => p.contractId === id);
+                if (posJ.ok && posJ.data?.positions && Array.isArray(posJ.data.positions)) {
+                  const pos = posJ.data.positions.find(p => p && p.contractId === id);
                   setUserPosition(pos || { yesShares: 0, noShares: 0 });
                 }
               }
@@ -640,7 +660,7 @@ export default function MarketDetailPage({ onBalanceUpdate }){
           }
         } else if (!cancelled) {
           console.error("Failed to load contract:", e);
-          setError("Failed to load contract");
+          setError("Failed to load contract. Please try again.");
         }
       } finally {
         if (!cancelled) {
@@ -653,7 +673,7 @@ export default function MarketDetailPage({ onBalanceUpdate }){
       cancelled = true;
       controller.abort();
     };
-  }, [id]);
+  }, [id, userEmail]);
 
   async function handleOrder() {
     if (!userEmail) {
@@ -693,11 +713,11 @@ export default function MarketDetailPage({ onBalanceUpdate }){
           setUserPosition(pos || { yesShares: 0, noShares: 0 });
         }
 
-        // Update balance
-        if (onBalanceUpdate) {
+        // Update balance from context
+        if (updateBalance) {
           const balanceR = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(userEmail)}`));
           const balanceJ = await balanceR.json();
-          if (balanceJ.ok && updateBalance) {
+          if (balanceJ.ok && balanceJ.data) {
             updateBalance(balanceJ.data);
           }
         }
