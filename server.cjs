@@ -56,8 +56,11 @@ app.use((req, res, next) => {
   if (isLocalhost || (origin && allowedOrigins.includes(origin)) || allowedOrigins.length === 0) {
     res.setHeader('Access-Control-Allow-Origin', origin || '*');
   } else if (allowedOrigins.length > 0) {
-    // If we have specific origins but this one isn't allowed, don't set CORS
-    // This will cause the browser to block the request
+    // If we have specific origins but this one isn't allowed, check if it's futrmarket.com
+    if (origin && (origin.includes('futrmarket.com') || origin.includes('futrmarket-com.vercel.app'))) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    // Otherwise don't set CORS (will be blocked)
   } else {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
