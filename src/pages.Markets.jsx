@@ -309,8 +309,10 @@ const CATEGORY_MAP = {
 
 export default function MarketsPage({ markets=[], limit, category }){
   const params = useParams();
-  const urlCategory = params.category || category;
   const competitionSlug = params.competitionSlug; // For /markets/sports/:competitionSlug
+  // If we have a competitionSlug, we're on a sports page, so set category to "sports"
+  // Otherwise use the category from params or props
+  const urlCategory = competitionSlug ? "sports" : (params.category || category);
   
   // State for competitions (to map slug to competitionId)
   const [competitions, setCompetitions] = React.useState([]);

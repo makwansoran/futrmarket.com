@@ -8,6 +8,9 @@ export default function CompetitionsNav() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Only show on sports page (including /markets/sports and /markets/sports/:competitionSlug)
+  const isSportsPage = location.pathname.startsWith("/markets/sports");
+  
   useEffect(() => {
     async function fetchCompetitions() {
       try {
@@ -39,8 +42,6 @@ export default function CompetitionsNav() {
     }
   }, [isSportsPage]);
 
-  // Only show on sports page (including /markets/sports and /markets/sports/:competitionSlug)
-  const isSportsPage = location.pathname.startsWith("/markets/sports");
   if (!isSportsPage) {
     return null;
   }
@@ -79,11 +80,38 @@ export default function CompetitionsNav() {
           className="flex items-center justify-center gap-4 overflow-x-auto"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {competitions.map((competition) => (
+          {/* Add "All Sports" button to show all sports bets */}
+          <button
+            onClick={() => navigate("/markets/sports")}
+            className={`flex flex-col items-center gap-1.5 px-2 py-2 rounded-lg transition-colors flex-shrink-0 group ${
+              !location.pathname.includes("/markets/sports/") || location.pathname === "/markets/sports"
+                ? "bg-blue-500/20 border-2 border-blue-500"
+                : "hover:bg-gray-800/50"
+            }`}
+            title="All Sports"
+          >
+            <div className="w-12 h-12 rounded-full bg-gray-700 border-2 border-gray-600 flex items-center justify-center">
+              <span className="text-gray-300 text-xs font-semibold">ALL</span>
+            </div>
+            <span className={`text-xs text-center whitespace-nowrap ${
+              !location.pathname.includes("/markets/sports/") || location.pathname === "/markets/sports"
+                ? "text-white font-semibold"
+                : "text-gray-400 group-hover:text-white"
+            }`}>
+              All Sports
+            </span>
+          </button>
+          {competitions.map((competition) => {
+            const isActive = location.pathname === `/markets/sports/${competition.slug}`;
+            return (
             <button
               key={competition.id}
               onClick={() => handleCompetitionClick(competition)}
-              className="flex flex-col items-center gap-1.5 px-2 py-2 rounded-lg hover:bg-gray-800/50 transition-colors flex-shrink-0 group"
+              className={`flex flex-col items-center gap-1.5 px-2 py-2 rounded-lg transition-colors flex-shrink-0 group ${
+                isActive
+                  ? "bg-blue-500/20 border-2 border-blue-500"
+                  : "hover:bg-gray-800/50"
+              }`}
               title={competition.name}
             >
               {competition.imageUrl ? (
@@ -99,11 +127,16 @@ export default function CompetitionsNav() {
                   </span>
                 </div>
               )}
-              <span className="text-xs text-gray-400 group-hover:text-white transition-colors text-center whitespace-nowrap">
+              <span className={`text-xs text-center whitespace-nowrap transition-colors ${
+                isActive
+                  ? "text-white font-semibold"
+                  : "text-gray-400 group-hover:text-white"
+              }`}>
                 {competition.name}
               </span>
             </button>
-          ))}
+            );
+          })}
         </div>
       </div>
     </nav>
