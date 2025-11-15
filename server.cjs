@@ -60,18 +60,26 @@ app.use((req, res, next) => {
   );
   
   // Allow any Vercel preview URL (for flexibility during development)
+  // This includes ALL .vercel.app domains (production, preview, and project-specific)
   const isVercelPreview = origin && origin.includes('.vercel.app');
   
   // Determine if we should allow this origin
   let allowedOrigin = null;
   
   if (origin) {
+    // Log for debugging
+    console.log(`🔵 CORS: Origin: ${origin}, isLocalhost: ${isLocalhost}, isFutrmarketDomain: ${isFutrmarketDomain}, isVercelPreview: ${isVercelPreview}`);
+    
     if (isLocalhost || isFutrmarketDomain || isVercelPreview || allowedOrigins.includes(origin) || allowedOrigins.length === 0) {
       allowedOrigin = origin; // Use the specific origin (required for credentials)
+      console.log(`✅ CORS: Allowing origin: ${allowedOrigin}`);
+    } else {
+      console.warn(`❌ CORS: Blocking origin: ${origin}`);
     }
   } else {
     // No origin header (e.g., same-origin request or Postman) - allow it
     allowedOrigin = '*';
+    console.log(`✅ CORS: No origin header, allowing all (*)`);
   }
   
   // Set CORS headers
