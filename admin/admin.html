@@ -933,8 +933,14 @@
         return;
       }
       token = String(token).trim();
-      // Ensure we send a proper boolean value (explicitly convert to boolean)
-      var liveValue = Boolean(live === true || live === "true" || live === 1);
+      // Ensure we send a proper boolean value
+      // If live is explicitly false, send false; otherwise convert to boolean
+      var liveValue;
+      if (live === false || live === "false" || live === 0) {
+        liveValue = false;
+      } else {
+        liveValue = Boolean(live === true || live === "true" || live === 1);
+      }
       console.log("🔵 Toggling live status:", { id: id, currentLive: live, newLive: liveValue });
       var r=await fetch(apiEndpoint("/api/contracts/"+encodeURIComponent(id)),{ 
         method:"PATCH", 
