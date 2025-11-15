@@ -941,10 +941,17 @@
       token = String(token).trim();
       // Convert to explicit boolean - handle both true and false explicitly
       var liveValue;
-      if (live === false || live === "false" || live === 0 || live === null) {
+      // First check for explicit false values
+      if (live === false || live === "false" || live === 0 || live === null || live === undefined) {
         liveValue = false;
+        console.log("🔵 Detected FALSE value, setting liveValue to false");
+      } else if (live === true || live === "true" || live === 1) {
+        liveValue = true;
+        console.log("🔵 Detected TRUE value, setting liveValue to true");
       } else {
-        liveValue = live === true || live === "true" || live === 1;
+        // Default to false for any other value
+        liveValue = false;
+        console.log("🔵 Unknown value, defaulting to false");
       }
       console.log("🔵 Toggling live status:", { 
         id: id, 
