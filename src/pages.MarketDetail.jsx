@@ -567,7 +567,9 @@ function Forum({ contractId, userEmail }) {
 }
 
 export default function MarketDetailPage(){
-  const { id } = useParams();
+  const { id: rawId } = useParams();
+  // Decode the ID from URL (React Router should handle this, but be safe)
+  const id = rawId ? decodeURIComponent(rawId) : null;
   const navigate = useNavigate();
   const { userEmail, updateBalance } = useUser();
   const [contract, setContract] = React.useState(null);
@@ -595,7 +597,11 @@ export default function MarketDetailPage(){
       try {
         // Load contract
         const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-        const contractUrl = getApiUrl(`/api/contracts/${encodeURIComponent(id)}`);
+        // Ensure ID is properly encoded for the API
+        const encodedId = encodeURIComponent(id);
+        const contractUrl = getApiUrl(`/api/contracts/${encodedId}`);
+        console.log("🔵 Loading contract:", { rawId, id, encodedId, contractUrl });
+        
         const r = await fetch(contractUrl, {
           signal: controller.signal,
           cache: "no-store"
@@ -605,8 +611,10 @@ export default function MarketDetailPage(){
         if (cancelled) return;
         
         if (!r.ok) {
+          const errorText = await r.text().catch(() => "");
+          console.error("🔵 Contract fetch failed:", { status: r.status, statusText: r.statusText, errorText, contractUrl });
           if (r.status === 404) {
-            setError("Contract not found");
+            setError(`Contract not found. ID: ${id}`);
           } else {
             setError(`Failed to load contract (${r.status})`);
           }

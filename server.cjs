@@ -834,17 +834,31 @@ app.get("/api/contracts", (req, res) => {
 // Get single contract
 app.get("/api/contracts/:id", (req, res) => {
   const contracts = loadJSON(CONTRACTS_FILE);
-  const contract = contracts[req.params.id];
-  if (!contract) return res.status(404).json({ ok: false, error: "Contract not found" });
+  // Decode the ID parameter (it might be URL encoded)
+  const contractId = decodeURIComponent(req.params.id || "");
+  const contract = contracts[contractId];
+  
+  // If not found, try without decoding (for backwards compatibility)
+  const contractToUse = contract || contracts[req.params.id];
+  
+  if (!contractToUse) {
+    console.error("🔴 Contract not found:", { 
+      requestedId: req.params.id, 
+      decodedId: contractId,
+      availableIds: Object.keys(contracts).slice(0, 5) // Log first 5 for debugging
+    });
+    return res.status(404).json({ ok: false, error: "Contract not found" });
+  }
   
   // Calculate current market price
-  const marketPrice = calculateMarketPrice(contract);
+  const marketPrice = calculateMarketPrice(contractToUse);
   
   const result = {
-    ...contract,
+    ...contractToUse,
+    id: contractId || req.params.id, // Ensure ID matches what was requested
     marketPrice: marketPrice, // Ensure marketPrice is always set
-    traders: contract.traders ? (Array.isArray(contract.traders) ? contract.traders.length : Object.keys(contract.traders).length) : 0,
-    volume: `$${contract.volume.toFixed(2)}`
+    traders: contractToUse.traders ? (Array.isArray(contractToUse.traders) ? contractToUse.traders.length : Object.keys(contractToUse.traders).length) : 0,
+    volume: `$${contractToUse.volume.toFixed(2)}`
   };
   res.json({ ok: true, data: result });
 });
