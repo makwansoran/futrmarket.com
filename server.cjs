@@ -1616,17 +1616,34 @@ app.patch("/api/users/:email", (req, res) => {
   res.json({ ok: true, data: user });
 });
 
+// ---- Health check endpoint (for Render deployment) ----
+app.get("/", (req, res) => {
+  res.json({ ok: true, message: "FutrMarket API is running", timestamp: Date.now() });
+});
+
+app.get("/health", (req, res) => {
+  res.json({ ok: true, status: "healthy", timestamp: Date.now() });
+});
+
 // ---- Static (for any public assets if you need) ----
 app.use(express.static(path.join(process.cwd(), "public")));
 
-app.listen(PORT, ()=> {
+// Start server
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log("========================================");
-  console.log("Server listening on http://localhost:"+PORT);
+  console.log("Server listening on http://0.0.0.0:"+PORT);
   console.log("Using server.cjs (NOT server.backup.cjs)");
   console.log("Resend configured:", !!RESEND_API_KEY);
   console.log("Resend from email:", RESEND_FROM_EMAIL);
   console.log("Ethereal fallback:", ETH_FALLBACK ? "enabled" : "disabled");
   console.log("Admin credit endpoint: POST /api/wallet/credit with x-admin-token");
   console.log("Deposit monitoring enabled. RPC:", RPC_URL);
+  console.log("Health check: GET /health");
   console.log("========================================");
+});
+
+// Handle server errors
+server.on("error", (err) => {
+  console.error("Server error:", err);
+  process.exit(1);
 });
