@@ -1523,11 +1523,17 @@
         return;
       }
       token = String(token).trim();
-      console.log("🔵 Updating sports bet status:", { contractId: contractId, newStatus: newStatus });
+      // Automatically set live field based on status
+      // If status is "live", set live to true; otherwise set to false
+      var shouldBeLive = newStatus === "live";
+      console.log("🔵 Updating sports bet status:", { contractId: contractId, newStatus: newStatus, shouldBeLive: shouldBeLive });
       var r = await fetch(apiEndpoint("/api/contracts/" + encodeURIComponent(contractId)), {
         method: "PATCH",
         headers: { "Content-Type": "application/json", "x-admin-token": token },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ 
+          status: newStatus,
+          live: shouldBeLive // Automatically set live based on status
+        })
       });
       if (!r.ok) {
         var errorText = await r.text().catch(() => "");
