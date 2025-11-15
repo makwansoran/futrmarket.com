@@ -1,5 +1,5 @@
 import localforage from 'localforage'
-import { getApiUrl } from './lib/api.js'
+import { getApiUrl } from './api.js'
 
 localforage.config({ name: 'futurbet', storeName: 'futurbet_store' })
 

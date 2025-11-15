@@ -25,7 +25,7 @@ import {
   getBalances,
   setBalances
 } from "./lib.session.js";
-import { getApiUrl } from "./lib/api.js";
+import { getApiUrl } from "./api.js";
 
 export default function App() {
   const navigate = useNavigate();

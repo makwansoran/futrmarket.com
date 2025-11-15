@@ -1,6 +1,6 @@
 import React from "react"
 import { X, Copy, Check, ExternalLink, RefreshCw, CheckCircle2 } from "lucide-react"
-import { getApiUrl } from "./lib/api.js"
+import { getApiUrl } from "../api.js"
 
 export default function DepositButton({ userEmail, onBalanceUpdate }) {
   const [open, setOpen] = React.useState(false)
