@@ -309,7 +309,7 @@ const CATEGORY_MAP = {
 
 export default function MarketsPage({ markets=[], limit, category }){
   const params = useParams();
-  const location = React.useLocation();
+  const location = useLocation();
   
   // Debug: Log limit prop
   console.log("🔵 MarketsPage: limit prop:", limit, "type:", typeof limit);
