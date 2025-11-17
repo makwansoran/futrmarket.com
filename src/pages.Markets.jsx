@@ -561,7 +561,7 @@ export default function MarketsPage({ markets=[], limit, category }){
       
       {/* Feature Fields - Only show on homepage */}
       {limit ? (
-            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" style={{backgroundColor: 'rgba(255,0,0,0.1)'}}>
               {/* Legal & regulated */}
               <div className="flex items-start gap-3 bg-gray-900/50 border border-gray-800 rounded-lg p-4">
                 <div className="flex-shrink-0 w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
