@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
-import { Clock, TrendingUp } from "lucide-react";
+import { Clock, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import Thumb from "./ui.Thumb.jsx";
 
@@ -60,6 +60,112 @@ function MarketCard({ m }){
         </div>
       </div>
     </Link>
+  );
+}
+
+// Featured Carousel Component (like Kalshi)
+function FeaturedCarousel({ markets = [] }) {
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  
+  // Get featured contracts or top contracts by volume
+  const featuredMarkets = React.useMemo(() => {
+    const featured = markets.filter(m => m && m.featured);
+    if (featured.length > 0) {
+      return featured;
+    }
+    // If no featured, get top 5 by volume
+    return [...markets]
+      .filter(m => m && m.id)
+      .sort((a, b) => {
+        const aVol = parseFloat((a.volume || "$0").replace("$", "").replace(",", "")) || 0;
+        const bVol = parseFloat((b.volume || "$0").replace("$", "").replace(",", "")) || 0;
+        return bVol - aVol;
+      })
+      .slice(0, 5);
+  }, [markets]);
+
+  if (featuredMarkets.length === 0) {
+    return null;
+  }
+
+  const goToSlide = (index) => {
+    setCurrentIndex(index);
+  };
+
+  const goToPrevious = () => {
+    setCurrentIndex((prev) => (prev === 0 ? featuredMarkets.length - 1 : prev - 1));
+  };
+
+  const goToNext = React.useCallback(() => {
+    setCurrentIndex((prev) => (prev === featuredMarkets.length - 1 ? 0 : prev + 1));
+  }, [featuredMarkets.length]);
+
+  // Auto-advance carousel every 5 seconds
+  React.useEffect(() => {
+    if (featuredMarkets.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev === featuredMarkets.length - 1 ? 0 : prev + 1));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [featuredMarkets.length]);
+
+  return (
+    <div className="relative mb-6 group">
+      {/* Carousel Container */}
+      <div className="relative overflow-hidden rounded-xl bg-gray-900 border border-gray-800">
+        {/* Navigation Arrows */}
+        {featuredMarkets.length > 1 && (
+          <>
+            <button
+              onClick={goToPrevious}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-gray-900/80 hover:bg-gray-800 rounded-full p-2 transition opacity-0 group-hover:opacity-100"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="w-6 h-6 text-white" />
+            </button>
+            <button
+              onClick={goToNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-gray-900/80 hover:bg-gray-800 rounded-full p-2 transition opacity-0 group-hover:opacity-100"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="w-6 h-6 text-white" />
+            </button>
+          </>
+        )}
+
+        {/* Slides Container */}
+        <div className="relative overflow-hidden">
+          <div
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+          >
+            {featuredMarkets.map((m, index) => (
+              <div key={m.id} className="min-w-full flex-shrink-0">
+                <FeaturedMarketCard m={m} markets={markets} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Dots Navigation */}
+      {featuredMarkets.length > 1 && (
+        <div className="flex justify-center gap-2 mt-4">
+          {featuredMarkets.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`transition-all duration-300 rounded-full ${
+                index === currentIndex
+                  ? "w-8 h-2 bg-blue-500"
+                  : "w-2 h-2 bg-gray-600 hover:bg-gray-500"
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -531,7 +637,10 @@ export default function MarketsPage({ markets=[], limit, category }){
     );
   }
   
-  // Featured market (marked as featured, or first one if none)
+  // Determine if we should show carousel (home page or trending page)
+  const showCarousel = limit || urlCategory === "trending";
+  
+  // Featured market (marked as featured, or first one if none) - only for non-carousel pages
   const featuredMarket = list.find(m => m.featured) || (list.length > 0 ? list[0] : null);
   const nonFeaturedMarkets = list.filter(m => m.id !== featuredMarket?.id);
   const gridMarkets = nonFeaturedMarkets.slice(0, 4); // Next 4 markets
@@ -540,11 +649,16 @@ export default function MarketsPage({ markets=[], limit, category }){
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {!limit && urlCategory !== "sports" && <h2 className="text-2xl font-bold text-white mb-6">{getTitle()}</h2>}
       
-      {/* Featured Large Market Card */}
-      {featuredMarket && (
-        <div className="mb-6">
-          <FeaturedMarketCard m={featuredMarket} markets={safeMarkets} />
-        </div>
+      {/* Featured Carousel - Only on home and trending pages */}
+      {showCarousel ? (
+        <FeaturedCarousel markets={safeMarkets} />
+      ) : (
+        /* Featured Large Market Card - For other pages */
+        featuredMarket && (
+          <div className="mb-6">
+            <FeaturedMarketCard m={featuredMarket} markets={safeMarkets} />
+          </div>
+        )
       )}
       
       {/* Feature Fields - Only show on homepage */}
