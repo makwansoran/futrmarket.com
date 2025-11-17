@@ -311,6 +311,9 @@ export default function MarketsPage({ markets=[], limit, category }){
   const params = useParams();
   const location = React.useLocation();
   
+  // Debug: Log limit prop
+  console.log("🔵 MarketsPage: limit prop:", limit, "type:", typeof limit);
+  
   // Debug: Log what we're getting from params
   console.log("🔵 MarketsPage: Route params:", params);
   console.log("🔵 MarketsPage: Location pathname:", location.pathname);
@@ -557,7 +560,7 @@ export default function MarketsPage({ markets=[], limit, category }){
       )}
       
       {/* Feature Fields - Only show on homepage */}
-      {limit && (
+      {limit ? (
             <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Legal & regulated */}
               <div className="flex items-start gap-3 bg-gray-900/50 border border-gray-800 rounded-lg p-4">
