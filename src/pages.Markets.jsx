@@ -644,9 +644,9 @@ export default function MarketsPage({ markets=[], limit, category }){
                 </div>
               </div>
             </div>
-          )}
-          
-          {/* Grid of 4 Smaller Market Cards */}
+          ) : null}
+      
+      {/* Grid of 4 Smaller Market Cards */}
           {gridMarkets.length > 0 && (
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {gridMarkets.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
