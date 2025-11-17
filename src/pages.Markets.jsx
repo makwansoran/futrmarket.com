@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { Clock, TrendingUp } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import Thumb from "./ui.Thumb.jsx";
@@ -65,7 +65,7 @@ function MarketCard({ m }){
 
 // Large Featured Market Card (like Kalshi)
 function FeaturedMarketCard({ m, markets = [] }){
-  const navigate = React.useNavigate();
+  const navigate = useNavigate();
   
   // Ensure m is valid
   if (!m || !m.id) {
