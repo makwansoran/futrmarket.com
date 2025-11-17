@@ -311,14 +311,6 @@ export default function MarketsPage({ markets=[], limit, category }){
   const params = useParams();
   const location = useLocation();
   
-  // Debug: Log limit prop
-  console.log("🔵 MarketsPage: limit prop:", limit, "type:", typeof limit);
-  
-  // Debug: Log what we're getting from params
-  console.log("🔵 MarketsPage: Route params:", params);
-  console.log("🔵 MarketsPage: Location pathname:", location.pathname);
-  console.log("🔵 MarketsPage: Category prop:", category);
-  
   // Check if we're on a competition-specific sports page
   const competitionSlug = params.competitionSlug; // For /markets/sports/:competitionSlug
   const isCompetitionPage = !!competitionSlug;
@@ -328,8 +320,6 @@ export default function MarketsPage({ markets=[], limit, category }){
   // 2. If category prop is "sports", use it
   // 3. Otherwise use params.category
   const urlCategory = isCompetitionPage ? "sports" : (category || params.category);
-  
-  console.log("🔵 MarketsPage: urlCategory:", urlCategory, "competitionSlug:", competitionSlug, "isCompetitionPage:", isCompetitionPage);
   
   // State for competitions (to map slug to competitionId)
   const [competitions, setCompetitions] = React.useState([]);
@@ -365,8 +355,6 @@ export default function MarketsPage({ markets=[], limit, category }){
   
   // Ensure markets is always an array
   const safeMarkets = Array.isArray(markets) ? markets : [];
-  console.log("🔵 MarketsPage: Total markets:", safeMarkets.length);
-  console.log("🔵 MarketsPage: Markets sample:", safeMarkets.slice(0, 3).map(m => ({ id: m?.id, category: m?.category, question: m?.question })));
   
   let filteredMarkets = safeMarkets;
   
@@ -561,7 +549,7 @@ export default function MarketsPage({ markets=[], limit, category }){
       
       {/* Feature Fields - Only show on homepage */}
       {limit ? (
-            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" style={{backgroundColor: 'rgba(255,0,0,0.1)'}}>
+            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Legal & regulated */}
               <div className="flex items-start gap-3 bg-gray-900/50 border border-gray-800 rounded-lg p-4">
                 <div className="flex-shrink-0 w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
