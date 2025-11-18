@@ -16,6 +16,7 @@ import SignupPage from "./pages.Signup.jsx";
 import LivePage from "./pages.Live.jsx";
 import ForumPage from "./pages.Forum.jsx";
 import NewsPage from "./pages.News.jsx";
+import PositionsPage from "./pages.Positions.jsx";
 
 import { UserProvider, useUser } from "./contexts/UserContext.jsx";
 import { MarketsProvider, useMarkets } from "./contexts/MarketsContext.jsx";
@@ -98,6 +99,7 @@ function AppContent() {
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/positions" element={<PositionsPage />} />
           <Route path="/login" element={<LoginPageWrapper navigate={navigate} />} />
           <Route path="/signup" element={<SignupPageWrapper navigate={navigate} />} />
           <Route

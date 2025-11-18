@@ -19,7 +19,11 @@ const {
   upsertVerificationCode,
   deleteVerificationCode,
   getWallet,
-  upsertWallet
+  upsertWallet,
+  getAllPositions,
+  getContract,
+  getAllContracts,
+  getOrders
 } = require("./lib/db.cjs");
 
 const app = express();
@@ -902,15 +906,17 @@ app.post("/api/wallet/withdraw", async (req,res)=>{
 // Price starts at $1 and moves based on buy/sell pressure
 function calculateMarketPrice(contract) {
   // Start at $1
-  if (!contract.marketPrice) return 1.0;
+  // Handle both database field names (snake_case) and API field names (camelCase)
+  const marketPrice = contract.market_price || contract.marketPrice;
+  if (!marketPrice) return 1.0;
   
   // Price moves based on:
   // - Buy volume increases price
   // - Sell volume decreases price
   // - Price impact: larger trades move price more
   
-  const buyVolume = contract.buyVolume || 0;
-  const sellVolume = contract.sellVolume || 0;
+  const buyVolume = Number(contract.buy_volume || contract.buyVolume || 0);
+  const sellVolume = Number(contract.sell_volume || contract.sellVolume || 0);
   const netVolume = buyVolume - sellVolume;
   
   // Price adjustment: 1% per $100 net volume
@@ -1177,70 +1183,126 @@ app.post("/api/contracts/:id/order", async (req, res) => {
 });
 
 // Get user positions
-app.get("/api/positions", (req, res) => {
-  const email = String(req.query.email || "").trim().toLowerCase();
-  if (!email) return res.status(400).json({ ok: false, error: "email required" });
-  
-  const positions = loadJSON(POSITIONS_FILE);
-  const contracts = loadJSON(CONTRACTS_FILE);
-  const userPositions = positions[email] || {};
-  
-  // Calculate portfolio value
-  let portfolioValue = 0;
-  const positionsList = Object.entries(userPositions).map(([contractId, pos]) => {
-    const contract = contracts[contractId];
-    if (!contract) return null;
+app.get("/api/positions", async (req, res) => {
+  try {
+    const email = String(req.query.email || "").trim().toLowerCase();
+    if (!email) return res.status(400).json({ ok: false, error: "email required" });
     
-    // New system: contracts (starts at $1, market determines price)
-    if (pos.contracts !== undefined) {
-      const currentPrice = calculateMarketPrice(contract);
-      const value = (pos.contracts || 0) * currentPrice;
-      portfolioValue += value;
+    // Get user positions from database
+    const userPositions = await getAllPositions(email);
+    
+    // Get all contracts to calculate values
+    const allContracts = await getAllContracts();
+    const contractsMap = {};
+    allContracts.forEach(c => {
+      contractsMap[c.id] = c;
+    });
+    
+    // Calculate portfolio value
+    let portfolioValue = 0;
+    const positionsList = Object.entries(userPositions).map(([contractId, pos]) => {
+      const contract = contractsMap[contractId];
+      if (!contract) return null;
+      
+      // New system: contracts (starts at $1, market determines price)
+      if (pos.contracts !== undefined && pos.contracts !== null) {
+        const currentPrice = calculateMarketPrice(contract);
+        const value = (pos.contracts || 0) * currentPrice;
+        portfolioValue += value;
+        return {
+          contractId,
+          question: contract.question,
+          category: contract.category,
+          contracts: pos.contracts || 0,
+          price: currentPrice,
+          value: value,
+          resolution: contract.resolution,
+          status: contract.status,
+          // Legacy fields for compatibility
+          yesShares: 0,
+          noShares: 0,
+          yesValue: 0,
+          noValue: 0,
+          totalValue: value,
+          yesPrice: 0.5,
+          noPrice: 0.5
+        };
+      }
+      
+      // Legacy system: yesShares/noShares (for backward compatibility)
+      const yesValue = (pos.yes_shares || pos.yesShares || 0) * (contract.yes_price || contract.yesPrice || 0.5);
+      const noValue = (pos.no_shares || pos.noShares || 0) * (contract.no_price || contract.noPrice || 0.5);
+      const totalValue = yesValue + noValue;
+      portfolioValue += totalValue;
+      
       return {
         contractId,
         question: contract.question,
         category: contract.category,
-        contracts: pos.contracts || 0,
-        price: currentPrice,
-        value: value,
+        yesShares: pos.yes_shares || pos.yesShares || 0,
+        noShares: pos.no_shares || pos.noShares || 0,
+        yesValue,
+        noValue,
+        totalValue,
+        yesPrice: contract.yes_price || contract.yesPrice || 0.5,
+        noPrice: contract.no_price || contract.noPrice || 0.5,
         resolution: contract.resolution,
-        // Legacy fields for compatibility
-        yesShares: 0,
-        noShares: 0,
-        yesValue: 0,
-        noValue: 0,
-        totalValue: value,
-        yesPrice: 0.5,
-        noPrice: 0.5
+        status: contract.status,
+        // New system fields (zero for legacy positions)
+        contracts: 0,
+        price: contract.market_price || contract.marketPrice || 1.0,
+        value: totalValue
       };
-    }
+    }).filter(Boolean);
     
-    // Legacy system: yesShares/noShares (for backward compatibility)
-    const yesValue = (pos.yesShares || 0) * (contract.yesPrice || 0.5);
-    const noValue = (pos.noShares || 0) * (contract.noPrice || 0.5);
-    const totalValue = yesValue + noValue;
-    portfolioValue += totalValue;
+    res.json({ ok: true, data: { positions: positionsList, portfolioValue } });
+  } catch (error) {
+    console.error("Error fetching positions:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch positions" });
+  }
+});
+
+// Get user orders
+app.get("/api/orders", async (req, res) => {
+  try {
+    const email = String(req.query.email || "").trim().toLowerCase();
+    if (!email) return res.status(400).json({ ok: false, error: "email required" });
     
-    return {
-      contractId,
-      question: contract.question,
-      category: contract.category,
-      yesShares: pos.yesShares || 0,
-      noShares: pos.noShares || 0,
-      yesValue,
-      noValue,
-      totalValue,
-      yesPrice: contract.yesPrice || 0.5,
-      noPrice: contract.noPrice || 0.5,
-      resolution: contract.resolution,
-      // New system fields (zero for legacy positions)
-      contracts: 0,
-      price: contract.marketPrice || 1.0,
-      value: totalValue
-    };
-  }).filter(Boolean);
-  
-  res.json({ ok: true, data: { positions: positionsList, portfolioValue } });
+    // Get user orders from database
+    const orders = await getOrders(email);
+    
+    // Get all contracts to include contract details
+    const allContracts = await getAllContracts();
+    const contractsMap = {};
+    allContracts.forEach(c => {
+      contractsMap[c.id] = c;
+    });
+    
+    // Enrich orders with contract information
+    const enrichedOrders = orders.map(order => {
+      const contract = contractsMap[order.contract_id || order.contractId];
+      return {
+        id: order.id,
+        contractId: order.contract_id || order.contractId,
+        contractQuestion: contract?.question || "Unknown Contract",
+        contractCategory: contract?.category || "General",
+        type: order.type,
+        side: order.side,
+        amountUsd: Number(order.amount_usd || order.amountUSD || 0),
+        contractsReceived: Number(order.contracts_received || order.contractsReceived || 0),
+        price: Number(order.price || 0),
+        timestamp: order.timestamp || order.created_at || Date.now()
+      };
+    });
+    
+    // Sort by timestamp (newest first)
+    enrichedOrders.sort((a, b) => b.timestamp - a.timestamp);
+    
+    res.json({ ok: true, data: enrichedOrders });
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch orders" });
+  }
 });
 
 // Update contract (admin only)

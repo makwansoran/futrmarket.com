@@ -1,0 +1,354 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, TrendingUp, TrendingDown, Buy, Sell, BarChart3, Clock, DollarSign } from "lucide-react";
+import { getApiUrl } from "/src/api.js";
+import { useUser } from "./contexts/UserContext.jsx";
+
+export default function PositionsPage() {
+  const navigate = useNavigate();
+  const { userEmail, cash, portfolio } = useUser();
+  const [positions, setPositions] = React.useState([]);
+  const [orders, setOrders] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
+  const [activeTab, setActiveTab] = React.useState("positions"); // "positions" or "orders"
+  const [chartData, setChartData] = React.useState([]);
+
+  React.useEffect(() => {
+    if (!userEmail) {
+      navigate("/login");
+      return;
+    }
+    loadData();
+  }, [userEmail, navigate]);
+
+  async function loadData() {
+    if (!userEmail) return;
+    
+    try {
+      setLoading(true);
+      setError("");
+      
+      // Load positions and orders in parallel
+      const [positionsRes, ordersRes] = await Promise.all([
+        fetch(getApiUrl(`/api/positions?email=${encodeURIComponent(userEmail)}`)),
+        fetch(getApiUrl(`/api/orders?email=${encodeURIComponent(userEmail)}`))
+      ]);
+      
+      const positionsData = await positionsRes.json();
+      const ordersData = await ordersRes.json();
+      
+      if (positionsData.ok) {
+        setPositions(positionsData.data.positions || []);
+        
+        // Generate chart data from orders (portfolio value over time)
+        if (ordersData.ok && ordersData.data) {
+          generateChartData(ordersData.data);
+        }
+      } else {
+        setError(positionsData.error || "Failed to load positions");
+      }
+      
+      if (ordersData.ok) {
+        setOrders(ordersData.data || []);
+      }
+    } catch (e) {
+      console.error("Error loading positions:", e);
+      setError("Failed to load positions. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function generateChartData(ordersList) {
+    // Sort orders by timestamp
+    const sortedOrders = [...ordersList].sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Calculate cumulative portfolio value
+    let runningValue = 0;
+    const data = sortedOrders.map(order => {
+      if (order.type === "buy") {
+        runningValue += order.amountUsd;
+      } else if (order.type === "sell") {
+        runningValue -= order.amountUsd;
+      }
+      return {
+        date: new Date(order.timestamp).toLocaleDateString(),
+        timestamp: order.timestamp,
+        value: Math.max(0, runningValue)
+      };
+    });
+    
+    // Add current portfolio value as last point
+    if (data.length > 0 || portfolio > 0) {
+      data.push({
+        date: "Now",
+        timestamp: Date.now(),
+        value: portfolio
+      });
+    }
+    
+    setChartData(data);
+  }
+
+  function handleBuy(contractId) {
+    navigate(`/market/${contractId}`);
+  }
+
+  function handleSell(contractId) {
+    navigate(`/market/${contractId}?action=sell`);
+  }
+
+  const totalValue = positions.reduce((sum, pos) => sum + (pos.value || pos.totalValue || 0), 0);
+
+  return (
+    <main className="max-w-7xl mx-auto px-6 py-8 text-white">
+      {/* Header */}
+      <div className="mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-400 hover:text-white mb-4 transition"
+        >
+          <ArrowLeft size={20} />
+          Back
+        </button>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">My Positions</h1>
+            <p className="text-gray-400">View and manage your trading positions and order history</p>
+          </div>
+          <div className="text-right">
+            <div className="text-gray-400 text-sm mb-1">Total Portfolio Value</div>
+            <div className="text-2xl font-bold text-green-400">${totalValue.toFixed(2)}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 border-b border-gray-800">
+        <button
+          onClick={() => setActiveTab("positions")}
+          className={`px-4 py-2 font-medium transition ${
+            activeTab === "positions"
+              ? "text-blue-400 border-b-2 border-blue-400"
+              : "text-gray-400 hover:text-gray-300"
+          }`}
+        >
+          Positions ({positions.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("orders")}
+          className={`px-4 py-2 font-medium transition ${
+            activeTab === "orders"
+              ? "text-blue-400 border-b-2 border-blue-400"
+              : "text-gray-400 hover:text-gray-300"
+          }`}
+        >
+          Order History ({orders.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("chart")}
+          className={`px-4 py-2 font-medium transition ${
+            activeTab === "chart"
+              ? "text-blue-400 border-b-2 border-blue-400"
+              : "text-gray-400 hover:text-gray-300"
+          }`}
+        >
+          <BarChart3 size={18} className="inline mr-2" />
+          Progress Chart
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="text-gray-400">Loading...</div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400">
+          {error}
+        </div>
+      ) : activeTab === "positions" ? (
+        <div className="space-y-4">
+          {positions.length === 0 ? (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center">
+              <BarChart3 size={48} className="mx-auto text-gray-600 mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No Positions Yet</h3>
+              <p className="text-gray-400 mb-6">Start trading to build your portfolio</p>
+              <button
+                onClick={() => navigate("/markets")}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium"
+              >
+                Browse Markets
+              </button>
+            </div>
+          ) : (
+            positions.map((position) => (
+              <div
+                key={position.contractId}
+                className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-700 transition"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-2">{position.question}</h3>
+                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                      <span className="px-2 py-1 bg-gray-800 rounded">{position.category}</span>
+                      {position.status && (
+                        <span className={`px-2 py-1 rounded ${
+                          position.status === "live" ? "bg-green-500/20 text-green-400" :
+                          position.status === "finished" ? "bg-gray-500/20 text-gray-400" :
+                          "bg-blue-500/20 text-blue-400"
+                        }`}>
+                          {position.status}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-green-400">
+                      ${(position.value || position.totalValue || 0).toFixed(2)}
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      {position.contracts > 0 ? `${position.contracts.toFixed(2)} contracts` : 
+                       `${(position.yesShares || 0).toFixed(2)} YES / ${(position.noShares || 0).toFixed(2)} NO`}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <div className="text-xs text-gray-400 mb-1">Current Price</div>
+                    <div className="text-lg font-semibold">${(position.price || 0).toFixed(2)}</div>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <div className="text-xs text-gray-400 mb-1">Position Value</div>
+                    <div className="text-lg font-semibold text-green-400">
+                      ${(position.value || position.totalValue || 0).toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+
+                {position.resolution ? (
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-blue-300 text-sm">
+                    Contract resolved: {position.resolution}
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleBuy(position.contractId)}
+                      className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium flex items-center justify-center gap-2 transition"
+                    >
+                      <Buy size={18} />
+                      Buy More
+                    </button>
+                    {(position.contracts > 0 || (position.yesShares > 0 || position.noShares > 0)) && (
+                      <button
+                        onClick={() => handleSell(position.contractId)}
+                        className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium flex items-center justify-center gap-2 transition"
+                      >
+                        <Sell size={18} />
+                        Sell
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      ) : activeTab === "orders" ? (
+        <div className="space-y-3">
+          {orders.length === 0 ? (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center">
+              <Clock size={48} className="mx-auto text-gray-600 mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No Orders Yet</h3>
+              <p className="text-gray-400">Your trading history will appear here</p>
+            </div>
+          ) : (
+            orders.map((order) => (
+              <div
+                key={order.id}
+                className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        order.type === "buy"
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-red-500/20 text-red-400"
+                      }`}>
+                        {order.type.toUpperCase()}
+                      </span>
+                      <span className="text-gray-400 text-sm">
+                        {new Date(order.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                    <h4 className="font-semibold mb-1">{order.contractQuestion}</h4>
+                    <div className="text-sm text-gray-400">{order.contractCategory}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-semibold">
+                      ${order.amountUsd.toFixed(2)}
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      {order.contractsReceived > 0 && `${order.contractsReceived.toFixed(2)} @ $${order.price.toFixed(2)}`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h2 className="text-xl font-semibold mb-4">Portfolio Progress</h2>
+          {chartData.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <BarChart3 size={48} className="mx-auto mb-4 opacity-50" />
+              <p>No trading data yet. Start trading to see your progress!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Simple bar chart visualization */}
+              <div className="h-64 flex items-end justify-between gap-2">
+                {chartData.map((point, index) => {
+                  const maxValue = Math.max(...chartData.map(p => p.value), 1);
+                  const height = (point.value / maxValue) * 100;
+                  return (
+                    <div key={index} className="flex-1 flex flex-col items-center">
+                      <div
+                        className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t transition-all hover:opacity-80"
+                        style={{ height: `${Math.max(height, 5)}%` }}
+                        title={`${point.date}: $${point.value.toFixed(2)}`}
+                      />
+                      <div className="text-xs text-gray-500 mt-2 text-center transform -rotate-45 origin-top-left whitespace-nowrap">
+                        {point.date.length > 10 ? point.date.substring(0, 10) : point.date}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                <div className="bg-gray-800 rounded-lg p-4 text-center">
+                  <div className="text-gray-400 text-sm mb-1">Total Trades</div>
+                  <div className="text-2xl font-bold">{orders.length}</div>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-4 text-center">
+                  <div className="text-gray-400 text-sm mb-1">Current Value</div>
+                  <div className="text-2xl font-bold text-green-400">${portfolio.toFixed(2)}</div>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-4 text-center">
+                  <div className="text-gray-400 text-sm mb-1">Available Cash</div>
+                  <div className="text-2xl font-bold">${cash.toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </main>
+  );
+}
+

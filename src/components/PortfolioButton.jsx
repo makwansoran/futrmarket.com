@@ -1,8 +1,10 @@
-  import React from "react";
-import { X, TrendingUp, TrendingDown } from "lucide-react";
+import React from "react";
+import { X, TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function PortfolioButton({ portfolio, cash }) {
   const [open, setOpen] = React.useState(false);
+  const navigate = useNavigate();
   
   // Ensure values are numbers and default to 0
   const portfolioValue = typeof portfolio === "number" && !isNaN(portfolio) ? portfolio : 0;
@@ -63,6 +65,17 @@ export default function PortfolioButton({ portfolio, cash }) {
                     <span>${Math.abs(change).toFixed(2)} ({Math.abs(changePercent).toFixed(2)}%)</span>
                   </div>
                 )}
+                {/* Positions Button */}
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    navigate("/positions");
+                  }}
+                  className="mt-4 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium flex items-center justify-center gap-2 transition"
+                >
+                  <BarChart3 size={18} />
+                  Positions
+                </button>
               </div>
 
               {/* Breakdown */}
