@@ -106,7 +106,11 @@ app.use((req, res, next) => {
     // Check various conditions
     const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
     const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
-    const isFutrmarket = origin.includes('futrmarket.com') || origin.includes('futrmarket');
+    // Explicitly check for futrmarket.com domains (with or without www)
+    const isFutrmarket = origin.includes('futrmarket.com') || 
+                         origin.includes('futrmarket') ||
+                         origin === 'https://www.futrmarket.com' ||
+                         origin === 'https://futrmarket.com';
     const isInAllowedList = allowedOrigins.includes(origin);
     
     // Log for debugging
