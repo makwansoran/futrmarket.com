@@ -1116,35 +1116,52 @@ app.get("/api/contracts", async (req, res) => {
 });
 
 // Get single contract
-app.get("/api/contracts/:id", (req, res) => {
-  const contracts = loadJSON(CONTRACTS_FILE);
-  // Decode the ID parameter (it might be URL encoded)
-  const contractId = decodeURIComponent(req.params.id || "");
-  const contract = contracts[contractId];
-  
-  // If not found, try without decoding (for backwards compatibility)
-  const contractToUse = contract || contracts[req.params.id];
-  
-  if (!contractToUse) {
-    console.error("🔴 Contract not found:", { 
-      requestedId: req.params.id, 
-      decodedId: contractId,
-      availableIds: Object.keys(contracts).slice(0, 5) // Log first 5 for debugging
-    });
-    return res.status(404).json({ ok: false, error: "Contract not found" });
+app.get("/api/contracts/:id", async (req, res) => {
+  try {
+    // Decode the ID parameter (it might be URL encoded)
+    const contractId = decodeURIComponent(req.params.id || "");
+    
+    // Use database abstraction to get contract
+    const contract = await getContract(contractId);
+    
+    if (!contract) {
+      console.error("🔴 Contract not found:", { 
+        requestedId: req.params.id, 
+        decodedId: contractId
+      });
+      return res.status(404).json({ ok: false, error: "Contract not found" });
+    }
+    
+    // Calculate current market price
+    const marketPrice = calculateMarketPrice(contract);
+    
+    // Handle both snake_case and camelCase field names from database
+    const volume = contract.volume || contract.total_volume || 0;
+    const traders = contract.traders ? (Array.isArray(contract.traders) ? contract.traders.length : Object.keys(contract.traders).length) : 0;
+    
+    const result = {
+      ...contract,
+      id: contract.id || contractId, // Ensure ID is included
+      marketPrice: marketPrice, // Ensure marketPrice is always set
+      traders: traders,
+      volume: `$${Number(volume).toFixed(2)}`,
+      // Ensure all common fields are present
+      question: contract.question || "",
+      category: contract.category || "General",
+      status: contract.status || "upcoming",
+      resolution: contract.resolution || null,
+      imageUrl: contract.image_url || contract.imageUrl || null,
+      description: contract.description || null,
+      expirationDate: contract.expiration_date || contract.expirationDate || null,
+      createdAt: contract.created_at || contract.createdAt || 0
+    };
+    
+    res.json({ ok: true, data: result });
+  } catch (error) {
+    console.error("Error fetching contract:", error);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch contract" });
   }
-  
-  // Calculate current market price
-  const marketPrice = calculateMarketPrice(contractToUse);
-  
-  const result = {
-    ...contractToUse,
-    id: contractId || req.params.id, // Ensure ID matches what was requested
-    marketPrice: marketPrice, // Ensure marketPrice is always set
-    traders: contractToUse.traders ? (Array.isArray(contractToUse.traders) ? contractToUse.traders.length : Object.keys(contractToUse.traders).length) : 0,
-    volume: `$${contractToUse.volume.toFixed(2)}`
-  };
-  res.json({ ok: true, data: result });
 });
 
 // Place order (buy/sell contracts)
