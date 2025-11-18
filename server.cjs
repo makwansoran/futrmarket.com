@@ -1,5 +1,10 @@
+// Immediate logging for Render deployment debugging
+console.log("[STARTUP] Loading server...");
+
 // Load environment variables
 require("dotenv").config();
+
+console.log("[STARTUP] Environment loaded");
 
 const fs = require("fs");
 const path = require("path");
@@ -2101,17 +2106,32 @@ app.get("/api/stats", requireAdmin, (req, res) => {
   }
 });
 
+// Add error handlers early (before server starts)
+process.on("uncaughtException", (err) => {
+  console.error("[FATAL] Uncaught Exception:", err);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[FATAL] Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
+});
+
 // ---- Health check endpoint (for Render deployment) ----
+// Register health check early so Render can verify server is ready
 app.get("/", (req, res) => {
   res.json({ ok: true, message: "FutrMarket API is running", timestamp: Date.now() });
 });
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, status: "healthy", timestamp: Date.now() });
+  // Immediate response for Render health checks
+  res.status(200).json({ ok: true, status: "healthy", timestamp: Date.now() });
 });
 
 // ---- Static (for any public assets if you need) ----
 app.use(express.static(path.join(process.cwd(), "public")));
+
+console.log("[STARTUP] Starting server on port", PORT);
 
 // Start server
 const server = app.listen(PORT, "0.0.0.0", () => {
@@ -2131,6 +2151,7 @@ const server = app.listen(PORT, "0.0.0.0", () => {
     console.log("   Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env to enable");
   }
   console.log("========================================");
+  console.log("[STARTUP] Server ready!");
 });
 
 // Handle server errors
