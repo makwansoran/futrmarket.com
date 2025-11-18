@@ -118,12 +118,20 @@ export async function sendCode(email) {
   }
 }
 
-export async function verifyCode(email, code) {
+export async function verifyCode(email, code, password, confirmPassword) {
   try {
+    const body = { email, code };
+    if (password) {
+      body.password = password;
+    }
+    if (confirmPassword) {
+      body.confirmPassword = confirmPassword;
+    }
+    
     const r = await fetch(getApiUrl('/api/verify-code'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code })
+      body: JSON.stringify(body)
     });
     
     // Handle non-OK responses
