@@ -569,6 +569,20 @@ app.post("/api/verify-code", async (req,res)=>{
     passwordHash = await bcrypt.hash(password, 10);
   }
 
+  // Check username uniqueness for new users
+  if (isNewUser && username && username.trim()) {
+    const { getAllUsers } = require("./lib/db.cjs");
+    const allUsers = await getAllUsers();
+    const usernameTaken = allUsers.some(u => 
+      u.username && 
+      u.username.trim().toLowerCase() === username.trim().toLowerCase()
+    );
+    
+    if (usernameTaken) {
+      return res.status(400).json({ ok:false, error:"Username is already taken. Please choose a different username." });
+    }
+  }
+
   // Ensure user exists in database (Supabase or file)
   let user = await getUser(emailLower);
   if (!user) {
@@ -1822,57 +1836,104 @@ app.get("/api/users/:email", async (req, res) => {
 });
 
 // Update user profile
-app.patch("/api/users/:email", (req, res) => {
-  let email = String(req.params.email || "").trim().toLowerCase();
-  if (!email) return res.status(400).json({ ok: false, error: "Email required" });
-  
-  const users = loadJSON(USERS_FILE);
-  let user = users[email];
-  
-  if (!user) {
-    user = { email, username: "", profilePicture: "", createdAt: Date.now() };
+app.patch("/api/users/:email", async (req, res) => {
+  try {
+    let email = String(req.params.email || "").trim().toLowerCase();
+    if (!email) return res.status(400).json({ ok: false, error: "Email required" });
+    
+    // Get current user
+    let user = await getUser(email);
+    if (!user) {
+      return res.status(404).json({ ok: false, error: "User not found" });
+    }
+    
+    const updates = {};
+    
+    // Check username uniqueness if username is being updated
+    if (req.body.username !== undefined) {
+      const newUsername = String(req.body.username || "").trim();
+      
+      // If username is not empty, check for uniqueness
+      if (newUsername) {
+        // Get all users to check for duplicate username
+        const { getAllUsers } = require("./lib/db.cjs");
+        const allUsers = await getAllUsers();
+        
+        // Check if username is already taken by another user
+        const usernameTaken = allUsers.some(u => 
+          u.email !== email && 
+          u.username && 
+          u.username.trim().toLowerCase() === newUsername.toLowerCase()
+        );
+        
+        if (usernameTaken) {
+          return res.status(400).json({ ok: false, error: "Username is already taken. Please choose a different username." });
+        }
+      }
+      
+      updates.username = newUsername;
+    }
+    
+    // Update profile picture
+    if (req.body.profilePicture !== undefined) {
+      updates.profilePicture = String(req.body.profilePicture || "").trim();
+    }
+    
+    // Update email (if changing)
+    if (req.body.email !== undefined && req.body.email !== email) {
+      const newEmail = String(req.body.email || "").trim().toLowerCase();
+      if (!newEmail) {
+        return res.status(400).json({ ok: false, error: "New email cannot be empty" });
+      }
+      
+      // Check if new email already exists
+      const existingUser = await getUser(newEmail);
+      if (existingUser) {
+        return res.status(400).json({ ok: false, error: "Email already in use" });
+      }
+      
+      updates.email = newEmail;
+    }
+    
+    // If no updates, return error
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ ok: false, error: "No changes to save" });
+    }
+    
+    // Update user in database
+    if (updates.email) {
+      // If email is changing, we need special handling
+      // For now, just update the username/profilePicture
+      // Email change would require more complex migration
+      const { username, profilePicture } = updates;
+      if (username !== undefined || profilePicture !== undefined) {
+        await updateUser(email, {
+          username: username !== undefined ? username : user.username,
+          profilePicture: profilePicture !== undefined ? profilePicture : (user.profile_picture || user.profilePicture || "")
+        });
+      }
+      return res.status(400).json({ ok: false, error: "Email change is not yet supported. Please contact support." });
+    } else {
+      // Update user with new values
+      await updateUser(email, updates);
+    }
+    
+    // Get updated user data
+    const updatedUser = await getUser(email);
+    
+    // Convert to API format
+    const responseData = {
+      email: updatedUser.email,
+      username: updatedUser.username && updatedUser.username.trim() ? updatedUser.username.trim() : "",
+      profilePicture: updatedUser.profile_picture || updatedUser.profilePicture || "",
+      createdAt: updatedUser.created_at || updatedUser.createdAt || Date.now()
+    };
+    
+    res.json({ ok: true, data: responseData, message: "Profile updated successfully" });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to update user" });
   }
-  
-  // Update allowed fields
-  if (req.body.username !== undefined) user.username = String(req.body.username || "").trim();
-  if (req.body.profilePicture !== undefined) user.profilePicture = String(req.body.profilePicture || "").trim();
-  if (req.body.email !== undefined && req.body.email !== email) {
-    const newEmail = String(req.body.email || "").trim().toLowerCase();
-    if (!newEmail) return res.status(400).json({ ok: false, error: "New email cannot be empty" });
-    
-    // Check if new email already exists
-    if (users[newEmail] && newEmail !== email) {
-      return res.status(400).json({ ok: false, error: "Email already in use" });
-    }
-    
-    // Move user data to new email
-    user.email = newEmail;
-    users[newEmail] = user;
-    delete users[email];
-    
-    // Update balances, positions, etc. to use new email
-    const balances = loadJSON(BALANCES_FILE);
-    if (balances[email]) {
-      balances[newEmail] = balances[email];
-      delete balances[email];
-      saveJSON(BALANCES_FILE, balances);
-    }
-    
-    const positions = loadJSON(POSITIONS_FILE);
-    if (positions[email]) {
-      positions[newEmail] = positions[email];
-      delete positions[email];
-      saveJSON(POSITIONS_FILE, positions);
-    }
-    
-    email = newEmail; // Update for response
-  }
-  
-  user.updatedAt = Date.now();
-  users[email] = user;
-  saveJSON(USERS_FILE, users);
-  
-  res.json({ ok: true, data: user });
 });
 
 // ---- Statistics endpoint (admin only) ----
