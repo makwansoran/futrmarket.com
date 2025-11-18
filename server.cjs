@@ -1042,40 +1042,57 @@ app.get("/api/contracts", async (req, res) => {
     // Use database abstraction to get contracts
     const contracts = await getAllContracts();
     
-    const list = contracts.map(c => {
-      // Calculate current market price for each contract
-      const marketPrice = calculateMarketPrice(c);
-      
-      // Handle both snake_case and camelCase field names from database
-      const volume = c.volume || c.total_volume || 0;
-      const createdAt = c.createdAt || c.created_at || 0;
-      const traders = c.traders ? (Array.isArray(c.traders) ? c.traders.length : Object.keys(c.traders).length) : 0;
-      
-      return {
-        ...c,
-        id: c.id, // Ensure ID is included
-        marketPrice: marketPrice, // Ensure marketPrice is always set
-        traders: traders,
-        volume: `$${Number(volume).toFixed(2)}`,
-        featured: c.featured || false,
-        live: c.live === true, // Explicitly include live field (default to false if not set)
-        createdAt: createdAt,
-        // Ensure all common fields are present
-        question: c.question || "",
-        category: c.category || "General",
-        status: c.status || "upcoming",
-        resolution: c.resolution || null
-      };
-    }).sort((a, b) => {
-      // Featured contracts first, then by creation date
-      if (a.featured && !b.featured) return -1;
-      if (!a.featured && b.featured) return 1;
-      return (b.createdAt || 0) - (a.createdAt || 0);
-    });
+    // Ensure contracts is an array
+    if (!Array.isArray(contracts)) {
+      console.error("getAllContracts did not return an array:", typeof contracts);
+      return res.json({ ok: true, data: [] });
+    }
+    
+    const list = contracts
+      .filter(c => c && c.id) // Filter out invalid contracts
+      .map(c => {
+        try {
+          // Calculate current market price for each contract
+          const marketPrice = calculateMarketPrice(c);
+          
+          // Handle both snake_case and camelCase field names from database
+          const volume = c.volume || c.total_volume || 0;
+          const createdAt = c.createdAt || c.created_at || 0;
+          const traders = c.traders ? (Array.isArray(c.traders) ? c.traders.length : Object.keys(c.traders).length) : 0;
+          
+          return {
+            ...c,
+            id: c.id, // Ensure ID is included
+            marketPrice: marketPrice, // Ensure marketPrice is always set
+            traders: traders,
+            volume: `$${Number(volume).toFixed(2)}`,
+            featured: c.featured || false,
+            live: c.live === true, // Explicitly include live field (default to false if not set)
+            createdAt: createdAt,
+            // Ensure all common fields are present
+            question: c.question || "",
+            category: c.category || "General",
+            status: c.status || "upcoming",
+            resolution: c.resolution || null
+          };
+        } catch (mapError) {
+          console.error("Error processing contract:", c?.id, mapError);
+          return null; // Skip this contract
+        }
+      })
+      .filter(Boolean) // Remove null entries
+      .sort((a, b) => {
+        // Featured contracts first, then by creation date
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      });
     
     res.json({ ok: true, data: list });
   } catch (error) {
     console.error("Error fetching contracts:", error);
+    console.error("Error stack:", error.stack);
+    // Ensure we still send a response even on error
     res.status(500).json({ ok: false, error: error.message || "Failed to fetch contracts" });
   }
 });
@@ -2171,14 +2188,39 @@ app.get("/api/stats", requireAdmin, async (req, res) => {
   }
 });
 
+// Global error handler middleware (must be after routes but before server starts)
+app.use((err, req, res, next) => {
+  console.error("[ERROR] Unhandled error:", err);
+  console.error("[ERROR] Stack:", err.stack);
+  
+  // Ensure CORS headers are set even on errors
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('futrmarket.com') || origin.includes('localhost') || origin.includes('vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  
+  if (!res.headersSent) {
+    res.status(500).json({ ok: false, error: err.message || "Internal server error" });
+  }
+});
+
 // Add error handlers early (before server starts)
 process.on("uncaughtException", (err) => {
   console.error("[FATAL] Uncaught Exception:", err);
+  console.error("[FATAL] Stack:", err.stack);
   process.exit(1);
 });
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("[FATAL] Unhandled Rejection at:", promise, "reason:", reason);
+  if (reason instanceof Error) {
+    console.error("[FATAL] Stack:", reason.stack);
+  }
   process.exit(1);
 });
 
