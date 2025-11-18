@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, TrendingUp, TrendingDown, Buy, Sell, BarChart3, Clock, DollarSign } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Plus, Minus, BarChart3, Clock, DollarSign } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import { useUser } from "./contexts/UserContext.jsx";
 
@@ -237,7 +237,7 @@ export default function PositionsPage() {
                       onClick={() => handleBuy(position.contractId)}
                       className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-medium flex items-center justify-center gap-2 transition"
                     >
-                      <Buy size={18} />
+                      <Plus size={18} />
                       Buy More
                     </button>
                     {(position.contracts > 0 || (position.yesShares > 0 || position.noShares > 0)) && (
@@ -245,7 +245,7 @@ export default function PositionsPage() {
                         onClick={() => handleSell(position.contractId)}
                         className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium flex items-center justify-center gap-2 transition"
                       >
-                        <Sell size={18} />
+                        <Minus size={18} />
                         Sell
                       </button>
                     )}
