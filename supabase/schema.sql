@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   email TEXT PRIMARY KEY,
   username TEXT,
   profile_picture TEXT,
+  password_hash TEXT, -- NULL allowed for migration, but new accounts require it
   created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,
   updated_at BIGINT,
   CONSTRAINT email_lowercase CHECK (email = LOWER(email))

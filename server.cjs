@@ -7,6 +7,7 @@ const express = require("express");
 const QRCode = require("qrcode");
 const { HDNodeWallet, Mnemonic, Wallet, JsonRpcProvider, Contract } = require("ethers");
 const { Resend } = require("resend");
+const bcrypt = require("bcrypt");
 const { supabase, isSupabaseEnabled } = require("./lib/supabase.cjs");
 const {
   createUser,
@@ -412,15 +413,46 @@ app.post("/api/send-code", async (req,res)=>{
   }
 });
 
-// Verify code
+// Verify code and create account (with password)
 app.post("/api/verify-code", async (req,res)=>{
-  const { email, code } = req.body||{};
+  const { email, code, password, confirmPassword } = req.body||{};
   if (!email || !code) {
     return res.status(400).json({ ok:false, error:"Email and code are required" });
   }
   
   const emailLower = String(email).trim().toLowerCase();
   const codeStr = String(code).trim();
+
+  // Check if this is a new user (signup) or existing user (login)
+  const existingUser = await getUser(emailLower);
+  const isNewUser = !existingUser;
+
+  // For new users, require password
+  if (isNewUser) {
+    if (!password || !confirmPassword) {
+      return res.status(400).json({ ok:false, error:"Password and confirm password are required for new accounts" });
+    }
+    if (password !== confirmPassword) {
+      return res.status(400).json({ ok:false, error:"Passwords do not match" });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ ok:false, error:"Password must be at least 6 characters" });
+    }
+  } else {
+    // For existing users (login), require password
+    if (!password) {
+      return res.status(400).json({ ok:false, error:"Password is required" });
+    }
+    // Verify password
+    const passwordHash = existingUser.password_hash || existingUser.passwordHash;
+    if (!passwordHash) {
+      return res.status(400).json({ ok:false, error:"Account has no password set. Please contact support." });
+    }
+    const passwordValid = await bcrypt.compare(password, passwordHash);
+    if (!passwordValid) {
+      return res.status(400).json({ ok:false, error:"Invalid password" });
+    }
+  }
 
   // Get verification code from database (Supabase or file)
   const stored = await getVerificationCode(emailLower);
@@ -458,6 +490,12 @@ app.post("/api/verify-code", async (req,res)=>{
   // Code is valid - delete it and create/update user
   await deleteVerificationCode(emailLower);
 
+  // Hash password for new users
+  let passwordHash = null;
+  if (isNewUser) {
+    passwordHash = await bcrypt.hash(password, 10);
+  }
+
   // Ensure user exists in database (Supabase or file)
   let user = await getUser(emailLower);
   if (!user) {
@@ -465,6 +503,7 @@ app.post("/api/verify-code", async (req,res)=>{
       email: emailLower,
       username: "",
       profilePicture: "",
+      passwordHash: passwordHash,
       createdAt: Date.now()
     });
     console.log("✅ New user created in database:", emailLower);
@@ -477,7 +516,7 @@ app.post("/api/verify-code", async (req,res)=>{
     console.log("✅ Balance initialized for user:", emailLower);
   }
 
-  res.json({ ok:true, message:"Code verified successfully" });
+  res.json({ ok:true, message: isNewUser ? "Account created successfully" : "Login successful" });
 });
 
 // ---- Deposit tracking and monitoring ----
