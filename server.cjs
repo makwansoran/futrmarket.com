@@ -7,7 +7,7 @@ const express = require("express");
 const QRCode = require("qrcode");
 const { HDNodeWallet, Mnemonic, Wallet, JsonRpcProvider, Contract } = require("ethers");
 const { Resend } = require("resend");
-const { supabase, isSupabaseEnabled } = require("./lib/supabase");
+const { supabase, isSupabaseEnabled } = require("./lib/supabase.cjs");
 const {
   createUser,
   getUser,
@@ -18,7 +18,7 @@ const {
   deleteVerificationCode,
   getWallet,
   upsertWallet
-} = require("./lib/db");
+} = require("./lib/db.cjs");
 
 const app = express();
 const PORT = process.env.PORT || 8787;
