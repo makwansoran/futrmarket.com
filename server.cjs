@@ -12,6 +12,7 @@ const { supabase, isSupabaseEnabled } = require("./lib/supabase.cjs");
 const {
   createUser,
   getUser,
+  updateUser,
   getBalance,
   updateBalance,
   getVerificationCode,
@@ -483,9 +484,12 @@ app.post("/api/verify-code", async (req,res)=>{
 
   // Check if this is a new user (signup) or existing user (login)
   const existingUser = await getUser(emailLower);
-  const isNewUser = !existingUser;
+  // A user is considered "new" if they don't exist OR if they exist but have no password_hash
+  // This handles cases where old accounts were created without passwords
+  const hasPassword = existingUser && (existingUser.password_hash || existingUser.passwordHash);
+  const isNewUser = !existingUser || !hasPassword;
 
-  // For new users, require password and username
+  // For new users (or users without passwords), require password and username
   if (isNewUser) {
     if (!password || !confirmPassword) {
       return res.status(400).json({ ok:false, error:"Password and confirm password are required for new accounts" });
@@ -497,16 +501,13 @@ app.post("/api/verify-code", async (req,res)=>{
       return res.status(400).json({ ok:false, error:"Password must be at least 6 characters" });
     }
   } else {
-    // For existing users (login), password should already be verified before code was sent
+    // For existing users with passwords (login), password should already be verified before code was sent
     // But we still check it here for security
     if (!password) {
       return res.status(400).json({ ok:false, error:"Password is required" });
     }
     // Verify password
     const passwordHash = existingUser.password_hash || existingUser.passwordHash;
-    if (!passwordHash) {
-      return res.status(400).json({ ok:false, error:"Account has no password set. Please contact support." });
-    }
     const passwordValid = await bcrypt.compare(password, passwordHash);
     if (!passwordValid) {
       return res.status(400).json({ ok:false, error:"Invalid password" });
@@ -549,7 +550,7 @@ app.post("/api/verify-code", async (req,res)=>{
   // Code is valid - delete it and create/update user
   await deleteVerificationCode(emailLower);
 
-  // Hash password for new users
+  // Hash password for new users (or users without passwords)
   let passwordHash = null;
   if (isNewUser) {
     passwordHash = await bcrypt.hash(password, 10);
@@ -558,6 +559,7 @@ app.post("/api/verify-code", async (req,res)=>{
   // Ensure user exists in database (Supabase or file)
   let user = await getUser(emailLower);
   if (!user) {
+    // Create new user
     const usernameValue = username || "";
     user = await createUser({
       email: emailLower,
@@ -567,6 +569,15 @@ app.post("/api/verify-code", async (req,res)=>{
       createdAt: Date.now()
     });
     console.log("✅ New user created in database:", emailLower);
+  } else if (isNewUser && !hasPassword) {
+    // User exists but has no password - update with password and username
+    const usernameValue = username || user.username || "";
+    await updateUser(emailLower, {
+      username: usernameValue.trim() || user.username || "",
+      passwordHash: passwordHash
+    });
+    console.log("✅ User password set in database:", emailLower);
+    user = await getUser(emailLower); // Refresh user data
   }
 
   // Ensure balances exist in database (Supabase or file)
