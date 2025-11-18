@@ -90,6 +90,16 @@ export default function AccountPage() {
       if (j.ok) {
         setSuccess("Account updated successfully!");
         
+        // Update local state with the response data
+        if (j.data) {
+          if (j.data.username !== undefined) {
+            setUsername(j.data.username || "");
+          }
+          if (j.data.profilePicture !== undefined) {
+            setProfilePicture(j.data.profilePicture || "");
+          }
+        }
+        
         // If email changed, update session
         if (updates.email) {
           await saveSession(updates.email);
@@ -105,6 +115,9 @@ export default function AccountPage() {
         
         // Reload wallet if email changed
         if (updates.email) {
+          await loadAccountInfo();
+        } else {
+          // Reload account info to get fresh data
           await loadAccountInfo();
         }
       } else {
