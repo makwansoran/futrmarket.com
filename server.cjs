@@ -1922,26 +1922,48 @@ app.get("/api/leaderboard", (req, res) => {
 });
 
 // Get all users (admin only) - MUST come before /api/users/:email
-app.get("/api/users", requireAdmin, (req, res) => {
-  const users = loadJSON(USERS_FILE);
-  const balances = loadJSON(BALANCES_FILE);
-  
-  // Combine user data with balances
-  // Ensure username is properly returned (empty string if null/undefined/whitespace)
-  const userList = Object.entries(users).map(([email, user]) => {
-    const usernameValue = user.username && user.username.trim() ? user.username.trim() : "";
-    return {
-      email: user.email || email,
-      username: usernameValue,
-      profilePicture: user.profilePicture || "",
-      createdAt: user.createdAt || 0,
-      cash: balances[email]?.cash || 0,
-      portfolio: balances[email]?.portfolio || 0,
-      totalBalance: (balances[email]?.cash || 0) + (balances[email]?.portfolio || 0)
-    };
-  }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  
-  res.json({ ok: true, data: userList });
+app.get("/api/users", requireAdmin, async (req, res) => {
+  try {
+    let users = {};
+    const balances = loadJSON(BALANCES_FILE);
+    
+    // Use database if available, otherwise use file
+    if (isSupabaseEnabled()) {
+      const allUsers = await getAllUsers();
+      // Convert array to object keyed by email
+      allUsers.forEach(user => {
+        if (user && user.email) {
+          users[user.email.toLowerCase()] = user;
+        }
+      });
+    } else {
+      users = loadJSON(USERS_FILE);
+    }
+    
+    // Combine user data with balances
+    // Ensure username is properly returned (empty string if null/undefined/whitespace)
+    const userList = Object.entries(users)
+      .filter(([email, user]) => email && user) // Filter out invalid entries
+      .map(([email, user]) => {
+        const usernameValue = (user.username && String(user.username).trim()) ? String(user.username).trim() : "";
+        return {
+          email: user.email || email,
+          username: usernameValue,
+          profilePicture: user.profile_picture || user.profilePicture || "",
+          createdAt: user.created_at || user.createdAt || 0,
+          cash: balances[email]?.cash || 0,
+          portfolio: balances[email]?.portfolio || 0,
+          totalBalance: (balances[email]?.cash || 0) + (balances[email]?.portfolio || 0)
+        };
+      })
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    
+    res.json({ ok: true, data: userList });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch users" });
+  }
 });
 
 // Get user profile (single user by email)
@@ -1953,21 +1975,33 @@ app.get("/api/users/:email", async (req, res) => {
     let user = await getUser(email);
     if (!user) {
       // Return default user structure if not found
-      user = { email, username: "", profilePicture: "", createdAt: Date.now() };
-    } else {
-      // Convert database field names to API format
-      // Ensure username is properly returned (empty string if null/undefined)
-      const usernameValue = user.username && user.username.trim() ? user.username.trim() : "";
-      user = {
-        email: user.email,
-        username: usernameValue,
-        profilePicture: user.profile_picture || user.profilePicture || "",
-        createdAt: user.created_at || user.createdAt || Date.now()
-      };
+      return res.json({ 
+        ok: true, 
+        data: { 
+          email, 
+          username: "", 
+          profilePicture: "", 
+          createdAt: Date.now() 
+        } 
+      });
     }
-    res.json({ ok: true, data: user });
+    
+    // Convert database field names to API format
+    // Ensure username is properly returned (empty string if null/undefined)
+    const usernameValue = (user.username && String(user.username).trim()) ? String(user.username).trim() : "";
+    const userEmail = user.email || email; // Fallback to param if email field missing
+    
+    const responseData = {
+      email: userEmail,
+      username: usernameValue,
+      profilePicture: user.profile_picture || user.profilePicture || "",
+      createdAt: user.created_at || user.createdAt || Date.now()
+    };
+    
+    res.json({ ok: true, data: responseData });
   } catch (error) {
     console.error("Error fetching user:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({ ok: false, error: error.message || "Failed to fetch user" });
   }
 });
