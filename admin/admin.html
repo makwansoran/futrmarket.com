@@ -547,7 +547,7 @@
     if (!newsImg.files || !newsImg.files[0]) return null;
     var fd = new FormData();
     fd.append("image", newsImg.files[0]);
-    var r = await fetch("http://localhost:8788/api/upload",{ method:"POST", headers:{ "x-admin-token":getT() }, body: fd });
+    var r = await fetch(apiEndpoint("/api/upload"),{ method:"POST", headers:{ "x-admin-token":getT() }, body: fd });
     if (!r.ok) { throw new Error("Upload failed: "+r.status); }
     var j = await r.json();
     if (!j.ok) { throw new Error("Upload failed: "+(j.error||"unknown")); }
@@ -782,7 +782,7 @@
     if (!contractImg.files || !contractImg.files[0]) return null;
     var fd = new FormData();
     fd.append("image", contractImg.files[0]);
-    var r = await fetch("http://localhost:8788/api/upload",{ method:"POST", headers:{ "x-admin-token":getT() }, body: fd });
+    var r = await fetch(apiEndpoint("/api/upload"),{ method:"POST", headers:{ "x-admin-token":getT() }, body: fd });
     if (!r.ok) { throw new Error("Upload failed: "+r.status); }
     var j = await r.json();
     if (!j.ok) { throw new Error("Upload failed: "+(j.error||"unknown")); }
@@ -1176,7 +1176,7 @@
     try {
       var fd = new FormData();
       fd.append("image", competitionImg.files[0]);
-      var r = await fetch("http://localhost:8788/api/upload", { 
+      var r = await fetch(apiEndpoint("/api/upload"), { 
         method: "POST", 
         headers: { "x-admin-token": getT() }, 
         body: fd 
@@ -1389,7 +1389,7 @@
     if (!sportsContractImg.files || !sportsContractImg.files[0]) return null;
     var fd = new FormData();
     fd.append("image", sportsContractImg.files[0]);
-    var r = await fetch("http://localhost:8788/api/upload", { 
+    var r = await fetch(apiEndpoint("/api/upload"), { 
       method: "POST", 
       headers: { "x-admin-token": getT() }, 
       body: fd 

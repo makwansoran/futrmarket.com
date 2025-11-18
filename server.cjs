@@ -13,6 +13,7 @@ const QRCode = require("qrcode");
 const { HDNodeWallet, Mnemonic, Wallet, JsonRpcProvider, Contract } = require("ethers");
 const { Resend } = require("resend");
 const bcrypt = require("bcrypt");
+const multer = require("multer");
 const { supabase, isSupabaseEnabled } = require("./lib/supabase.cjs");
 const {
   createUser,
@@ -63,6 +64,13 @@ const DATA = path.join(process.cwd(), "data");
 if (!fs.existsSync(DATA)) {
   fs.mkdirSync(DATA, { recursive: true });
   console.log("Created data directory:", DATA);
+}
+const PUBLIC_DIR = path.join(process.cwd(), "public");
+const UPLOAD_DIR = path.join(PUBLIC_DIR, "uploads");
+// Ensure uploads directory exists
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  console.log("Created uploads directory:", UPLOAD_DIR);
 }
 const WALLETS_FILE = path.join(DATA, "wallets.json");
 const BALANCES_FILE = path.join(DATA, "balances.json");
@@ -172,6 +180,24 @@ app.use('/api', (req, res, next) => {
 
 function loadJSON(f){ try{ return JSON.parse(fs.readFileSync(f, "utf8")||"{}"); }catch{ return {}; } }
 function saveJSON(f, obj){ fs.writeFileSync(f, JSON.stringify(obj, null, 2), "utf8"); }
+// Multer configuration for file uploads
+function safeName(name) {
+  return (name || "image").replace(/[^a-zA-Z0-9.\-_]/g, "_");
+}
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  filename: (req, file, cb) => cb(null, Date.now() + "_" + safeName(file.originalname))
+});
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  cb(allowedTypes.includes(file.mimetype) ? null : new Error("Invalid file type"), true);
+};
+const upload = multer({ 
+  storage, 
+  fileFilter, 
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
+
 function requireAdmin(req,res,next){
   const t = req.headers["x-admin-token"];
   if (!t || t !== ADMIN_TOKEN) {
@@ -981,6 +1007,15 @@ function calculateBuyCost(contract, amountUSD) {
     price: currentPrice
   };
 }
+
+// Upload image endpoint
+app.post("/api/upload", requireAdmin, upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ ok: false, error: "No file uploaded" });
+  }
+  const url = "/uploads/" + req.file.filename;
+  return res.json({ ok: true, url, filename: req.file.filename });
+});
 
 // Calculate proceeds from selling contracts
 function calculateSellProceeds(contract, contractsToSell) {
