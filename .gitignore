@@ -18,3 +18,9 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Data files (local storage - now using Supabase)
+data/
+
+# Test files
+test-*.cjs
+check-*.cjs

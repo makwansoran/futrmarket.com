@@ -7,6 +7,18 @@ const express = require("express");
 const QRCode = require("qrcode");
 const { HDNodeWallet, Mnemonic, Wallet, JsonRpcProvider, Contract } = require("ethers");
 const { Resend } = require("resend");
+const { supabase, isSupabaseEnabled } = require("./lib/supabase");
+const {
+  createUser,
+  getUser,
+  getBalance,
+  updateBalance,
+  getVerificationCode,
+  upsertVerificationCode,
+  deleteVerificationCode,
+  getWallet,
+  upsertWallet
+} = require("./lib/db");
 
 const app = express();
 const PORT = process.env.PORT || 8787;
@@ -178,10 +190,16 @@ app.get("/api/wallet/address", async (req,res)=>{
   if (!email) return res.status(400).json({ ok:false, error:"email required" });
 
   const w = walletForEmail(email);
-  // persist a tiny index (so we can display existing)
-  const ws = loadJSON(WALLETS_FILE);
-  if (!ws[email]) ws[email] = { evmAddress: w.address, createdAt: Date.now() };
-  saveJSON(WALLETS_FILE, ws);
+  
+  // Check if wallet already exists in database
+  let wallet = await getWallet(email);
+  if (!wallet) {
+    // Save wallet to database (Supabase or file)
+    wallet = await upsertWallet(email, {
+      evm_address: w.address,
+      created_at: Date.now()
+    });
+  }
 
   // Also give a QR for convenience
   const uri = `ethereum:${w.address}`;
@@ -202,42 +220,59 @@ app.post("/api/wallet/credit", requireAdmin, async (req,res)=>{
   const prices = await fetchUSD([sym]); // USDC ~1, ETH via CG
   const usd = (prices[sym]||0) * amt;
 
-  const b = loadJSON(BALANCES_FILE);
-  if (!b[e]) b[e] = { cash:0, portfolio:0 };
-  b[e].cash = Number((b[e].cash + usd).toFixed(2));
-  saveJSON(BALANCES_FILE, b);
+  // Get current balance from database
+  let balance = await getBalance(e);
+  const newCash = Number((balance.cash + usd).toFixed(2));
+  
+  // Update balance in database (Supabase or file)
+  await updateBalance(e, { cash: newCash, portfolio: balance.portfolio });
 
-  res.json({ ok:true, data:{ creditedUSD: usd, newCash: b[e].cash, txHash }});
+  res.json({ ok:true, data:{ creditedUSD: usd, newCash, txHash }});
 });
 
 // Read balances
-app.get("/api/balances", (req,res)=>{
+app.get("/api/balances", async (req,res)=>{
   const email = String(req.query.email||"").trim().toLowerCase();
   if (!email) return res.status(400).json({ ok:false, error:"email required" });
-  const b = loadJSON(BALANCES_FILE);
-  const row = b[email] || { cash:0, portfolio:0 };
-  res.json({ ok:true, data: row });
+  
+  try {
+    const balance = await getBalance(email);
+    res.json({ ok:true, data: balance });
+  } catch (error) {
+    console.error("Error fetching balance:", error);
+    res.status(500).json({ ok:false, error: error.message || "Failed to fetch balance" });
+  }
 });
 
 // Update balances (sync from server)
 app.post("/api/balances/sync", async (req,res)=>{
   const email = String(req.body.email||"").trim().toLowerCase();
   if (!email) return res.status(400).json({ ok:false, error:"email required" });
-  const b = loadJSON(BALANCES_FILE);
-  const row = b[email] || { cash:0, portfolio:0 };
-  res.json({ ok:true, data: row });
+  
+  try {
+    const balance = await getBalance(email);
+    res.json({ ok:true, data: balance });
+  } catch (error) {
+    console.error("Error syncing balance:", error);
+    res.status(500).json({ ok:false, error: error.message || "Failed to sync balance" });
+  }
 });
 
 // Optional: set portfolio directly (debug)
-app.post("/api/balances/portfolio", requireAdmin, (req,res)=>{
+app.post("/api/balances/portfolio", requireAdmin, async (req,res)=>{
   const email = String(req.body.email||"").trim().toLowerCase();
   const value = Number(req.body.value||0);
   if (!email) return res.status(400).json({ ok:false, error:"email required" });
-  const b = loadJSON(BALANCES_FILE);
-  if (!b[email]) b[email] = { cash:0, portfolio:0 };
-  b[email].portfolio = value;
-  saveJSON(BALANCES_FILE, b);
-  res.json({ ok:true, data:b[email] });
+  
+  try {
+    const balance = await getBalance(email);
+    await updateBalance(email, { cash: balance.cash, portfolio: value });
+    const updated = await getBalance(email);
+    res.json({ ok:true, data: updated });
+  } catch (error) {
+    console.error("Error updating portfolio:", error);
+    res.status(500).json({ ok:false, error: error.message || "Failed to update portfolio" });
+  }
 });
 
 // ---- EMAIL: magic-code login ----
@@ -280,14 +315,16 @@ app.post("/api/send-code", async (req,res)=>{
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const expiresAt = Date.now() + (10 * 60 * 1000); // 10 minutes
 
-    // Store code
-    const codes = loadJSON(CODES_FILE);
-    codes[emailLower] = { code, expiresAt, attempts: 0 };
-    saveJSON(CODES_FILE, codes);
+    // Store code (using database function - saves to Supabase if enabled)
+    await upsertVerificationCode(emailLower, {
+      code,
+      expires_at: expiresAt,
+      attempts: 0
+    });
 
     // Check if user exists to customize email message
-    const users = loadJSON(USERS_FILE);
-    const isNewUser = !users[emailLower];
+    const existingUser = await getUser(emailLower);
+    const isNewUser = !existingUser;
     const emailType = isNewUser ? "signup" : "login";
 
     // Email content
@@ -385,55 +422,59 @@ app.post("/api/verify-code", async (req,res)=>{
   const emailLower = String(email).trim().toLowerCase();
   const codeStr = String(code).trim();
 
-  const codes = loadJSON(CODES_FILE);
-  const stored = codes[emailLower];
+  // Get verification code from database (Supabase or file)
+  const stored = await getVerificationCode(emailLower);
 
   if (!stored) {
     return res.status(400).json({ ok:false, error:"No code found. Please request a new code." });
   }
 
   // Check expiration
-  if (Date.now() > stored.expiresAt) {
-    delete codes[emailLower];
-    saveJSON(CODES_FILE, codes);
+  const expiresAt = stored.expires_at || stored.expiresAt;
+  if (Date.now() > expiresAt) {
+    await deleteVerificationCode(emailLower);
     return res.status(400).json({ ok:false, error:"Code expired. Please request a new code." });
   }
 
   // Check attempts (max 5)
-  if (stored.attempts >= 5) {
-    delete codes[emailLower];
-    saveJSON(CODES_FILE, codes);
+  const attempts = stored.attempts || 0;
+  if (attempts >= 5) {
+    await deleteVerificationCode(emailLower);
     return res.status(400).json({ ok:false, error:"Too many attempts. Please request a new code." });
   }
 
   // Verify code
-  if (stored.code !== codeStr) {
-    stored.attempts = (stored.attempts || 0) + 1;
-    saveJSON(CODES_FILE, codes);
+  const storedCode = stored.code;
+  if (storedCode !== codeStr) {
+    // Increment attempts
+    await upsertVerificationCode(emailLower, {
+      code: storedCode,
+      expires_at: expiresAt,
+      attempts: attempts + 1
+    });
     return res.status(400).json({ ok:false, error:"Invalid code. Please try again." });
   }
 
   // Code is valid - delete it and create/update user
-  delete codes[emailLower];
-  saveJSON(CODES_FILE, codes);
+  await deleteVerificationCode(emailLower);
 
-  // Ensure user exists
-  const users = loadJSON(USERS_FILE);
-  if (!users[emailLower]) {
-    users[emailLower] = { 
-      email: emailLower, 
-      username: "", 
-      profilePicture: "", 
-      createdAt: Date.now() 
-    };
-    saveJSON(USERS_FILE, users);
+  // Ensure user exists in database (Supabase or file)
+  let user = await getUser(emailLower);
+  if (!user) {
+    user = await createUser({
+      email: emailLower,
+      username: "",
+      profilePicture: "",
+      createdAt: Date.now()
+    });
+    console.log("✅ New user created in database:", emailLower);
   }
 
-  // Ensure balances exist
-  const balances = loadJSON(BALANCES_FILE);
-  if (!balances[emailLower]) {
-    balances[emailLower] = { cash: 0, portfolio: 0 };
-    saveJSON(BALANCES_FILE, balances);
+  // Ensure balances exist in database (Supabase or file)
+  let balance = await getBalance(emailLower);
+  if (!balance || (balance.cash === 0 && balance.portfolio === 0 && !balance.email)) {
+    await updateBalance(emailLower, { cash: 0, portfolio: 0 });
+    console.log("✅ Balance initialized for user:", emailLower);
   }
 
   res.json({ ok:true, message:"Code verified successfully" });
@@ -1626,14 +1667,29 @@ app.get("/api/users", requireAdmin, (req, res) => {
 });
 
 // Get user profile (single user by email)
-app.get("/api/users/:email", (req, res) => {
+app.get("/api/users/:email", async (req, res) => {
   const email = String(req.params.email || "").trim().toLowerCase();
   if (!email) return res.status(400).json({ ok: false, error: "Email required" });
   
-  const users = loadJSON(USERS_FILE);
-  const user = users[email] || { email, username: "", profilePicture: "", createdAt: Date.now() };
-  
-  res.json({ ok: true, data: user });
+  try {
+    let user = await getUser(email);
+    if (!user) {
+      // Return default user structure if not found
+      user = { email, username: "", profilePicture: "", createdAt: Date.now() };
+    } else {
+      // Convert database field names to API format
+      user = {
+        email: user.email,
+        username: user.username || "",
+        profilePicture: user.profile_picture || user.profilePicture || "",
+        createdAt: user.created_at || user.createdAt || Date.now()
+      };
+    }
+    res.json({ ok: true, data: user });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch user" });
+  }
 });
 
 // Update user profile
@@ -1815,6 +1871,12 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   console.log("Admin credit endpoint: POST /api/wallet/credit with x-admin-token");
   console.log("Deposit monitoring enabled. RPC:", RPC_URL);
   console.log("Health check: GET /health");
+  if (isSupabaseEnabled()) {
+    console.log("✅ Supabase: ENABLED (using database)");
+  } else {
+    console.log("⚠️  Supabase: DISABLED (using file-based storage)");
+    console.log("   Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env to enable");
+  }
   console.log("========================================");
 });
 
