@@ -18,6 +18,7 @@ const {
   createUser,
   getUser,
   updateUser,
+  getAllUsers,
   getBalance,
   updateBalance,
   getVerificationCode,
@@ -34,6 +35,32 @@ const {
 const app = express();
 const PORT = process.env.PORT || 8787;
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "changeme";
+
+// Online users tracking (for development purposes)
+// Tracks users who have made API calls in the last 5 minutes
+const onlineUsers = new Map(); // email -> lastActivityTimestamp
+const ONLINE_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+// Middleware to track user activity
+app.use((req, res, next) => {
+  // Extract email from query params or body if available
+  const email = req.query.email || req.body.email;
+  if (email) {
+    const normalizedEmail = String(email).trim().toLowerCase();
+    onlineUsers.set(normalizedEmail, Date.now());
+  }
+  next();
+});
+
+// Clean up old entries periodically (every minute)
+setInterval(() => {
+  const now = Date.now();
+  for (const [email, lastActivity] of onlineUsers.entries()) {
+    if (now - lastActivity > ONLINE_TIMEOUT) {
+      onlineUsers.delete(email);
+    }
+  }
+}, 60 * 1000); // Run every minute
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "re_PX6DihAy_PBAbRtTF7jPTpRcM4GP52qK8";
 const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "FutrMarket <noreply@futrmarket.com>";
 const ETH_FALLBACK = true; // Always use ethereal fallback for email
@@ -1006,26 +1033,47 @@ app.post("/api/contracts/create", requireAdmin, (req, res) => {
 });
 
 // Get all contracts
-app.get("/api/contracts", (req, res) => {
-  const contracts = loadJSON(CONTRACTS_FILE);
-  const list = Object.values(contracts).map(c => {
-    // Calculate current market price for each contract
-    const marketPrice = calculateMarketPrice(c);
-    return {
-      ...c,
-      marketPrice: marketPrice, // Ensure marketPrice is always set
-      traders: c.traders ? (Array.isArray(c.traders) ? c.traders.length : Object.keys(c.traders).length) : 0,
-      volume: `$${c.volume.toFixed(2)}`,
-      featured: c.featured || false,
-      live: c.live === true // Explicitly include live field (default to false if not set)
-    };
-  }).sort((a, b) => {
-    // Featured contracts first, then by creation date
-    if (a.featured && !b.featured) return -1;
-    if (!a.featured && b.featured) return 1;
-    return b.createdAt - a.createdAt;
-  });
-  res.json({ ok: true, data: list });
+app.get("/api/contracts", async (req, res) => {
+  try {
+    // Use database abstraction to get contracts
+    const contracts = await getAllContracts();
+    
+    const list = contracts.map(c => {
+      // Calculate current market price for each contract
+      const marketPrice = calculateMarketPrice(c);
+      
+      // Handle both snake_case and camelCase field names from database
+      const volume = c.volume || c.total_volume || 0;
+      const createdAt = c.createdAt || c.created_at || 0;
+      const traders = c.traders ? (Array.isArray(c.traders) ? c.traders.length : Object.keys(c.traders).length) : 0;
+      
+      return {
+        ...c,
+        id: c.id, // Ensure ID is included
+        marketPrice: marketPrice, // Ensure marketPrice is always set
+        traders: traders,
+        volume: `$${Number(volume).toFixed(2)}`,
+        featured: c.featured || false,
+        live: c.live === true, // Explicitly include live field (default to false if not set)
+        createdAt: createdAt,
+        // Ensure all common fields are present
+        question: c.question || "",
+        category: c.category || "General",
+        status: c.status || "upcoming",
+        resolution: c.resolution || null
+      };
+    }).sort((a, b) => {
+      // Featured contracts first, then by creation date
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+    
+    res.json({ ok: true, data: list });
+  } catch (error) {
+    console.error("Error fetching contracts:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch contracts" });
+  }
 });
 
 // Get single contract
@@ -2005,7 +2053,7 @@ app.patch("/api/users/:email", async (req, res) => {
 });
 
 // ---- Statistics endpoint (admin only) ----
-app.get("/api/stats", requireAdmin, (req, res) => {
+app.get("/api/stats", requireAdmin, async (req, res) => {
   try {
     const contracts = loadJSON(CONTRACTS_FILE);
     const news = loadJSON(NEWS_FILE);
@@ -2048,8 +2096,20 @@ app.get("/api/stats", requireAdmin, (req, res) => {
       }
     });
     
-    // Count users
-    const usersCount = Object.keys(users).length;
+    // Count users - use database if available, otherwise use file
+    let usersCount = 0;
+    if (isSupabaseEnabled()) {
+      const allUsers = await getAllUsers();
+      usersCount = allUsers.length;
+    } else {
+      usersCount = Object.keys(users).length;
+    }
+    
+    // Count online users (active in last 5 minutes)
+    const now = Date.now();
+    const onlineUsersCount = Array.from(onlineUsers.entries()).filter(
+      ([email, lastActivity]) => (now - lastActivity) <= ONLINE_TIMEOUT
+    ).length;
     
     // Count competitions
     const competitionsCount = Object.keys(competitions).length;
@@ -2090,7 +2150,8 @@ app.get("/api/stats", requireAdmin, (req, res) => {
         },
         users: {
           total: usersCount,
-          withPositions: activePositionsCount
+          withPositions: activePositionsCount,
+          online: onlineUsersCount
         },
         competitions: {
           total: competitionsCount

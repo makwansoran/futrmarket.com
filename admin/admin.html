@@ -1,4 +1,4 @@
-<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' http://localhost:8787 http://localhost:8788 http: https:;"><title>FuturBet Admin</title>
+<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' http://localhost:8787 http://localhost:8788 http: https:;"><title>futrmarket administrator</title>
 <style>
   body{background:#0b0f19;color:#e5e7eb;font-family:system-ui,Segoe UI,Roboto,Arial;margin:0}
   .wrap{max-width:1200px;margin:0 auto;padding:32px}
@@ -42,7 +42,7 @@
   .auth-section{margin-bottom:24px}
 </style>
 <div class="wrap">
-  <h1>FuturBet Admin</h1>
+  <h1>futrmarket administrator</h1>
 
   <div class="card auth-section">
     <h2>Auth & Connection</h2>
@@ -479,6 +479,8 @@
       html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>Users</h3>";
       html += "<div style='font-size:32px;font-weight:bold;color:#fff;margin-bottom:8px'>"+stats.users.total+"</div>";
       html += "<div class='meta' style='margin-top:8px'>";
+      html += "<div>Total Users: <strong>"+stats.users.total+"</strong></div>";
+      html += "<div>Online Users: <strong style='color:#10b981'>"+stats.users.online+"</strong> <span style='color:#6b7280;font-size:11px'>(last 5 min)</span></div>";
       html += "<div>With Positions: <strong>"+stats.users.withPositions+"</strong></div>";
       html += "</div></div>";
       
