@@ -140,22 +140,6 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
         {/* LEFT: logo + brand */}
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition flex-shrink-0">
-          {/* Logo - SVG inline logo */}
-          <svg 
-            className="h-8 w-8 object-contain" 
-            viewBox="0 0 32 32" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect width="32" height="32" rx="6" fill="url(#gradient)"/>
-            <path d="M8 16L14 22L24 10" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <defs>
-              <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#3B82F6"/>
-                <stop offset="1" stopColor="#1D4ED8"/>
-              </linearGradient>
-            </defs>
-          </svg>
           <span className="text-white font-bold tracking-tight text-2xl">
             FutrMarket
           </span>

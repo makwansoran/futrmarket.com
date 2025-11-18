@@ -2,7 +2,6 @@ import React from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { Clock, TrendingUp } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
-import Thumb from "./ui.Thumb.jsx";
 
 // Small Market Card (for grid)
 function MarketCard({ m }){
@@ -34,7 +33,6 @@ function MarketCard({ m }){
     <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition block h-full relative">
       {getStatusBadge()}
       <div className="flex items-start gap-3">
-        <Thumb src={m.image || m.imageUrl} alt={m.question} size={48}/>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs">{m.category || "General"}</span>
@@ -144,9 +142,6 @@ function FeaturedMarketCard({ m, markets = [] }){
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">{m.question}</h3>
           </div>
-          {m.imageUrl && (
-            <Thumb src={m.imageUrl} alt={m.question} size={120} className="ml-4 flex-shrink-0"/>
-          )}
         </div>
         
         {/* Price Buttons and Chart Side by Side */}

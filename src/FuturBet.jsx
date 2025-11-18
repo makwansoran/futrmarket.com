@@ -128,7 +128,6 @@ function MarketCard(props) {
       className="w-full text-left bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-blue-700 transition"
     >
       <div className="flex items-start gap-4">
-        <Thumb src={market.imageUrl} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-3 mb-1">
             <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-[11px] md:text-xs">
@@ -204,7 +203,6 @@ function MarketDetail(props) {
       {/* small header with thumbnail (same size) */}
       <button onClick={function(){ onNavigate("markets"); }} className="text-blue-400 hover:text-blue-300 mb-4">← Back</button>
       <div className="flex items-start gap-4 mb-4">
-        <Thumb src={market.imageUrl} />
         <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight">{market.question}</h1>
       </div>
 

@@ -1,14 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Clock, Radio } from "lucide-react";
-import Thumb from "./ui.Thumb.jsx";
 
 // Small Market Card (for grid)
 function MarketCard({ m }){
   return (
     <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition block h-full">
       <div className="flex items-start gap-3">
-        <Thumb src={m.image || m.imageUrl} alt={m.question} size={48}/>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs">{m.category || "General"}</span>
@@ -105,7 +103,6 @@ export default function LivePage({ markets = [] }){
                         <p className="text-gray-400 text-sm line-clamp-2">{featuredMarket.description}</p>
                       )}
                     </div>
-                    <Thumb src={featuredMarket.image || featuredMarket.imageUrl} alt={featuredMarket.question} size={120} className="ml-4 flex-shrink-0"/>
                   </div>
                   
                   {/* Price Buttons */}
