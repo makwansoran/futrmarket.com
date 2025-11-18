@@ -608,8 +608,9 @@ app.post("/api/verify-code", async (req,res)=>{
   }
 
   // Ensure balances exist in database (Supabase or file)
+  // Always create/update balance when user is created or logs in
   let balance = await getBalance(emailLower);
-  if (!balance || (balance.cash === 0 && balance.portfolio === 0 && !balance.email)) {
+  if (!balance || balance.cash === undefined || balance.portfolio === undefined) {
     await updateBalance(emailLower, { cash: 0, portfolio: 0 });
     console.log("✅ Balance initialized for user:", emailLower);
   }
