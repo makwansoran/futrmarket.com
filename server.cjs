@@ -283,6 +283,38 @@ app.get("/api/test", (req, res) => {
 });
 
 // Generate and send verification code
+// Check password for login (before sending code)
+app.post("/api/check-password", async (req,res)=>{
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ ok:false, error:"Email and password are required" });
+    }
+    
+    const emailLower = String(email).trim().toLowerCase();
+    const user = await getUser(emailLower);
+    
+    if (!user) {
+      return res.status(400).json({ ok:false, error:"User not found" });
+    }
+    
+    const passwordHash = user.password_hash || user.passwordHash;
+    if (!passwordHash) {
+      return res.status(400).json({ ok:false, error:"Account has no password set. Please contact support." });
+    }
+    
+    const passwordValid = await bcrypt.compare(password, passwordHash);
+    if (!passwordValid) {
+      return res.status(400).json({ ok:false, error:"Invalid password" });
+    }
+    
+    return res.json({ ok:true, message:"Password verified" });
+  } catch (err) {
+    console.error("Error in /api/check-password:", err);
+    return res.status(500).json({ ok:false, error: err.message || "Internal server error" });
+  }
+});
+
 app.post("/api/send-code", async (req,res)=>{
   try {
     // Ensure body is parsed correctly
@@ -415,7 +447,7 @@ app.post("/api/send-code", async (req,res)=>{
 
 // Verify code and create account (with password)
 app.post("/api/verify-code", async (req,res)=>{
-  const { email, code, password, confirmPassword } = req.body||{};
+  const { email, code, password, confirmPassword, username } = req.body||{};
   if (!email || !code) {
     return res.status(400).json({ ok:false, error:"Email and code are required" });
   }
@@ -427,7 +459,7 @@ app.post("/api/verify-code", async (req,res)=>{
   const existingUser = await getUser(emailLower);
   const isNewUser = !existingUser;
 
-  // For new users, require password
+  // For new users, require password and username
   if (isNewUser) {
     if (!password || !confirmPassword) {
       return res.status(400).json({ ok:false, error:"Password and confirm password are required for new accounts" });
@@ -439,7 +471,8 @@ app.post("/api/verify-code", async (req,res)=>{
       return res.status(400).json({ ok:false, error:"Password must be at least 6 characters" });
     }
   } else {
-    // For existing users (login), require password
+    // For existing users (login), password should already be verified before code was sent
+    // But we still check it here for security
     if (!password) {
       return res.status(400).json({ ok:false, error:"Password is required" });
     }
@@ -499,9 +532,10 @@ app.post("/api/verify-code", async (req,res)=>{
   // Ensure user exists in database (Supabase or file)
   let user = await getUser(emailLower);
   if (!user) {
+    const usernameValue = username || "";
     user = await createUser({
       email: emailLower,
-      username: "",
+      username: usernameValue.trim(),
       profilePicture: "",
       passwordHash: passwordHash,
       createdAt: Date.now()
