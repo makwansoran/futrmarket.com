@@ -233,16 +233,34 @@ function LoginForm(props) {
   var _React = React, useStateLocal = _React.useState;
   var emailState = useStateLocal(""); var email = emailState[0], setEmail = emailState[1];
   var codeState = useStateLocal(""); var code = codeState[0], setCode = codeState[1];
+  var passwordState = useStateLocal(""); var password = passwordState[0], setPassword = passwordState[1];
   var sentState = useStateLocal(false); var sent = sentState[0], setSent = sentState[1];
   async function handleSend(){
     if (!email) return;
-    try { await createCode(email, "login"); setSent(true); } catch(e){ alert(e && e.message ? e.message : "Failed to send"); }
+    try { 
+      const resp = await fetch("http://localhost:8787/api/send-code", { 
+        method:"POST", 
+        headers:{ "Content-Type":"application/json" }, 
+        body: JSON.stringify({ email: email }) 
+      });
+      const j = await resp.json();
+      if (!resp.ok || !j.ok) throw new Error(j.error || "Email API failed");
+      setSent(true); 
+    } catch(e){ alert(e && e.message ? e.message : "Failed to send"); }
   }
   async function handleVerify(){
-    const v = await verifyCode(email, code, "login");
-    if (!v.ok) { alert(v.reason || "Invalid code"); return; }
-    await saveUser(email); await saveSession(email);
-    onLoginSuccess(email); onNavigate("home");
+    if (!password) { alert("Password is required"); return; }
+    try {
+      const resp = await fetch("http://localhost:8787/api/verify-code", { 
+        method:"POST", 
+        headers:{ "Content-Type":"application/json" }, 
+        body: JSON.stringify({ email: email, code: code, password: password }) 
+      });
+      const j = await resp.json();
+      if (!resp.ok || !j.ok) throw new Error(j.error || "Invalid code or password");
+      await saveUser(email); await saveSession(email);
+      onLoginSuccess(email); onNavigate("home");
+    } catch(e) { alert(e && e.message ? e.message : "Invalid code or password"); }
   }
   return (
     <main className="max-w-md mx-auto px-6 py-12">
@@ -257,8 +275,11 @@ function LoginForm(props) {
         ) : (
           <>
             <div className="mb-3 text-gray-300">We sent a code to <span className="text-white font-semibold">{email}</span></div>
-            <input value={code} onChange={function(e){ setCode(e.target.value); }} placeholder="6-digit code" className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white mb-3" />
-            <button onClick={handleVerify} className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold">Verify & Log in</button>
+            <label className="text-gray-300 text-sm mb-2 block">Password</label>
+            <input type="password" value={password} onChange={function(e){ setPassword(e.target.value); }} placeholder="Enter your password" className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white mb-3" />
+            <label className="text-gray-300 text-sm mb-2 block">Verification Code</label>
+            <input value={code} onChange={function(e){ setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); }} placeholder="6-digit code" className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white mb-3" />
+            <button onClick={handleVerify} disabled={!password || code.length !== 6} className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed">Verify & Log in</button>
           </>
         )}
       </div>
@@ -271,16 +292,38 @@ function SignUpForm(props) {
   var _React = React, useStateLocal = _React.useState;
   var emailState = useStateLocal(""); var email = emailState[0], setEmail = emailState[1];
   var codeState = useStateLocal(""); var code = codeState[0], setCode = codeState[1];
+  var passwordState = useStateLocal(""); var password = passwordState[0], setPassword = passwordState[1];
+  var confirmPasswordState = useStateLocal(""); var confirmPassword = confirmPasswordState[0], setConfirmPassword = confirmPasswordState[1];
   var sentState = useStateLocal(false); var sent = sentState[0], setSent = sentState[1];
   async function handleSend(){
     if (!email) return;
-    try { await createCode(email, "signup"); setSent(true); } catch(e){ alert(e && e.message ? e.message : "Failed to send"); }
+    try { 
+      const resp = await fetch("http://localhost:8787/api/send-code", { 
+        method:"POST", 
+        headers:{ "Content-Type":"application/json" }, 
+        body: JSON.stringify({ email: email }) 
+      });
+      const j = await resp.json();
+      if (!resp.ok || !j.ok) throw new Error(j.error || "Email API failed");
+      setSent(true); 
+    } catch(e){ alert(e && e.message ? e.message : "Failed to send"); }
   }
   async function handleVerify(){
-    const v = await verifyCode(email, code, "signup");
-    if (!v.ok) { alert(v.reason || "Invalid code"); return; }
-    await saveUser(email); await saveSession(email);
-    onLoginSuccess(email); onNavigate("home");
+    if (!password) { alert("Password is required"); return; }
+    if (!confirmPassword) { alert("Please confirm your password"); return; }
+    if (password !== confirmPassword) { alert("Passwords do not match"); return; }
+    if (password.length < 6) { alert("Password must be at least 6 characters"); return; }
+    try {
+      const resp = await fetch("http://localhost:8787/api/verify-code", { 
+        method:"POST", 
+        headers:{ "Content-Type":"application/json" }, 
+        body: JSON.stringify({ email: email, code: code, password: password, confirmPassword: confirmPassword }) 
+      });
+      const j = await resp.json();
+      if (!resp.ok || !j.ok) throw new Error(j.error || "Invalid code or password");
+      await saveUser(email); await saveSession(email);
+      onLoginSuccess(email); onNavigate("home");
+    } catch(e) { alert(e && e.message ? e.message : "Invalid code or password"); }
   }
   return (
     <main className="max-w-md mx-auto px-6 py-12">
@@ -295,8 +338,16 @@ function SignUpForm(props) {
         ) : (
           <>
             <div className="mb-3 text-gray-300">We sent a code to <span className="text-white font-semibold">{email}</span></div>
-            <input value={code} onChange={function(e){ setCode(e.target.value); }} placeholder="6-digit code" className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white mb-3" />
-            <button onClick={handleVerify} className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold">Verify & Create account</button>
+            <label className="text-gray-300 text-sm mb-2 block">Create Password</label>
+            <input type="password" value={password} onChange={function(e){ setPassword(e.target.value); }} placeholder="Enter your password" className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white mb-3" />
+            <label className="text-gray-300 text-sm mb-2 block">Confirm Password</label>
+            <input type="password" value={confirmPassword} onChange={function(e){ setConfirmPassword(e.target.value); }} placeholder="Confirm your password" className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white mb-3" />
+            {confirmPassword && password !== confirmPassword && (
+              <p className="text-xs text-red-400 mb-2">Passwords do not match</p>
+            )}
+            <label className="text-gray-300 text-sm mb-2 block">Verification Code</label>
+            <input value={code} onChange={function(e){ setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); }} placeholder="6-digit code" className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white mb-3" />
+            <button onClick={handleVerify} disabled={!password || !confirmPassword || password !== confirmPassword || code.length !== 6} className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed">Verify & Create account</button>
           </>
         )}
       </div>
