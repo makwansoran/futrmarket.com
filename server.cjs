@@ -327,7 +327,10 @@ app.post("/api/check-password", async (req,res)=>{
     
     const passwordHash = user.password_hash || user.passwordHash;
     if (!passwordHash) {
-      return res.status(400).json({ ok:false, error:"Account has no password set. Please contact support." });
+      // User exists but has no password - this shouldn't happen for login
+      // But if it does, we should allow them to set a password via signup flow
+      console.warn(`⚠️  User ${emailLower} exists but has no password_hash. They should use signup to set a password.`);
+      return res.status(400).json({ ok:false, error:"Account has no password set. Please use the signup page to create your account with a password." });
     }
     
     const passwordValid = await bcrypt.compare(password, passwordHash);
@@ -488,9 +491,15 @@ app.post("/api/verify-code", async (req,res)=>{
   // This handles cases where old accounts were created without passwords
   const hasPassword = existingUser && (existingUser.password_hash || existingUser.passwordHash);
   const isNewUser = !existingUser || !hasPassword;
+  
+  // Debug logging
+  if (existingUser && !hasPassword) {
+    console.log(`⚠️  User ${emailLower} exists but has no password. Treating as new user signup.`);
+  }
 
   // For new users (or users without passwords), require password and username
   if (isNewUser) {
+    // This is a signup flow - user doesn't exist or has no password
     if (!password || !confirmPassword) {
       return res.status(400).json({ ok:false, error:"Password and confirm password are required for new accounts" });
     }
@@ -501,13 +510,17 @@ app.post("/api/verify-code", async (req,res)=>{
       return res.status(400).json({ ok:false, error:"Password must be at least 6 characters" });
     }
   } else {
-    // For existing users with passwords (login), password should already be verified before code was sent
-    // But we still check it here for security
+    // This is a login flow - user exists and has a password
     if (!password) {
       return res.status(400).json({ ok:false, error:"Password is required" });
     }
     // Verify password
     const passwordHash = existingUser.password_hash || existingUser.passwordHash;
+    if (!passwordHash) {
+      // This should never happen if isNewUser logic is correct, but just in case
+      console.error(`❌ ERROR: User ${emailLower} exists but has no password_hash in login flow. This is a bug.`);
+      return res.status(400).json({ ok:false, error:"Account configuration error. Please contact support." });
+    }
     const passwordValid = await bcrypt.compare(password, passwordHash);
     if (!passwordValid) {
       return res.status(400).json({ ok:false, error:"Invalid password" });
