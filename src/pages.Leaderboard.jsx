@@ -104,7 +104,7 @@ export default function LeaderboardPage(){
                     onError={(e) => e.target.style.display = 'none'}
                   />
                 )}
-                <span className="font-medium">{user.username || user.email.split("@")[0]}</span>
+                <span className="font-medium">{user.username && user.username.trim() ? user.username.trim() : "no username"}</span>
               </div>
               <div>${user.cash.toFixed(2)}</div>
               <div>${user.portfolio.toFixed(2)}</div>

@@ -436,7 +436,7 @@ function Forum({ contractId, userEmail }) {
     const isLiked = comment.likedBy?.includes(userEmail) || false;
     const isAuthor = comment.email === userEmail;
     const userProfile = userProfiles[comment.email] || {};
-    const displayName = userProfile.username || comment.email.split("@")[0];
+    const displayName = userProfile.username && userProfile.username.trim() ? userProfile.username.trim() : "no username";
     const profilePicture = userProfile.profilePicture;
 
     return (

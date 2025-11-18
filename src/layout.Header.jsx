@@ -51,8 +51,8 @@ function AccountMenu({ userEmail, onLogout }) {
 
   if (!userEmail) return null;
 
-  // Display username if available, otherwise show email prefix (before @)
-  const displayName = username || (userEmail ? userEmail.split("@")[0] : "");
+  // Display username if available, otherwise show "no username"
+  const displayName = username && username.trim() ? username.trim() : "no username";
 
   return (
     <div className="relative">

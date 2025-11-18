@@ -255,7 +255,7 @@ export default function ForumPage() {
             const isLiked = idea.likedBy?.includes(userEmail) || false;
             const isAuthor = idea.email === userEmail;
             const userProfile = userProfiles[idea.email] || {};
-            const displayName = userProfile.username || idea.email.split("@")[0];
+            const displayName = userProfile.username && userProfile.username.trim() ? userProfile.username.trim() : "no username";
             const profilePicture = userProfile.profilePicture;
             
             return (

@@ -1776,15 +1776,19 @@ app.get("/api/users", requireAdmin, (req, res) => {
   const balances = loadJSON(BALANCES_FILE);
   
   // Combine user data with balances
-  const userList = Object.entries(users).map(([email, user]) => ({
-    email: user.email || email,
-    username: user.username || "",
-    profilePicture: user.profilePicture || "",
-    createdAt: user.createdAt || 0,
-    cash: balances[email]?.cash || 0,
-    portfolio: balances[email]?.portfolio || 0,
-    totalBalance: (balances[email]?.cash || 0) + (balances[email]?.portfolio || 0)
-  })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  // Ensure username is properly returned (empty string if null/undefined/whitespace)
+  const userList = Object.entries(users).map(([email, user]) => {
+    const usernameValue = user.username && user.username.trim() ? user.username.trim() : "";
+    return {
+      email: user.email || email,
+      username: usernameValue,
+      profilePicture: user.profilePicture || "",
+      createdAt: user.createdAt || 0,
+      cash: balances[email]?.cash || 0,
+      portfolio: balances[email]?.portfolio || 0,
+      totalBalance: (balances[email]?.cash || 0) + (balances[email]?.portfolio || 0)
+    };
+  }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   
   res.json({ ok: true, data: userList });
 });
@@ -1801,9 +1805,11 @@ app.get("/api/users/:email", async (req, res) => {
       user = { email, username: "", profilePicture: "", createdAt: Date.now() };
     } else {
       // Convert database field names to API format
+      // Ensure username is properly returned (empty string if null/undefined)
+      const usernameValue = user.username && user.username.trim() ? user.username.trim() : "";
       user = {
         email: user.email,
-        username: user.username || "",
+        username: usernameValue,
         profilePicture: user.profile_picture || user.profilePicture || "",
         createdAt: user.created_at || user.createdAt || Date.now()
       };
