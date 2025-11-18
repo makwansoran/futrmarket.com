@@ -118,6 +118,44 @@ export async function sendCode(email) {
   }
 }
 
+export async function checkEmail(email) {
+  try {
+    const r = await fetch(getApiUrl('/api/check-email'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    
+    if (!r.ok) {
+      const errorText = await r.text().catch(() => '');
+      let errorMessage = `Server error (${r.status})`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorMessage;
+      } catch {
+        if (r.status === 404) {
+          errorMessage = 'Backend server not available. Please check if the server is running.';
+        } else if (r.status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const j = await r.json().catch(() => ({}));
+    if (!j.ok) {
+      const errorMsg = typeof j.error === 'string' ? j.error : 'Invalid email';
+      throw new Error(errorMsg);
+    }
+    return true;
+  } catch (e) {
+    if (e instanceof Error) {
+      throw e;
+    }
+    throw new Error(typeof e === 'string' ? e : 'Failed to check email. Please check your connection.');
+  }
+}
+
 export async function checkPassword(email, password) {
   try {
     const r = await fetch(getApiUrl('/api/check-password'), {

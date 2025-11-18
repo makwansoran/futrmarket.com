@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Mail, Key, ArrowRight, Lock } from "lucide-react";
-import { checkPassword, sendCode, verifyCode, saveUser, saveSession } from "./lib.session.js";
+import { checkEmail, checkPassword, sendCode, verifyCode, saveUser, saveSession } from "./lib.session.js";
 
 export default function LoginPage({ onLogin }){
   const [email, setEmail] = React.useState("");
@@ -17,8 +17,17 @@ export default function LoginPage({ onLogin }){
       setErr("Please enter your email address");
       return;
     }
-    setErr("");
-    setStep(2);
+    try{
+      setErr("");
+      setLoading(true);
+      await checkEmail(email.trim());
+      setStep(2);
+    }catch(e){ 
+      const errorMessage = e instanceof Error ? e.message : (typeof e === 'string' ? e : "Invalid email. Please try again.");
+      setErr(errorMessage); 
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handlePasswordSubmit(e){
