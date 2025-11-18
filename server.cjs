@@ -41,17 +41,6 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "changeme";
 const onlineUsers = new Map(); // email -> lastActivityTimestamp
 const ONLINE_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-// Middleware to track user activity
-app.use((req, res, next) => {
-  // Extract email from query params or body if available
-  const email = req.query.email || req.body.email;
-  if (email) {
-    const normalizedEmail = String(email).trim().toLowerCase();
-    onlineUsers.set(normalizedEmail, Date.now());
-  }
-  next();
-});
-
 // Clean up old entries periodically (every minute)
 setInterval(() => {
   const now = Date.now();
@@ -156,6 +145,22 @@ app.use((req, res, next) => {
 // Body parsing middleware - MUST be before routes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Middleware to track user activity (AFTER body parsing so req.body is available)
+app.use((req, res, next) => {
+  try {
+    // Extract email from query params or body if available
+    const email = req.query?.email || req.body?.email;
+    if (email) {
+      const normalizedEmail = String(email).trim().toLowerCase();
+      onlineUsers.set(normalizedEmail, Date.now());
+    }
+  } catch (e) {
+    // Silently fail - don't break requests if tracking fails
+    console.error("Error tracking user activity:", e);
+  }
+  next();
+});
 
 // API request logging (only log errors in production)
 app.use('/api', (req, res, next) => {
@@ -1039,18 +1044,27 @@ app.post("/api/contracts/create", requireAdmin, (req, res) => {
 // Get all contracts
 app.get("/api/contracts", async (req, res) => {
   try {
+    console.log("[CONTRACTS] Starting to fetch contracts...");
     // Use database abstraction to get contracts
     const contracts = await getAllContracts();
+    console.log("[CONTRACTS] Got contracts from database:", Array.isArray(contracts) ? contracts.length : "not an array");
     
     // Ensure contracts is an array
     if (!Array.isArray(contracts)) {
-      console.error("getAllContracts did not return an array:", typeof contracts);
+      console.error("[CONTRACTS] getAllContracts did not return an array:", typeof contracts, contracts);
       return res.json({ ok: true, data: [] });
     }
     
+    console.log("[CONTRACTS] Processing", contracts.length, "contracts");
     const list = contracts
-      .filter(c => c && c.id) // Filter out invalid contracts
-      .map(c => {
+      .filter(c => {
+        if (!c || !c.id) {
+          console.warn("[CONTRACTS] Filtering out invalid contract:", c);
+          return false;
+        }
+        return true;
+      })
+      .map((c, index) => {
         try {
           // Calculate current market price for each contract
           const marketPrice = calculateMarketPrice(c);
@@ -1076,7 +1090,9 @@ app.get("/api/contracts", async (req, res) => {
             resolution: c.resolution || null
           };
         } catch (mapError) {
-          console.error("Error processing contract:", c?.id, mapError);
+          console.error(`[CONTRACTS] Error processing contract ${index} (${c?.id}):`, mapError);
+          console.error(`[CONTRACTS] Contract data:`, JSON.stringify(c, null, 2));
+          console.error(`[CONTRACTS] Error stack:`, mapError.stack);
           return null; // Skip this contract
         }
       })
@@ -1088,10 +1104,12 @@ app.get("/api/contracts", async (req, res) => {
         return (b.createdAt || 0) - (a.createdAt || 0);
       });
     
+    console.log("[CONTRACTS] Returning", list.length, "processed contracts");
     res.json({ ok: true, data: list });
   } catch (error) {
-    console.error("Error fetching contracts:", error);
-    console.error("Error stack:", error.stack);
+    console.error("[CONTRACTS] Error fetching contracts:", error);
+    console.error("[CONTRACTS] Error message:", error.message);
+    console.error("[CONTRACTS] Error stack:", error.stack);
     // Ensure we still send a response even on error
     res.status(500).json({ ok: false, error: error.message || "Failed to fetch contracts" });
   }
