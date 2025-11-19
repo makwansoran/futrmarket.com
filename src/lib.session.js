@@ -194,6 +194,44 @@ export async function checkPassword(email, password) {
   }
 }
 
+export async function resetPassword(email, code, newPassword, confirmPassword) {
+  try {
+    const r = await fetch(getApiUrl('/api/reset-password'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code, newPassword, confirmPassword })
+    });
+    
+    if (!r.ok) {
+      const errorText = await r.text().catch(() => '');
+      let errorMessage = `Server error (${r.status})`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorMessage;
+      } catch {
+        if (r.status === 404) {
+          errorMessage = 'Backend server not available. Please check if the server is running.';
+        } else if (r.status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const j = await r.json().catch(() => ({}));
+    if (!j.ok) {
+      const errorMsg = typeof j.error === 'string' ? j.error : 'Failed to reset password';
+      throw new Error(errorMsg);
+    }
+    return true;
+  } catch (e) {
+    if (e instanceof Error) {
+      throw e;
+    }
+    throw new Error(typeof e === 'string' ? e : 'Failed to reset password. Please check your connection.');
+  }
+}
+
 export async function verifyCode(email, code, password, confirmPassword, username) {
   try {
     const body = { email, code };

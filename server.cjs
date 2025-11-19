@@ -443,6 +443,65 @@ app.post("/api/check-password", async (req,res)=>{
   }
 });
 
+// Reset password endpoint - allows users to set a new password after verifying email code
+app.post("/api/reset-password", async (req,res)=>{
+  try {
+    const { email, code, newPassword, confirmPassword } = req.body || {};
+    if (!email || !code || !newPassword || !confirmPassword) {
+      return res.status(400).json({ ok:false, error:"Email, code, new password, and confirm password are required" });
+    }
+    
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ ok:false, error:"Passwords do not match" });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({ ok:false, error:"Password must be at least 6 characters" });
+    }
+    
+    const emailLower = String(email).trim().toLowerCase();
+    const codeStr = String(code).trim();
+    
+    // Verify user exists
+    const user = await getUser(emailLower);
+    if (!user) {
+      return res.status(400).json({ ok:false, error:"User not found" });
+    }
+    
+    // Get and verify code
+    const stored = await getVerificationCode(emailLower);
+    if (!stored) {
+      return res.status(400).json({ ok:false, error:"No verification code found. Please request a new code." });
+    }
+    
+    const expiresAt = stored.expires_at || stored.expiresAt;
+    if (Date.now() > expiresAt) {
+      await deleteVerificationCode(emailLower);
+      return res.status(400).json({ ok:false, error:"Code expired. Please request a new code." });
+    }
+    
+    const storedCode = stored.code;
+    if (storedCode !== codeStr) {
+      return res.status(400).json({ ok:false, error:"Invalid verification code" });
+    }
+    
+    // Code is valid - delete it and update password
+    await deleteVerificationCode(emailLower);
+    
+    // Hash new password
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    
+    // Update user password
+    await updateUser(emailLower, { passwordHash });
+    
+    console.log(`✅ Password reset successful for ${emailLower}`);
+    return res.json({ ok:true, message:"Password reset successfully" });
+  } catch (err) {
+    console.error("Error in /api/reset-password:", err);
+    return res.status(500).json({ ok:false, error: err.message || "Internal server error" });
+  }
+});
+
 app.post("/api/send-code", async (req,res)=>{
   try {
     // Ensure body is parsed correctly
