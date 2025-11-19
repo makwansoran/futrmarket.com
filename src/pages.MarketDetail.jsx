@@ -281,8 +281,8 @@ function ContractNews({ contractId }) {
   );
 }
 
-// Forum Component
-function Forum({ contractId, userEmail }) {
+// Chat Component (renamed from Forum)
+function Chat({ contractId, userEmail }) {
   const [comments, setComments] = React.useState([]);
   const [userProfiles, setUserProfiles] = React.useState({});
   const [loading, setLoading] = React.useState(true);
@@ -506,7 +506,7 @@ function Forum({ contractId, userEmail }) {
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-      <h2 className="text-lg font-semibold mb-4">Forum</h2>
+      <h2 className="text-lg font-semibold mb-4">Chat</h2>
 
       {/* Comment Form */}
       {userEmail ? (
@@ -545,7 +545,7 @@ function Forum({ contractId, userEmail }) {
       ) : (
         <div className="mb-6 p-4 bg-gray-800/50 border border-gray-700 rounded-lg text-center">
           <Link to="/login" className="text-blue-400 hover:text-blue-300 text-sm">
-            Log in to participate in the forum
+            Log in to participate in the chat
           </Link>
         </div>
       )}
@@ -1165,15 +1165,205 @@ export default function MarketDetailPage(){
         </div>
       </div>
 
-      {/* Forum and News Section */}
-      <div className="grid lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-2">
-          <Forum contractId={id} userEmail={userEmail} />
-        </div>
-        <div className="lg:col-span-1">
-          <ContractNews contractId={id} />
-        </div>
+      {/* Chat, Holders, Activity Tabs Section */}
+      <div className="mt-6">
+        <ContractTabs contractId={id} userEmail={userEmail} />
       </div>
     </main>
+  );
+}
+
+// Contract Tabs Component (Chat, Biggest Holder, Activity)
+function ContractTabs({ contractId, userEmail }) {
+  const [activeTab, setActiveTab] = React.useState("chat");
+  const [holders, setHolders] = React.useState([]);
+  const [activity, setActivity] = React.useState([]);
+  const [loadingHolders, setLoadingHolders] = React.useState(false);
+  const [loadingActivity, setLoadingActivity] = React.useState(false);
+
+  React.useEffect(() => {
+    if (activeTab === "holders") {
+      loadHolders();
+    } else if (activeTab === "activity") {
+      loadActivity();
+    }
+  }, [activeTab, contractId]);
+
+  async function loadHolders() {
+    if (holders.length > 0) return; // Already loaded
+    setLoadingHolders(true);
+    try {
+      const r = await fetch(getApiUrl(`/api/contracts/${encodeURIComponent(contractId)}/holders`));
+      const j = await r.json();
+      if (j.ok) {
+        setHolders(j.data || []);
+      }
+    } catch (e) {
+      console.error("Failed to load holders:", e);
+    } finally {
+      setLoadingHolders(false);
+    }
+  }
+
+  async function loadActivity() {
+    if (activity.length > 0) return; // Already loaded
+    setLoadingActivity(true);
+    try {
+      const r = await fetch(getApiUrl(`/api/contracts/${encodeURIComponent(contractId)}/activity`));
+      const j = await r.json();
+      if (j.ok) {
+        setActivity(j.data || []);
+      }
+    } catch (e) {
+      console.error("Failed to load activity:", e);
+    } finally {
+      setLoadingActivity(false);
+    }
+  }
+
+  function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+  }
+
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-800 flex">
+        <button
+          onClick={() => setActiveTab("chat")}
+          className={`flex-1 px-6 py-4 text-sm font-medium transition ${
+            activeTab === "chat"
+              ? "text-white border-b-2 border-blue-500 bg-gray-800/50"
+              : "text-gray-400 hover:text-white"
+          }`}
+        >
+          Chat
+        </button>
+        <button
+          onClick={() => setActiveTab("holders")}
+          className={`flex-1 px-6 py-4 text-sm font-medium transition ${
+            activeTab === "holders"
+              ? "text-white border-b-2 border-blue-500 bg-gray-800/50"
+              : "text-gray-400 hover:text-white"
+          }`}
+        >
+          Biggest Holder
+        </button>
+        <button
+          onClick={() => setActiveTab("activity")}
+          className={`flex-1 px-6 py-4 text-sm font-medium transition ${
+            activeTab === "activity"
+              ? "text-white border-b-2 border-blue-500 bg-gray-800/50"
+              : "text-gray-400 hover:text-white"
+          }`}
+        >
+          Activity
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      <div className="p-6">
+        {activeTab === "chat" && (
+          <Chat contractId={contractId} userEmail={userEmail} />
+        )}
+        
+        {activeTab === "holders" && (
+          <div>
+            <h2 className="text-lg font-semibold mb-4">Top Holders</h2>
+            {loadingHolders ? (
+              <div className="text-center text-gray-500 py-8">Loading holders...</div>
+            ) : holders.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">No holders yet.</div>
+            ) : (
+              <div className="space-y-3">
+                {holders.map((holder, index) => (
+                  <div
+                    key={holder.email}
+                    className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-700 rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-semibold">
+                        #{index + 1}
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">
+                          {holder.username || holder.email.split("@")[0]}
+                        </div>
+                        <div className="text-xs text-gray-400">{holder.email}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-white font-semibold">
+                        {holder.contracts.toFixed(2)} contracts
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        ${holder.value.toFixed(2)} value
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {activeTab === "activity" && (
+          <div>
+            <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
+            {loadingActivity ? (
+              <div className="text-center text-gray-500 py-8">Loading activity...</div>
+            ) : activity.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">No activity yet.</div>
+            ) : (
+              <div className="space-y-3">
+                {activity.map((order) => (
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-700 rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                        order.type === "buy"
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-orange-500/20 text-orange-400"
+                      }`}>
+                        {order.type === "buy" ? "B" : "S"}
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">
+                          {order.username || order.email.split("@")[0]}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {order.type === "buy" ? "Bought" : "Sold"} {order.side.toUpperCase()} at {Math.round(order.price * 100)}¢
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-white font-semibold">
+                        ${order.amountUsd.toFixed(2)}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {formatTime(order.timestamp)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

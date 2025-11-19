@@ -30,7 +30,9 @@ const {
   getAllPositions,
   getContract,
   getAllContracts,
-  getOrders
+  getOrders,
+  getContractOrders,
+  getContractPositions
 } = require("./lib/db.cjs");
 
 const app = express();
@@ -1446,6 +1448,76 @@ app.get("/api/orders", async (req, res) => {
   } catch (error) {
     console.error("Error fetching orders:", error);
     res.status(500).json({ ok: false, error: error.message || "Failed to fetch orders" });
+  }
+});
+
+// Get contract holders (for biggest holder display)
+app.get("/api/contracts/:id/holders", async (req, res) => {
+  try {
+    const contractId = decodeURIComponent(req.params.id || "");
+    if (!contractId) return res.status(400).json({ ok: false, error: "Contract ID required" });
+    
+    const positions = await getContractPositions(contractId);
+    const contract = await getContract(contractId);
+    
+    // Get user profiles for all holders
+    const holders = await Promise.all(
+      positions.map(async (pos) => {
+        const user = await getUser(pos.email);
+        const contracts = pos.contracts || pos.yesShares || 0;
+        const currentPrice = contract ? calculateMarketPrice(contract) : 0.5;
+        const value = contracts * currentPrice;
+        
+        return {
+          email: pos.email,
+          username: user?.username || null,
+          contracts: contracts,
+          value: value,
+          price: currentPrice
+        };
+      })
+    );
+    
+    // Sort by value (descending)
+    holders.sort((a, b) => b.value - a.value);
+    
+    res.json({ ok: true, data: holders });
+  } catch (error) {
+    console.error("Error fetching contract holders:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch holders" });
+  }
+});
+
+// Get contract activity (orders for a specific contract)
+app.get("/api/contracts/:id/activity", async (req, res) => {
+  try {
+    const contractId = decodeURIComponent(req.params.id || "");
+    if (!contractId) return res.status(400).json({ ok: false, error: "Contract ID required" });
+    
+    const orders = await getContractOrders(contractId);
+    
+    // Get user profiles for all order makers
+    const enrichedOrders = await Promise.all(
+      orders.map(async (order) => {
+        const user = await getUser(order.email);
+        return {
+          id: order.id,
+          email: order.email,
+          username: user?.username || null,
+          type: order.type,
+          side: order.side,
+          amountUsd: Number(order.amount_usd || order.amountUSD || 0),
+          contractsReceived: Number(order.contracts_received || order.contractsReceived || 0),
+          price: Number(order.price || 0),
+          timestamp: order.timestamp || order.created_at || Date.now()
+        };
+      })
+    );
+    
+    res.json({ ok: true, data: enrichedOrders });
+  } catch (error) {
+    console.error("Error fetching contract activity:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch activity" });
   }
 });
 
