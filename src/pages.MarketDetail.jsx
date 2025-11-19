@@ -3,7 +3,7 @@ import { getApiUrl } from "/src/api.js";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Thumb from "./ui.Thumb.jsx";
 import { useUser } from "./contexts/UserContext.jsx";
-import { Clock, TrendingUp, TrendingDown, Heart, MessageCircle, Trash2 } from "lucide-react";
+import { Clock, TrendingUp, TrendingDown, Heart, MessageCircle, Trash2, Sparkles, X } from "lucide-react";
 
 // Price Chart Component
 function PriceChart({ data }) {
