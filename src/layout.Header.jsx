@@ -195,7 +195,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
             </form>
           ) : (
             <div className="w-full max-w-xl flex justify-center gap-2">
-              <Link to="/signup" className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-sm">Create account</Link>
+              <Link to="/signup" className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-sm">Sign Up</Link>
               <Link to="/login" className="px-4 py-2 rounded-md border border-white/15 hover:bg-white/5 text-sm">Log in</Link>
             </div>
           )}

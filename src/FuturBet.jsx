@@ -84,7 +84,7 @@ function Header(props) {
           {!userEmail ? (
             <>
               <button onClick={function(){ onNavigate("login"); }} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition">Login</button>
-              <button onClick={function(){ onNavigate("signup"); }} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white transition">Create Account</button>
+              <button onClick={function(){ onNavigate("signup"); }} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white transition">Sign Up</button>
             </>
           ) : (
             <>
@@ -168,7 +168,7 @@ function HomePage(props) {
         {!userEmail ? (
           <div className="flex gap-3 justify-center">
             <button onClick={function(){ onNavigate("signup"); }} className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold flex items-center gap-2">
-              <Mail size={18} /> Create Account
+              <Mail size={18} /> Sign Up
             </button>
             <button onClick={function(){ onNavigate("login"); }} className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-white font-semibold">Login</button>
           </div>
