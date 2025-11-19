@@ -40,6 +40,11 @@ export default function Footer() {
                   Brand Kit
                 </Link>
               </li>
+              <li>
+                <Link to="/become-a-partner" className="text-gray-400 hover:text-white transition text-sm">
+                  Become A Partner
+                </Link>
+              </li>
             </ul>
           </div>
 
