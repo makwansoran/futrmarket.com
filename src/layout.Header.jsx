@@ -281,7 +281,7 @@ function HowItWorksButton() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)}></div>
 
-          <div className="relative w-full max-w-2xl mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden" style={{ transform: 'translateY(45%)' }}>
+          <div className="relative w-full max-w-2xl mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden" style={{ transform: 'translateY(55%)' }}>
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-800">
               <h3 className="text-lg font-semibold text-white">How it works</h3>
