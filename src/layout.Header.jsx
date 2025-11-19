@@ -239,9 +239,10 @@ function HowItWorksButton() {
       icon: "💵"
     },
     {
-      title: "Getting Started",
+      title: "Are you ready to trade?",
       content: "Sign up for a free account, deposit funds, and start trading. You can browse markets by category, search for specific topics, or check out trending predictions.",
-      icon: "🚀"
+      icon: "🚀",
+      isLast: true
     }
   ];
 
@@ -306,14 +307,8 @@ function HowItWorksButton() {
 
             {/* Navigation */}
             <div className="flex items-center justify-between p-4 border-t border-gray-800">
-              <button
-                onClick={prevSlide}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={slides.length === 0}
-              >
-                <ChevronLeft size={18} />
-                <span className="hidden sm:inline">Previous</span>
-              </button>
+              {/* Empty space on left (no previous button) */}
+              <div className="w-24"></div>
 
               {/* Slide Indicators */}
               <div className="flex items-center gap-2">
@@ -331,14 +326,25 @@ function HowItWorksButton() {
                 ))}
               </div>
 
-              <button
-                onClick={nextSlide}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={slides.length === 0}
-              >
-                <span className="hidden sm:inline">Next</span>
-                <ChevronRight size={18} />
-              </button>
+              {/* Next button or Create Account button */}
+              {slides[currentSlide]?.isLast ? (
+                <Link
+                  to="/signup"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition font-medium"
+                >
+                  Create Account
+                </Link>
+              ) : (
+                <button
+                  onClick={nextSlide}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={slides.length === 0}
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight size={18} />
+                </button>
+              )}
             </div>
           </div>
         </div>
