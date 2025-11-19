@@ -505,9 +505,7 @@ function Chat({ contractId, userEmail }) {
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-      <h2 className="text-lg font-semibold mb-4">Chat</h2>
-
+    <div>
       {/* Comment Form */}
       {userEmail ? (
         <form onSubmit={handleSubmit} className="mb-6">
