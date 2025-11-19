@@ -306,12 +306,9 @@ function HowItWorksButton() {
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center justify-between p-4 border-t border-gray-800">
-              {/* Empty space on left (no previous button) */}
-              <div className="w-24"></div>
-
+            <div className="p-4 border-t border-gray-800 space-y-4">
               {/* Slide Indicators */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center gap-2">
                 {slides.map((_, index) => (
                   <button
                     key={index}
@@ -327,24 +324,26 @@ function HowItWorksButton() {
               </div>
 
               {/* Next button or Create Account button */}
-              {slides[currentSlide]?.isLast ? (
-                <Link
-                  to="/signup"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition font-medium"
-                >
-                  Create Account
-                </Link>
-              ) : (
-                <button
-                  onClick={nextSlide}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={slides.length === 0}
-                >
-                  <span className="hidden sm:inline">Next</span>
-                  <ChevronRight size={18} />
-                </button>
-              )}
+              <div className="flex justify-center">
+                {slides[currentSlide]?.isLast ? (
+                  <Link
+                    to="/signup"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition font-medium"
+                  >
+                    Create Account
+                  </Link>
+                ) : (
+                  <button
+                    onClick={nextSlide}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={slides.length === 0}
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight size={18} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
