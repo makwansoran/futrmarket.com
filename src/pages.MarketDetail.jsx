@@ -1163,9 +1163,14 @@ export default function MarketDetailPage(){
         </div>
       </div>
 
-      {/* Chat, Holders, Activity Tabs Section */}
-      <div className="mt-6">
-        <ContractTabs contractId={id} userEmail={userEmail} />
+      {/* Chat, Holders, Activity Tabs Section with Related News */}
+      <div className="grid lg:grid-cols-3 gap-6 mt-6">
+        <div className="lg:col-span-2">
+          <ContractTabs contractId={id} userEmail={userEmail} />
+        </div>
+        <div className="lg:col-span-1">
+          <ContractNews contractId={id} />
+        </div>
       </div>
     </main>
   );
