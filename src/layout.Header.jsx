@@ -211,3 +211,138 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
     </header>
   );
 }
+
+// How It Works Modal Component
+function HowItWorksButton() {
+  const [open, setOpen] = React.useState(false);
+  const [currentSlide, setCurrentSlide] = React.useState(0);
+
+  const slides = [
+    {
+      title: "What is FutrMarket?",
+      content: "FutrMarket is a prediction market platform where you can trade on the outcome of future events. Buy shares in outcomes you think are likely, or sell shares if you disagree.",
+      icon: "📊"
+    },
+    {
+      title: "How to Trade",
+      content: "Browse markets and find predictions you want to bet on. Click 'Buy' to purchase shares in an outcome, or 'Sell' if you think it won't happen. Prices reflect the market's probability.",
+      icon: "💰"
+    },
+    {
+      title: "Market Prices",
+      content: "Share prices range from 1¢ to 99¢, representing the market's estimated probability. A 50¢ share means a 50% chance. Prices change as people trade, reflecting real-time sentiment.",
+      icon: "📈"
+    },
+    {
+      title: "Making Money",
+      content: "If your prediction is correct when the market resolves, your shares are worth $1 each. If you bought at 50¢, you double your money! Sell anytime before resolution to lock in profits.",
+      icon: "💵"
+    },
+    {
+      title: "Getting Started",
+      content: "Sign up for a free account, deposit funds, and start trading. You can browse markets by category, search for specific topics, or check out trending predictions.",
+      icon: "🚀"
+    }
+  ];
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  };
+
+  React.useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-300 hover:text-white transition whitespace-nowrap"
+      >
+        <div className="relative">
+          <Info className="w-4 h-4" />
+          <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full text-[8px] flex items-center justify-center text-white font-bold">!</span>
+        </div>
+        <span className="hidden sm:inline">How it works</span>
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)}></div>
+
+          <div className="relative w-full max-w-2xl mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+              <h3 className="text-lg font-semibold text-white">How it works</h3>
+              <button
+                onClick={() => setOpen(false)}
+                className="text-gray-400 hover:text-white transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Slide Content */}
+            <div className="p-8 min-h-[300px] flex flex-col items-center justify-center">
+              <div className="text-6xl mb-6">{slides[currentSlide].icon}</div>
+              <h4 className="text-2xl font-bold text-white mb-4 text-center">
+                {slides[currentSlide].title}
+              </h4>
+              <p className="text-gray-300 text-center max-w-md leading-relaxed">
+                {slides[currentSlide].content}
+              </p>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex items-center justify-between p-4 border-t border-gray-800">
+              <button
+                onClick={prevSlide}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={slides.length === 0}
+              >
+                <ChevronLeft size={18} />
+                <span className="hidden sm:inline">Previous</span>
+              </button>
+
+              {/* Slide Indicators */}
+              <div className="flex items-center gap-2">
+                {slides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    className={`w-2 h-2 rounded-full transition ${
+                      index === currentSlide
+                        ? "bg-blue-500 w-6"
+                        : "bg-gray-600 hover:bg-gray-500"
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                onClick={nextSlide}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={slides.length === 0}
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
