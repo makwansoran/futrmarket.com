@@ -83,6 +83,11 @@ export default function Footer() {
                   TikTok
                 </a>
               </li>
+              <li>
+                <Link to="/forum" className="text-gray-400 hover:text-white transition text-sm">
+                  Forum
+                </Link>
+              </li>
               </ul>
             </div>
           </div>

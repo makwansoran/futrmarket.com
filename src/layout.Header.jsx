@@ -156,14 +156,6 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
             Live
           </Link>
           <Link 
-            to="/forum" 
-            className={`transition text-sm font-medium whitespace-nowrap ${
-              isActive("/forum") ? "text-white" : "text-gray-300 hover:text-white"
-            }`}
-          >
-            Forum
-          </Link>
-          <Link 
             to="/news" 
             className={`transition text-sm font-medium whitespace-nowrap ${
               isActive("/news") ? "text-white" : "text-gray-300 hover:text-white"
