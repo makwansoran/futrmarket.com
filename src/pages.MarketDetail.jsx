@@ -1163,6 +1163,11 @@ export default function MarketDetailPage(){
         </div>
       </div>
 
+      {/* Give me context button - centered between order book and chat */}
+      <div className="flex justify-center my-6">
+        <MarketContextButton contract={m} />
+      </div>
+
       {/* Chat, Holders, Activity Tabs Section with Related News */}
       <div className="grid lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2">
