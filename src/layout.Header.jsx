@@ -184,7 +184,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
               </button>
             </div>
           </form>
-          <HowItWorksButton />
+          {!userEmail && <HowItWorksButton />}
         </div>
 
         {/* RIGHT: balances + deposit + account OR sign up/login buttons */}
