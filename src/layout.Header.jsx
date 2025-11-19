@@ -167,25 +167,23 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
 
         {/* CENTER: search (always centered) */}
         <div className="flex-1 flex justify-center">
-          {userEmail ? (
-            <form onSubmit={submit} className="w-full max-w-xl">
-              <div className="relative flex">
-                <span className="absolute left-3 top-2.5"><Search className="w-4 h-4 text-gray-500" /></span>
-                <input
-                  value={q}
-                  onChange={(e)=>setQ(e.target.value)}
-                  placeholder="Search markets…"
-                  className="w-full bg-gray-900/90 text-gray-100 placeholder-gray-500 rounded-l-lg pl-9 pr-3 py-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-r-lg bg-blue-600 hover:bg-blue-500 text-white text-sm border border-l-0 border-white/10"
-                >
-                  Search
-                </button>
-              </div>
-            </form>
-          ) : null}
+          <form onSubmit={submit} className="w-full max-w-xl">
+            <div className="relative flex">
+              <span className="absolute left-3 top-2.5"><Search className="w-4 h-4 text-gray-500" /></span>
+              <input
+                value={q}
+                onChange={(e)=>setQ(e.target.value)}
+                placeholder="Search markets…"
+                className="w-full bg-gray-900/90 text-gray-100 placeholder-gray-500 rounded-l-lg pl-9 pr-3 py-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-r-lg bg-blue-600 hover:bg-blue-500 text-white text-sm border border-l-0 border-white/10"
+              >
+                Search
+              </button>
+            </div>
+          </form>
         </div>
 
         {/* RIGHT: balances + deposit + account OR sign up/login buttons */}
