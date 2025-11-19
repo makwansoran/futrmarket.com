@@ -398,6 +398,12 @@ app.post("/api/check-password", async (req,res)=>{
       return res.status(400).json({ ok:false, error:"User not found" });
     }
     
+    // Debug: Log user object to see what fields are available
+    console.log(`🔵 DEBUG /api/check-password for ${emailLower}:`);
+    console.log(`   User keys:`, Object.keys(user));
+    console.log(`   password_hash:`, user.password_hash);
+    console.log(`   passwordHash:`, user.passwordHash);
+    
     const passwordHash = user.password_hash || user.passwordHash;
     if (!passwordHash) {
       // User exists but has no password - this shouldn't happen for login
@@ -406,7 +412,14 @@ app.post("/api/check-password", async (req,res)=>{
       return res.status(400).json({ ok:false, error:"Account has no password set. Please use the signup page to create your account with a password." });
     }
     
+    // Debug: Log password comparison attempt
+    console.log(`🔵 Attempting password comparison for ${emailLower}`);
+    console.log(`   Password hash length:`, passwordHash.length);
+    console.log(`   Password hash starts with:`, passwordHash.substring(0, 10));
+    
     const passwordValid = await bcrypt.compare(password, passwordHash);
+    console.log(`🔵 Password comparison result:`, passwordValid);
+    
     if (!passwordValid) {
       return res.status(400).json({ ok:false, error:"Invalid password" });
     }
