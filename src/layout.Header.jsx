@@ -193,17 +193,12 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
                 </button>
               </div>
             </form>
-          ) : (
-            <div className="w-full max-w-xl flex justify-center gap-2">
-              <Link to="/signup" className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-sm">Sign Up</Link>
-              <Link to="/login" className="px-4 py-2 rounded-md border border-white/15 hover:bg-white/5 text-sm">Log in</Link>
-            </div>
-          )}
+          ) : null}
         </div>
 
-        {/* RIGHT: balances + deposit + account */}
+        {/* RIGHT: balances + deposit + account OR sign up/login buttons */}
         <div className="min-w-[280px] flex items-center justify-end gap-3">
-          {userEmail && (
+          {userEmail ? (
             <>
               <PortfolioButton portfolio={portfolio} cash={cash} />
               <CashButton 
@@ -213,6 +208,11 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
               />
               <DepositButton userEmail={userEmail} onBalanceUpdate={onBalanceUpdate} />
               <AccountMenu userEmail={userEmail} onLogout={onLogout} />
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="px-4 py-2 rounded-md border border-white/15 hover:bg-white/5 text-sm">Log in</Link>
+              <Link to="/signup" className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-sm">Sign Up</Link>
             </>
           )}
         </div>
