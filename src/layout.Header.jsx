@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, ChevronDown, User } from "lucide-react";
+import { Search, ChevronDown, User, X, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import DepositButton from "./components/DepositButton.jsx";
 import PortfolioButton from "./components/PortfolioButton.jsx";
@@ -166,7 +166,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
         </nav>
 
         {/* CENTER: search (always centered) */}
-        <div className="flex-1 flex justify-center">
+        <div className="flex-1 flex justify-center items-center gap-3">
           <form onSubmit={submit} className="w-full max-w-xl">
             <div className="relative flex">
               <span className="absolute left-3 top-2.5"><Search className="w-4 h-4 text-gray-500" /></span>
@@ -184,6 +184,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
               </button>
             </div>
           </form>
+          <HowItWorksButton />
         </div>
 
         {/* RIGHT: balances + deposit + account OR sign up/login buttons */}
