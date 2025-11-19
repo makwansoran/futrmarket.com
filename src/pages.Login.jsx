@@ -1,9 +1,10 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Key, ArrowRight, Lock } from "lucide-react";
 import { checkEmail, checkPassword, sendCode, verifyCode, saveUser, saveSession } from "./lib.session.js";
 
 export default function LoginPage({ onLogin }){
+  const navigate = useNavigate();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [code, setCode] = React.useState("");
@@ -64,7 +65,14 @@ export default function LoginPage({ onLogin }){
       await verifyCode(email.trim(), code.trim(), password.trim());
       await saveUser(email.trim());
       await saveSession(email.trim());
-      onLogin && onLogin(email.trim());
+      
+      // Call onLogin callback if provided (async)
+      if (onLogin) {
+        await onLogin(email.trim());
+      }
+      
+      // Navigate to home page after successful login
+      navigate("/");
     }catch(e){ 
       const errorMessage = e instanceof Error ? e.message : (typeof e === 'string' ? e : "Invalid code. Please try again.");
       setErr(errorMessage); 
