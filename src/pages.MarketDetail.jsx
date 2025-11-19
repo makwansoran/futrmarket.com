@@ -1375,3 +1375,116 @@ function ContractTabs({ contractId, userEmail }) {
     </div>
   );
 }
+
+// Market Context Button Component
+function MarketContextButton({ contract }) {
+  const [open, setOpen] = React.useState(false);
+  const [context, setContext] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+
+  async function generateContext() {
+    if (context) {
+      setOpen(true);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Generate market context based on current contract state
+      const yesPrice = Math.round((contract.yesPrice || 0.5) * 100);
+      const noPrice = Math.round((contract.noPrice || 0.5) * 100);
+      const volume = contract.volume || "$0";
+      const traders = contract.traders || 0;
+      
+      // Calculate price trend
+      const priceTrend = yesPrice > 50 ? "bullish" : yesPrice < 50 ? "bearish" : "neutral";
+      
+      // Generate context text
+      const generatedContext = {
+        summary: `The market currently shows ${yesPrice}% probability for "Yes" and ${noPrice}% for "No".`,
+        volume: `Total trading volume is ${volume} with ${traders} active traders.`,
+        sentiment: `Market sentiment is ${priceTrend}. ${yesPrice > 50 ? "Traders are leaning towards the outcome happening." : yesPrice < 50 ? "Traders are leaning against the outcome." : "The market is fairly balanced."}`,
+        priceAnalysis: `At ${yesPrice}¢, the market suggests a ${yesPrice > 70 ? "high" : yesPrice > 50 ? "moderate" : "low"} likelihood of the event occurring.`,
+        recommendation: yesPrice > 70 ? "Strong buy signal for YES" : yesPrice < 30 ? "Strong buy signal for NO" : "Market is balanced - consider both sides"
+      };
+      
+      setContext(generatedContext);
+      setOpen(true);
+    } catch (e) {
+      console.error("Failed to generate context:", e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  React.useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        onClick={generateContext}
+        disabled={loading}
+        className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Sparkles className="w-5 h-5" />
+        {loading ? "Generating..." : "Give me context"}
+      </button>
+
+      {open && context && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)}></div>
+
+          <div className="relative w-full max-w-2xl mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden" style={{ transform: 'translateY(55%)' }}>
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+              <h3 className="text-lg font-semibold text-white">Market Context</h3>
+              <button
+                onClick={() => setOpen(false)}
+                className="text-gray-400 hover:text-white transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Context Content */}
+            <div className="p-6 space-y-4">
+              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+                <h4 className="text-white font-semibold mb-2">Summary</h4>
+                <p className="text-gray-300">{context.summary}</p>
+              </div>
+
+              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+                <h4 className="text-white font-semibold mb-2">Trading Activity</h4>
+                <p className="text-gray-300">{context.volume}</p>
+              </div>
+
+              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+                <h4 className="text-white font-semibold mb-2">Market Sentiment</h4>
+                <p className="text-gray-300">{context.sentiment}</p>
+              </div>
+
+              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+                <h4 className="text-white font-semibold mb-2">Price Analysis</h4>
+                <p className="text-gray-300">{context.priceAnalysis}</p>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <h4 className="text-blue-400 font-semibold mb-2">Recommendation</h4>
+                <p className="text-gray-300">{context.recommendation}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
