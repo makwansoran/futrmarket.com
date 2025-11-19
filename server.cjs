@@ -414,11 +414,23 @@ app.post("/api/check-password", async (req,res)=>{
     
     // Debug: Log password comparison attempt
     console.log(`🔵 Attempting password comparison for ${emailLower}`);
+    console.log(`   Password received length:`, password.length);
     console.log(`   Password hash length:`, passwordHash.length);
     console.log(`   Password hash starts with:`, passwordHash.substring(0, 10));
+    console.log(`   Password hash is valid bcrypt format:`, passwordHash.startsWith('$2'));
     
-    const passwordValid = await bcrypt.compare(password, passwordHash);
+    // Ensure password is trimmed (should already be, but just in case)
+    const trimmedPassword = String(password).trim();
+    const passwordValid = await bcrypt.compare(trimmedPassword, passwordHash);
     console.log(`🔵 Password comparison result:`, passwordValid);
+    
+    // If comparison fails, try to see if there's a whitespace issue
+    if (!passwordValid) {
+      console.log(`🔵 Password comparison failed. Trying with different variations...`);
+      // Try with original password (no trim) in case there's a whitespace issue
+      const passwordValidNoTrim = await bcrypt.compare(password, passwordHash);
+      console.log(`   Result without trim:`, passwordValidNoTrim);
+    }
     
     if (!passwordValid) {
       return res.status(400).json({ ok:false, error:"Invalid password" });
