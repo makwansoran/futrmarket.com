@@ -648,6 +648,27 @@ app.post("/api/send-code", async (req,res)=>{
     
   } catch (err) {
     console.error("Error in /api/send-code:", err);
+    // Ensure CORS headers are set even on errors
+    if (!res.headersSent) {
+      const origin = req.headers.origin;
+      let allowedOrigin = null;
+      if (origin) {
+        const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+        const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
+        const isFutrmarket = origin.includes('futrmarket.com') || origin.includes('futrmarket');
+        if (isLocalhost || isVercel || isFutrmarket) {
+          allowedOrigin = origin;
+        }
+      }
+      if (allowedOrigin) {
+        res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+      } else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+      }
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+    }
     return res.status(500).json({ ok:false, error: err.message || "Internal server error" });
   }
 });
