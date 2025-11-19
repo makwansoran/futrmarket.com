@@ -271,10 +271,7 @@ function HowItWorksButton() {
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-300 hover:text-white transition whitespace-nowrap"
       >
-        <div className="relative">
-          <Info className="w-4 h-4" />
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full text-[8px] flex items-center justify-center text-white font-bold">!</span>
-        </div>
+        <Info className="w-4 h-4 text-blue-500" />
         <span className="hidden sm:inline">How it works</span>
       </button>
 
