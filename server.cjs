@@ -648,6 +648,32 @@ app.post("/api/send-code", async (req,res)=>{
       return res.status(400).json({ ok:false, error:"Invalid email format" });
     }
 
+    // Check if user exists to customize email message
+    const existingUser = await getUser(emailLower);
+    const isNewUser = !existingUser;
+    
+    // If user doesn't exist (signup), create a placeholder user first
+    // This is required because verification_codes has a foreign key to users
+    if (isNewUser) {
+      try {
+        await createUser({
+          email: emailLower,
+          username: "",
+          profilePicture: "",
+          passwordHash: "", // Will be set during verification
+          createdAt: Date.now()
+        });
+        // Also create a balance entry for the new user
+        await updateBalance(emailLower, { cash: 0, portfolio: 0 });
+      } catch (err) {
+        // If user already exists (race condition), that's fine
+        if (!err.message || !err.message.includes('duplicate') && !err.message.includes('unique')) {
+          console.error("Error creating placeholder user:", err);
+          throw err;
+        }
+      }
+    }
+
     // Generate 6-digit code
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const expiresAt = Date.now() + (10 * 60 * 1000); // 10 minutes
@@ -658,10 +684,6 @@ app.post("/api/send-code", async (req,res)=>{
       expires_at: expiresAt,
       attempts: 0
     });
-
-    // Check if user exists to customize email message
-    const existingUser = await getUser(emailLower);
-    const isNewUser = !existingUser;
     const emailType = isNewUser ? "signup" : "login";
 
     // Email content
