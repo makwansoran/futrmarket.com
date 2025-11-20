@@ -2363,7 +2363,10 @@ app.delete("/api/news/:id", requireAdmin, async (req, res) => {
 // Get all features
 app.get("/api/features", async (req, res) => {
   try {
-    const features = await getAllFeatures();
+    // Check if we should filter for active features only (for public display)
+    const activeOnly = req.query.active === "true" || req.query.active === "1";
+    const features = await getAllFeatures(activeOnly);
+    
     // Map database fields (snake_case) to API format (camelCase)
     const mappedFeatures = features.map(feature => ({
       id: feature.id,
