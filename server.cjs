@@ -793,131 +793,131 @@ app.post("/api/verify-code", async (req,res)=>{
     if (!email || !code) {
       return res.status(400).json({ ok:false, error:"Email and code are required" });
     }
-  
-  const emailLower = String(email).trim().toLowerCase();
-  const codeStr = String(code).trim();
-
-  // Check if this is a new user (signup) or existing user (login)
-  const existingUser = await getUser(emailLower);
-  // A user is considered "new" if they don't exist OR if they exist but have no password_hash
-  // This handles cases where old accounts were created without passwords
-  const hasPassword = existingUser && (existingUser.password_hash || existingUser.passwordHash);
-  const isNewUser = !existingUser || !hasPassword;
-  
-  // Debug logging
-  if (existingUser && !hasPassword) {
-    console.log(`⚠️  User ${emailLower} exists but has no password. Treating as new user signup.`);
-  }
-
-  // For new users (or users without passwords), require password and username
-  if (isNewUser) {
-    // This is a signup flow - user doesn't exist or has no password
-    if (!password || !confirmPassword) {
-      return res.status(400).json({ ok:false, error:"Password and confirm password are required for new accounts" });
-    }
-    if (password !== confirmPassword) {
-      return res.status(400).json({ ok:false, error:"Passwords do not match" });
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ ok:false, error:"Password must be at least 6 characters" });
-    }
-  } else {
-    // This is a login flow - user exists and has a password
-    if (!password) {
-      return res.status(400).json({ ok:false, error:"Password is required" });
-    }
-    // Verify password
-    const passwordHash = existingUser.password_hash || existingUser.passwordHash;
-    if (!passwordHash) {
-      // This should never happen if isNewUser logic is correct, but just in case
-      console.error(`❌ ERROR: User ${emailLower} exists but has no password_hash in login flow. This is a bug.`);
-      return res.status(400).json({ ok:false, error:"Account configuration error. Please contact support." });
-    }
-    const passwordValid = await bcrypt.compare(password, passwordHash);
-    if (!passwordValid) {
-      return res.status(400).json({ ok:false, error:"Invalid password" });
-    }
-  }
-
-  // Get verification code from database (Supabase or file)
-  const stored = await getVerificationCode(emailLower);
-
-  if (!stored) {
-    return res.status(400).json({ ok:false, error:"No code found. Please request a new code." });
-  }
-
-  // Check expiration
-  const expiresAt = stored.expires_at || stored.expiresAt;
-  if (Date.now() > expiresAt) {
-    await deleteVerificationCode(emailLower);
-    return res.status(400).json({ ok:false, error:"Code expired. Please request a new code." });
-  }
-
-  // Check attempts (max 5)
-  const attempts = stored.attempts || 0;
-  if (attempts >= 5) {
-    await deleteVerificationCode(emailLower);
-    return res.status(400).json({ ok:false, error:"Too many attempts. Please request a new code." });
-  }
-
-  // Verify code
-  const storedCode = stored.code;
-  if (storedCode !== codeStr) {
-    // Increment attempts
-    await upsertVerificationCode(emailLower, {
-      code: storedCode,
-      expires_at: expiresAt,
-      attempts: attempts + 1
-    });
-    return res.status(400).json({ ok:false, error:"Invalid code. Please try again." });
-  }
-
-  // Code is valid - delete it and create/update user
-  await deleteVerificationCode(emailLower);
-
-  // Hash password for new users (or users without passwords)
-  let passwordHash = null;
-  if (isNewUser) {
-    passwordHash = await bcrypt.hash(password, 10);
-  }
-
-  // Check username uniqueness for new users
-  if (isNewUser && username && username.trim()) {
-    const { getAllUsers } = require("./lib/db.cjs");
-    const allUsers = await getAllUsers();
-    const usernameTaken = allUsers.some(u => 
-      u.username && 
-      u.username.trim().toLowerCase() === username.trim().toLowerCase()
-    );
     
-    if (usernameTaken) {
-      return res.status(400).json({ ok:false, error:"Username is already taken. Please choose a different username." });
-    }
-  }
+    const emailLower = String(email).trim().toLowerCase();
+    const codeStr = String(code).trim();
 
-  // Ensure user exists in database (Supabase or file)
-  let user = await getUser(emailLower);
-  if (!user) {
-    // Create new user
-    const usernameValue = username || "";
-    user = await createUser({
-      email: emailLower,
-      username: usernameValue.trim(),
-      profilePicture: "",
-      passwordHash: passwordHash,
-      createdAt: Date.now()
-    });
-    console.log("✅ New user created in database:", emailLower);
-  } else if (isNewUser && !hasPassword) {
-    // User exists but has no password - update with password and username
-    const usernameValue = username || user.username || "";
-    await updateUser(emailLower, {
-      username: usernameValue.trim() || user.username || "",
-      passwordHash: passwordHash
-    });
-    console.log("✅ User password set in database:", emailLower);
-    user = await getUser(emailLower); // Refresh user data
-  }
+    // Check if this is a new user (signup) or existing user (login)
+    const existingUser = await getUser(emailLower);
+    // A user is considered "new" if they don't exist OR if they exist but have no password_hash
+    // This handles cases where old accounts were created without passwords
+    const hasPassword = existingUser && (existingUser.password_hash || existingUser.passwordHash);
+    const isNewUser = !existingUser || !hasPassword;
+    
+    // Debug logging
+    if (existingUser && !hasPassword) {
+      console.log(`⚠️  User ${emailLower} exists but has no password. Treating as new user signup.`);
+    }
+
+    // For new users (or users without passwords), require password and username
+    if (isNewUser) {
+      // This is a signup flow - user doesn't exist or has no password
+      if (!password || !confirmPassword) {
+        return res.status(400).json({ ok:false, error:"Password and confirm password are required for new accounts" });
+      }
+      if (password !== confirmPassword) {
+        return res.status(400).json({ ok:false, error:"Passwords do not match" });
+      }
+      if (password.length < 6) {
+        return res.status(400).json({ ok:false, error:"Password must be at least 6 characters" });
+      }
+    } else {
+      // This is a login flow - user exists and has a password
+      if (!password) {
+        return res.status(400).json({ ok:false, error:"Password is required" });
+      }
+      // Verify password
+      const passwordHash = existingUser.password_hash || existingUser.passwordHash;
+      if (!passwordHash) {
+        // This should never happen if isNewUser logic is correct, but just in case
+        console.error(`❌ ERROR: User ${emailLower} exists but has no password_hash in login flow. This is a bug.`);
+        return res.status(400).json({ ok:false, error:"Account configuration error. Please contact support." });
+      }
+      const passwordValid = await bcrypt.compare(password, passwordHash);
+      if (!passwordValid) {
+        return res.status(400).json({ ok:false, error:"Invalid password" });
+      }
+    }
+
+    // Get verification code from database (Supabase or file)
+    const stored = await getVerificationCode(emailLower);
+
+    if (!stored) {
+      return res.status(400).json({ ok:false, error:"No code found. Please request a new code." });
+    }
+
+    // Check expiration
+    const expiresAt = stored.expires_at || stored.expiresAt;
+    if (Date.now() > expiresAt) {
+      await deleteVerificationCode(emailLower);
+      return res.status(400).json({ ok:false, error:"Code expired. Please request a new code." });
+    }
+
+    // Check attempts (max 5)
+    const attempts = stored.attempts || 0;
+    if (attempts >= 5) {
+      await deleteVerificationCode(emailLower);
+      return res.status(400).json({ ok:false, error:"Too many attempts. Please request a new code." });
+    }
+
+    // Verify code
+    const storedCode = stored.code;
+    if (storedCode !== codeStr) {
+      // Increment attempts
+      await upsertVerificationCode(emailLower, {
+        code: storedCode,
+        expires_at: expiresAt,
+        attempts: attempts + 1
+      });
+      return res.status(400).json({ ok:false, error:"Invalid code. Please try again." });
+    }
+
+    // Code is valid - delete it and create/update user
+    await deleteVerificationCode(emailLower);
+
+    // Hash password for new users (or users without passwords)
+    let passwordHash = null;
+    if (isNewUser) {
+      passwordHash = await bcrypt.hash(password, 10);
+    }
+
+    // Check username uniqueness for new users
+    if (isNewUser && username && username.trim()) {
+      const { getAllUsers } = require("./lib/db.cjs");
+      const allUsers = await getAllUsers();
+      const usernameTaken = allUsers.some(u => 
+        u.username && 
+        u.username.trim().toLowerCase() === username.trim().toLowerCase()
+      );
+      
+      if (usernameTaken) {
+        return res.status(400).json({ ok:false, error:"Username is already taken. Please choose a different username." });
+      }
+    }
+
+    // Ensure user exists in database (Supabase or file)
+    let user = await getUser(emailLower);
+    if (!user) {
+      // Create new user
+      const usernameValue = username || "";
+      user = await createUser({
+        email: emailLower,
+        username: usernameValue.trim(),
+        profilePicture: "",
+        passwordHash: passwordHash,
+        createdAt: Date.now()
+      });
+      console.log("✅ New user created in database:", emailLower);
+    } else if (isNewUser && !hasPassword) {
+      // User exists but has no password - update with password and username
+      const usernameValue = username || user.username || "";
+      await updateUser(emailLower, {
+        username: usernameValue.trim() || user.username || "",
+        passwordHash: passwordHash
+      });
+      console.log("✅ User password set in database:", emailLower);
+      user = await getUser(emailLower); // Refresh user data
+    }
 
     // Ensure balances exist in database (Supabase or file)
     // Always create/update balance when user is created or logs in
