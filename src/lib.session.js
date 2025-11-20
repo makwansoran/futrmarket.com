@@ -232,6 +232,82 @@ export async function resetPassword(email, code, newPassword, confirmPassword) {
   }
 }
 
+export async function checkEmailExists(email) {
+  try {
+    const r = await fetch(getApiUrl('/api/check-email-exists'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    
+    if (!r.ok) {
+      const errorText = await r.text().catch(() => '');
+      let errorMessage = `Server error (${r.status})`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorMessage;
+      } catch {
+        if (r.status === 404) {
+          errorMessage = 'Backend server not available. Please check if the server is running.';
+        } else if (r.status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const j = await r.json().catch(() => ({}));
+    if (!j.ok) {
+      const errorMsg = typeof j.error === 'string' ? j.error : 'Failed to check email';
+      throw new Error(errorMsg);
+    }
+    return j;
+  } catch (e) {
+    if (e instanceof Error) {
+      throw e;
+    }
+    throw new Error(typeof e === 'string' ? e : 'Failed to check email. Please check your connection.');
+  }
+}
+
+export async function checkUsername(username) {
+  try {
+    const r = await fetch(getApiUrl('/api/check-username'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username })
+    });
+    
+    if (!r.ok) {
+      const errorText = await r.text().catch(() => '');
+      let errorMessage = `Server error (${r.status})`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorMessage;
+      } catch {
+        if (r.status === 404) {
+          errorMessage = 'Backend server not available. Please check if the server is running.';
+        } else if (r.status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const j = await r.json().catch(() => ({}));
+    if (!j.ok) {
+      const errorMsg = typeof j.error === 'string' ? j.error : 'Username validation failed';
+      throw new Error(errorMsg);
+    }
+    return j;
+  } catch (e) {
+    if (e instanceof Error) {
+      throw e;
+    }
+    throw new Error(typeof e === 'string' ? e : 'Failed to check username. Please check your connection.');
+  }
+}
+
 export async function verifyCode(email, code, password, confirmPassword, username) {
   try {
     const body = { email, code };

@@ -1,9 +1,10 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight, Key } from "lucide-react";
-import { sendCode, verifyCode, saveUser, saveSession } from "./lib.session.js";
+import { sendCode, verifyCode, saveUser, saveSession, checkEmailExists, checkUsername } from "./lib.session.js";
 
 export default function SignupPage({ onLogin }){
+  const navigate = useNavigate();
   const [email, setEmail] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -35,9 +36,34 @@ export default function SignupPage({ onLogin }){
       setErr("Password must be at least 6 characters");
       return;
     }
+    
+    // Validate username format
+    if (!/^[a-zA-Z0-9_-]{3,20}$/.test(username.trim())) {
+      setErr("Username must be 3-20 characters and contain only letters, numbers, underscores, or hyphens");
+      return;
+    }
+    
     try{
       setErr("");
       setLoading(true);
+      
+      // Check if email already exists with a password
+      const emailCheck = await checkEmailExists(email.trim());
+      if (emailCheck.exists && emailCheck.hasPassword) {
+        setErr("An account with this email already exists. Please log in instead.");
+        setLoading(false);
+        return;
+      }
+      
+      // Check if username is available
+      const usernameCheck = await checkUsername(username.trim());
+      if (!usernameCheck.available) {
+        setErr("Username is already taken. Please choose a different username.");
+        setLoading(false);
+        return;
+      }
+      
+      // All validations passed, send code
       await sendCode(email.trim());
       setSent(true);
     }catch(e){ 
@@ -81,7 +107,14 @@ export default function SignupPage({ onLogin }){
       await verifyCode(email.trim(), code.trim(), password.trim(), confirmPassword.trim(), username.trim());
       await saveUser(email.trim());
       await saveSession(email.trim());
-      onLogin && onLogin(email.trim());
+      
+      // Call onLogin callback if provided (async)
+      if (onLogin) {
+        await onLogin(email.trim());
+      }
+      
+      // Navigate to home page after successful signup
+      navigate("/");
     }catch(e){ 
       const errorMessage = e instanceof Error ? e.message : (typeof e === 'string' ? e : "Invalid code or password. Please try again.");
       setErr(errorMessage); 

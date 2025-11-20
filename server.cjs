@@ -383,6 +383,59 @@ app.post("/api/check-email", async (req,res)=>{
   }
 });
 
+// Check if email exists (for signup validation)
+app.post("/api/check-email-exists", async (req,res)=>{
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ ok:false, error:"Email is required" });
+    }
+    
+    const emailLower = String(email).trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailLower)) {
+      return res.status(400).json({ ok:false, error:"Invalid email format" });
+    }
+    
+    const user = await getUser(emailLower);
+    const exists = !!user;
+    const hasPassword = user && (user.password_hash || user.passwordHash);
+    
+    return res.json({ ok:true, exists, hasPassword });
+  } catch (err) {
+    console.error("Error in /api/check-email-exists:", err);
+    return res.status(500).json({ ok:false, error: err.message || "Internal server error" });
+  }
+});
+
+// Check if username is available
+app.post("/api/check-username", async (req,res)=>{
+  try {
+    const { username } = req.body || {};
+    if (!username || !username.trim()) {
+      return res.status(400).json({ ok:false, error:"Username is required" });
+    }
+    
+    const usernameTrimmed = username.trim();
+    
+    // Validate username format (alphanumeric, underscore, hyphen, 3-20 chars)
+    if (!/^[a-zA-Z0-9_-]{3,20}$/.test(usernameTrimmed)) {
+      return res.status(400).json({ ok:false, error:"Username must be 3-20 characters and contain only letters, numbers, underscores, or hyphens" });
+    }
+    
+    const { getAllUsers } = require("./lib/db.cjs");
+    const allUsers = await getAllUsers();
+    const usernameTaken = allUsers.some(u => 
+      u.username && 
+      u.username.trim().toLowerCase() === usernameTrimmed.toLowerCase()
+    );
+    
+    return res.json({ ok:true, available: !usernameTaken });
+  } catch (err) {
+    console.error("Error in /api/check-username:", err);
+    return res.status(500).json({ ok:false, error: err.message || "Internal server error" });
+  }
+});
+
 // Check password for login (before sending code)
 app.post("/api/check-password", async (req,res)=>{
   try {
