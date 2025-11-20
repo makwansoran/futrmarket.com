@@ -5,7 +5,7 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/((?!api|_next|assets|uploads|.*\\..*).*)",
+      "source": "/((?!assets|uploads|.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json)).*)",
       "destination": "/index.html"
     }
   ]
