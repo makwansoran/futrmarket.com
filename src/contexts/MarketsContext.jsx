@@ -62,7 +62,7 @@ export function MarketsProvider({ children }) {
     };
   }, [loadMarkets]);
 
-  // Periodic refresh (every 60 seconds)
+  // Periodic refresh (every 30 seconds for faster updates)
   React.useEffect(() => {
     let cancelled = false;
     const interval = setInterval(() => {
@@ -71,7 +71,7 @@ export function MarketsProvider({ children }) {
           console.error("Failed to refresh markets:", e);
         });
       }
-    }, 60000); // Every 60 seconds
+    }, 30000); // Every 30 seconds (reduced from 60 for faster updates)
     
     return () => {
       cancelled = true;

@@ -1418,6 +1418,11 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
 // Get all contracts
 app.get("/api/contracts", async (req, res) => {
   try {
+    // Set cache-control headers to prevent caching
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    
     console.log("[CONTRACTS] Starting to fetch contracts...");
     // Use database abstraction to get contracts
     const contracts = await getAllContracts();
@@ -1980,7 +1985,15 @@ app.delete("/api/contracts/:id", requireAdmin, async (req, res) => {
     // Delete contract from database
     await deleteContract(contractId);
     
-    res.json({ ok: true, message: "Contract deleted" });
+    // Verify deletion
+    const verifyContract = await getContract(contractId);
+    if (verifyContract) {
+      console.error("Contract still exists after deletion attempt:", contractId);
+      return res.status(500).json({ ok: false, error: "Contract deletion failed - contract still exists" });
+    }
+    
+    console.log("✅ Contract successfully deleted:", contractId);
+    res.json({ ok: true, message: "Contract deleted successfully" });
   } catch (error) {
     console.error("Error deleting contract:", error);
     res.status(500).json({ ok: false, error: error.message || "Failed to delete contract" });

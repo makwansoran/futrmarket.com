@@ -6,10 +6,18 @@ import { getApiUrl } from '/src/api.js';
 export async function fetchMarkets() {
   try {
     // Try API first (new contract system)
-    const apiUrl = getApiUrl("/api/contracts");
+    // Add cache-busting timestamp to ensure fresh data
+    const timestamp = Date.now();
+    const apiUrl = getApiUrl(`/api/contracts?_t=${timestamp}`);
     console.log("🔵 Fetching contracts from:", apiUrl);
     
-    const res = await fetch(apiUrl, { cache: "no-store" });
+    const res = await fetch(apiUrl, { 
+      cache: "no-store",
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
     console.log("🔵 Contracts API response status:", res.status, res.statusText);
     
     if (res.ok) {
