@@ -655,7 +655,8 @@ export default function MarketsPage({ markets=[], limit, category }){
   // If no featured contracts, use first contract as fallback (for backward compatibility)
   const fallbackMarket = featuredContracts.length === 0 && list.length > 0 ? list[0] : null;
   const nonFeaturedMarkets = list.filter(m => m.id && !m.featured);
-  const gridMarkets = nonFeaturedMarkets.slice(0, 4); // Next 4 markets
+  // Show all non-featured markets, not just 4
+  const gridMarkets = nonFeaturedMarkets;
   
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -723,10 +724,12 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
           )}
           
-          {/* Remaining markets in regular grid if more than 5 */}
-          {list.length > 5 && (
+          {/* Show all remaining markets if there are more than featured + grid */}
+          {list.length > (featuredContracts.length + gridMarkets.length) && (
             <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {list.slice(5).filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
+              {list
+                .filter(m => m && m.id && !m.featured && !gridMarkets.find(gm => gm.id === m.id))
+                .map(m => <MarketCard key={m.id} m={m}/>)}
             </div>
           )}
         </>
