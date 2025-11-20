@@ -32,7 +32,11 @@ const {
   getAllContracts,
   getOrders,
   getContractOrders,
-  getContractPositions
+  getContractPositions,
+  getForumComments,
+  createForumComment,
+  updateForumComment,
+  deleteForumComment
 } = require("./lib/db.cjs");
 
 const app = express();
@@ -1912,111 +1916,161 @@ app.post("/api/contracts/:id/resolve", requireAdmin, (req, res) => {
 
 // ---- Forum endpoints ----
 // Get forum comments for a contract
-app.get("/api/forum/:contractId", (req, res) => {
-  const contractId = String(req.params.contractId || "").trim();
-  if (!contractId) return res.status(400).json({ ok: false, error: "contractId required" });
-  
-  const forum = loadJSON(FORUM_FILE);
-  const comments = forum[contractId] || [];
-  
-  // Sort by createdAt descending (newest first)
-  const sorted = comments.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  
-  res.json({ ok: true, data: sorted });
+app.get("/api/forum/:contractId", async (req, res) => {
+  try {
+    const contractId = String(req.params.contractId || "").trim();
+    if (!contractId) return res.status(400).json({ ok: false, error: "contractId required" });
+    
+    const comments = await getForumComments(contractId);
+    
+    // Map database fields to API format for backward compatibility
+    const mappedComments = comments.map(comment => ({
+      id: comment.id,
+      contractId: comment.contract_id || comment.contractId,
+      email: comment.email,
+      text: comment.text,
+      parentId: comment.parent_id || comment.parentId || null,
+      createdAt: comment.created_at || comment.createdAt || Date.now(),
+      likes: comment.likes || 0,
+      likedBy: comment.liked_by || comment.likedBy || []
+    }));
+    
+    // Sort by createdAt descending (newest first)
+    const sorted = mappedComments.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    
+    res.json({ ok: true, data: sorted });
+  } catch (err) {
+    console.error("Error in /api/forum/:contractId GET:", err);
+    res.status(500).json({ ok: false, error: err.message || "Internal server error" });
+  }
 });
 
 // Post a forum comment
-app.post("/api/forum/:contractId", (req, res) => {
-  const contractId = String(req.params.contractId || "").trim();
-  const email = String(req.body.email || "").trim().toLowerCase();
-  const text = String(req.body.text || "").trim();
-  const parentId = req.body.parentId ? String(req.body.parentId).trim() : null;
-  
-  if (!contractId) return res.status(400).json({ ok: false, error: "contractId required" });
-  if (!email) return res.status(400).json({ ok: false, error: "email required" });
-  if (!text) return res.status(400).json({ ok: false, error: "text required" });
-  if (text.length > 5000) return res.status(400).json({ ok: false, error: "Comment too long (max 5000 chars)" });
-  
-  const forum = loadJSON(FORUM_FILE);
-  if (!forum[contractId]) forum[contractId] = [];
-  
-  const comment = {
-    id: `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    contractId,
-    email,
-    text,
-    parentId,
-    createdAt: Date.now(),
-    likes: 0,
-    likedBy: []
-  };
-  
-  forum[contractId].push(comment);
-  saveJSON(FORUM_FILE, forum);
-  
-  res.json({ ok: true, data: comment });
+app.post("/api/forum/:contractId", async (req, res) => {
+  try {
+    const contractId = String(req.params.contractId || "").trim();
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const text = String(req.body.text || "").trim();
+    const parentId = req.body.parentId ? String(req.body.parentId).trim() : null;
+    
+    if (!contractId) return res.status(400).json({ ok: false, error: "contractId required" });
+    if (!email) return res.status(400).json({ ok: false, error: "email required" });
+    if (!text) return res.status(400).json({ ok: false, error: "text required" });
+    if (text.length > 5000) return res.status(400).json({ ok: false, error: "Comment too long (max 5000 chars)" });
+    
+    const commentId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const createdAt = Date.now();
+    
+    // Prepare comment data for database (using snake_case for database)
+    const commentData = {
+      id: commentId,
+      contract_id: contractId,
+      email: email,
+      text: text,
+      parent_id: parentId,
+      likes: 0,
+      liked_by: [],
+      created_at: createdAt
+    };
+    
+    const comment = await createForumComment(commentData);
+    
+    // Map database response to API format for backward compatibility
+    const mappedComment = {
+      id: comment.id,
+      contractId: comment.contract_id || comment.contractId,
+      email: comment.email,
+      text: comment.text,
+      parentId: comment.parent_id || comment.parentId || null,
+      createdAt: comment.created_at || comment.createdAt || createdAt,
+      likes: comment.likes || 0,
+      likedBy: comment.liked_by || comment.likedBy || []
+    };
+    
+    res.json({ ok: true, data: mappedComment });
+  } catch (err) {
+    console.error("Error in /api/forum/:contractId POST:", err);
+    res.status(500).json({ ok: false, error: err.message || "Internal server error" });
+  }
 });
 
 // Like/unlike a comment
-app.post("/api/forum/:contractId/like", (req, res) => {
-  const contractId = String(req.params.contractId || "").trim();
-  const commentId = String(req.body.commentId || "").trim();
-  const email = String(req.body.email || "").trim().toLowerCase();
-  
-  if (!contractId || !commentId || !email) {
-    return res.status(400).json({ ok: false, error: "contractId, commentId, and email required" });
+app.post("/api/forum/:contractId/like", async (req, res) => {
+  try {
+    const contractId = String(req.params.contractId || "").trim();
+    const commentId = String(req.body.commentId || "").trim();
+    const email = String(req.body.email || "").trim().toLowerCase();
+    
+    if (!contractId || !commentId || !email) {
+      return res.status(400).json({ ok: false, error: "contractId, commentId, and email required" });
+    }
+    
+    // Get the comment to check if it exists and get current likes
+    const comments = await getForumComments(contractId);
+    const comment = comments.find(c => c.id === commentId);
+    
+    if (!comment) return res.status(404).json({ ok: false, error: "Comment not found" });
+    
+    const likedBy = comment.liked_by || comment.likedBy || [];
+    const currentLikes = comment.likes || 0;
+    const index = likedBy.indexOf(email);
+    
+    let newLikedBy, newLikes;
+    if (index > -1) {
+      // Unlike - remove email from array
+      newLikedBy = likedBy.filter(e => e !== email);
+      newLikes = Math.max(0, currentLikes - 1);
+    } else {
+      // Like - add email to array
+      newLikedBy = [...likedBy, email];
+      newLikes = currentLikes + 1;
+    }
+    
+    // Update comment in database
+    await updateForumComment(commentId, {
+      likes: newLikes,
+      liked_by: newLikedBy
+    });
+    
+    res.json({ ok: true, data: { likes: newLikes, liked: newLikedBy.includes(email) } });
+  } catch (err) {
+    console.error("Error in /api/forum/:contractId/like:", err);
+    res.status(500).json({ ok: false, error: err.message || "Internal server error" });
   }
-  
-  const forum = loadJSON(FORUM_FILE);
-  const comments = forum[contractId] || [];
-  const comment = comments.find(c => c.id === commentId);
-  
-  if (!comment) return res.status(404).json({ ok: false, error: "Comment not found" });
-  
-  if (!comment.likedBy) comment.likedBy = [];
-  const index = comment.likedBy.indexOf(email);
-  
-  if (index > -1) {
-    // Unlike
-    comment.likedBy.splice(index, 1);
-    comment.likes = Math.max(0, (comment.likes || 0) - 1);
-  } else {
-    // Like
-    comment.likedBy.push(email);
-    comment.likes = (comment.likes || 0) + 1;
-  }
-  
-  saveJSON(FORUM_FILE, forum);
-  res.json({ ok: true, data: { likes: comment.likes, liked: comment.likedBy.includes(email) } });
 });
 
 // Delete a comment (only by author or admin)
-app.delete("/api/forum/:contractId/:commentId", (req, res) => {
-  const contractId = String(req.params.contractId || "").trim();
-  const commentId = String(req.params.commentId || "").trim();
-  const email = String(req.query.email || "").trim().toLowerCase();
-  const isAdmin = req.headers["x-admin-token"] === ADMIN_TOKEN;
-  
-  if (!contractId || !commentId) {
-    return res.status(400).json({ ok: false, error: "contractId and commentId required" });
+app.delete("/api/forum/:contractId/:commentId", async (req, res) => {
+  try {
+    const contractId = String(req.params.contractId || "").trim();
+    const commentId = String(req.params.commentId || "").trim();
+    const email = String(req.query.email || "").trim().toLowerCase();
+    const isAdmin = req.headers["x-admin-token"] === ADMIN_TOKEN;
+    
+    if (!contractId || !commentId) {
+      return res.status(400).json({ ok: false, error: "contractId and commentId required" });
+    }
+    
+    // Get the comment to check if it exists and verify ownership
+    const comments = await getForumComments(contractId);
+    const comment = comments.find(c => c.id === commentId);
+    
+    if (!comment) return res.status(404).json({ ok: false, error: "Comment not found" });
+    
+    // Check if user is author or admin
+    if (!isAdmin && comment.email !== email) {
+      return res.status(403).json({ ok: false, error: "Not authorized to delete this comment" });
+    }
+    
+    // Delete the comment (cascade will handle replies if foreign key is set up)
+    await deleteForumComment(contractId, commentId);
+    
+    res.json({ ok: true, message: "Comment deleted" });
+  } catch (err) {
+    console.error("Error in /api/forum/:contractId/:commentId DELETE:", err);
+    res.status(500).json({ ok: false, error: err.message || "Internal server error" });
   }
-  
-  const forum = loadJSON(FORUM_FILE);
-  const comments = forum[contractId] || [];
-  const comment = comments.find(c => c.id === commentId);
-  
-  if (!comment) return res.status(404).json({ ok: false, error: "Comment not found" });
-  
-  // Check if user is author or admin
-  if (!isAdmin && comment.email !== email) {
-    return res.status(403).json({ ok: false, error: "Not authorized to delete this comment" });
-  }
-  
-  // Remove comment and all replies
-  const filtered = comments.filter(c => c.id !== commentId && c.parentId !== commentId);
-  forum[contractId] = filtered;
-  
-  saveJSON(FORUM_FILE, forum);
+});
   res.json({ ok: true, message: "Comment deleted" });
 });
 
