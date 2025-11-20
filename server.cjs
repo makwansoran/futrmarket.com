@@ -2071,8 +2071,6 @@ app.delete("/api/forum/:contractId/:commentId", async (req, res) => {
     res.status(500).json({ ok: false, error: err.message || "Internal server error" });
   }
 });
-  res.json({ ok: true, message: "Comment deleted" });
-});
 
 // ---- Ideas endpoints (Forum) ----
 // Get all ideas
