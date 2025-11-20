@@ -553,7 +553,7 @@ export default function MarketsPage({ markets=[], limit, category }){
                   </svg>
                 </div>
                 <div>
-                  <div className="text-blue-400 font-semibold text-sm mb-1">Legal & regulated in the US</div>
+                  <div className="text-blue-400 font-semibold text-sm mb-1">Grow your entire portfolio</div>
                   <div className="text-white text-xs">Trade on the election, sports and companies</div>
                 </div>
               </div>
