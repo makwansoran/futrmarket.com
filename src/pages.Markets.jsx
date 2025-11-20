@@ -62,6 +62,129 @@ function MarketCard({ m }){
   );
 }
 
+// Helper function to wrap index for circular navigation
+function wrap(min, max, value) {
+  const range = max - min + 1;
+  return min + (((value - min) % range) + range) % range;
+}
+
+// Featured Contracts Slideshow Component
+function FeaturedContractsSlideshow({ contracts = [] }) {
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [direction, setDirection] = React.useState(1);
+
+  // Filter only featured contracts
+  const featuredContracts = contracts.filter(c => c && c.featured === true);
+  
+  // If no featured contracts, return null
+  if (featuredContracts.length === 0) {
+    return null;
+  }
+
+  // If only one featured contract, show it without navigation
+  if (featuredContracts.length === 1) {
+    return (
+      <div className="mb-6">
+        <FeaturedMarketCard m={featuredContracts[0]} markets={contracts} />
+      </div>
+    );
+  }
+
+  function setSlide(newDirection) {
+    const nextIndex = wrap(0, featuredContracts.length - 1, selectedIndex + newDirection);
+    setSelectedIndex(nextIndex);
+    setDirection(newDirection);
+  }
+
+  const currentContract = featuredContracts[selectedIndex];
+
+  return (
+    <div className="mb-6 relative">
+      <div className="flex items-center gap-4">
+        {/* Previous Button */}
+        <motion.button
+          initial={false}
+          animate={{ 
+            backgroundColor: currentContract ? "#3b82f6" : "#6b7280",
+            opacity: featuredContracts.length > 1 ? 1 : 0.5
+          }}
+          aria-label="Previous"
+          className="w-10 h-10 rounded-full flex items-center justify-center text-white z-10 outline-none focus:outline-2 focus:outline-blue-400 focus:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => setSlide(-1)}
+          disabled={featuredContracts.length <= 1}
+          whileFocus={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <ChevronLeft size={20} />
+        </motion.button>
+
+        {/* Slideshow Content */}
+        <div className="flex-1 relative min-h-[400px]">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={selectedIndex}
+              custom={direction}
+              initial={{ opacity: 0, x: direction * 50 }}
+              animate={{
+                opacity: 1,
+                x: 0,
+                transition: {
+                  delay: 0.1,
+                  type: "spring",
+                  duration: 0.3,
+                  bounce: 0.4,
+                },
+              }}
+              exit={{ opacity: 0, x: direction * -50 }}
+            >
+              <FeaturedMarketCard m={currentContract} markets={contracts} />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Next Button */}
+        <motion.button
+          initial={false}
+          animate={{ 
+            backgroundColor: currentContract ? "#3b82f6" : "#6b7280",
+            opacity: featuredContracts.length > 1 ? 1 : 0.5
+          }}
+          aria-label="Next"
+          className="w-10 h-10 rounded-full flex items-center justify-center text-white z-10 outline-none focus:outline-2 focus:outline-blue-400 focus:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => setSlide(1)}
+          disabled={featuredContracts.length <= 1}
+          whileFocus={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <ChevronRight size={20} />
+        </motion.button>
+      </div>
+
+      {/* Slide Indicators */}
+      {featuredContracts.length > 1 && (
+        <div className="flex justify-center gap-2 mt-4">
+          {featuredContracts.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                const newDirection = index > selectedIndex ? 1 : -1;
+                setDirection(newDirection);
+                setSelectedIndex(index);
+              }}
+              className={`w-2 h-2 rounded-full transition-all ${
+                index === selectedIndex 
+                  ? "bg-blue-400 w-8" 
+                  : "bg-gray-600 hover:bg-gray-500"
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Large Featured Market Card (like Kalshi)
 function FeaturedMarketCard({ m, markets = [] }){
   const navigate = useNavigate();
