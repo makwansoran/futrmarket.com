@@ -1956,19 +1956,18 @@ app.delete("/api/contracts/:id", requireAdmin, async (req, res) => {
     if (!contract) return res.status(404).json({ ok: false, error: "Contract not found" });
     
     // Don't allow deleting contracts with active positions (optional safety check)
-    const allPositions = await getAllPositions(""); // Get all positions (empty string gets all)
+    // Get all positions for this contract
+    const contractPositions = await getContractPositions(contractId);
     let hasPositions = false;
     
     // Check if any user has positions in this contract
-    for (const email in allPositions) {
-      const userPositions = allPositions[email];
-      if (typeof userPositions === 'object' && userPositions !== null) {
-        const pos = userPositions[contractId];
-        if (pos && ((pos.yesShares > 0) || (pos.noShares > 0) || (pos.contracts > 0))) {
-          hasPositions = true;
-          break;
-        }
-      }
+    if (contractPositions && contractPositions.length > 0) {
+      hasPositions = contractPositions.some(pos => {
+        const contracts = pos.contracts || pos.contracts || 0;
+        const yesShares = pos.yes_shares || pos.yesShares || 0;
+        const noShares = pos.no_shares || pos.noShares || 0;
+        return contracts > 0 || yesShares > 0 || noShares > 0;
+      });
     }
     
     if (hasPositions && !contract.resolution) {
