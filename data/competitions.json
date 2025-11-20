@@ -1,18 +1,1 @@
-{
-  "comp_1763196529382_7lc00bb9m": {
-    "id": "comp_1763196529382_7lc00bb9m",
-    "name": "NBA",
-    "slug": "nba",
-    "imageUrl": "/uploads/1763196529255_NBA-Logo-1969.png",
-    "createdAt": 1763196529383,
-    "order": 0
-  },
-  "comp_1763197641808_1bigcdwyg": {
-    "id": "comp_1763197641808_1bigcdwyg",
-    "name": "UFC",
-    "slug": "ufc",
-    "imageUrl": "/uploads/1763197641782_kisspng-logo-mixed-martial-arts-ufc-216-ferguson-vs-lee-striketec-train-with-striketec-1713949067614.webp",
-    "createdAt": 1763197641808,
-    "order": 1
-  }
-}
+{}

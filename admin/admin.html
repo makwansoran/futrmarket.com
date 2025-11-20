@@ -68,6 +68,7 @@
     <button class="tab" data-tab="news">News</button>
     <button class="tab" data-tab="contracts">Contracts</button>
     <button class="tab" data-tab="sports">Sports</button>
+    <button class="tab" data-tab="features">Features</button>
     <button class="tab" data-tab="accounts">Accounts</button>
   </div>
 
@@ -172,6 +173,54 @@
       <h2>Existing Contracts</h2>
       <div id="contractList"></div>
       <div class="mt8 meta">Tradeable contracts with AMM pricing.</div>
+    </div>
+  </div>
+
+  <!-- Features Tab -->
+  <div id="tab-features" class="tab-content">
+    <div class="card">
+      <h2>Create Feature</h2>
+      <label>Title</label><input id="featureTitle" placeholder="Campaign or feature title">
+      <label class="mt16">Description</label><textarea id="featureDesc" placeholder="Description of the feature, campaign, or design..." style="min-height:100px;resize:vertical"></textarea>
+      
+      <div class="row mt16">
+        <div><label>Type</label>
+          <select id="featureType">
+            <option>Campaign</option>
+            <option>Design</option>
+            <option>Promotion</option>
+            <option>Announcement</option>
+          </select>
+        </div>
+        <div><label>Status</label>
+          <select id="featureStatus">
+            <option>Draft</option>
+            <option>Active</option>
+            <option>Paused</option>
+            <option>Completed</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt16">
+        <label>Image (optional)</label>
+        <input id="featureImg" type="file" accept="image/*">
+        <div id="featurePreview" class="mt8"></div>
+      </div>
+
+      <div class="mt16">
+        <label>Link URL (optional)</label>
+        <input id="featureUrl" type="url" placeholder="https://example.com">
+      </div>
+
+      <div class="mt16"><button id="createFeature">Create Feature</button></div>
+      <div class="mt8 meta">Create campaigns, designs, promotions, and other features for the website.</div>
+    </div>
+
+    <div class="card mt16">
+      <h2>Existing Features</h2>
+      <div id="featureList"></div>
+      <div class="mt8 meta">All created features, campaigns, and designs.</div>
     </div>
   </div>
 
@@ -280,6 +329,7 @@
       else if(targetTab === "accounts") loadAccounts();
       else if(targetTab === "contracts") loadContracts();
       else if(targetTab === "news") loadNews();
+      else if(targetTab === "features") loadFeatures();
       else if(targetTab === "sports") loadSports();
     };
   });
@@ -710,16 +760,11 @@
     var top=document.createElement("div"); top.style.display="flex"; top.style.gap="10px"; top.style.alignItems="center";
     if (c.imageUrl) { var im=document.createElement("img"); im.src=c.imageUrl; im.className="thumb"; top.appendChild(im); }
     var title=document.createElement("div"); 
-    if (c.featured) {
-      var star=document.createElement("span"); star.textContent="⭐ "; star.style.color="#fbbf24";
-      title.appendChild(star);
-    }
     title.appendChild(document.createTextNode(c.question));
     top.appendChild(title);
     var meta=document.createElement("div"); meta.className="meta";
     var resolution = c.resolution ? " · RESOLVED: " + c.resolution.toUpperCase() : "";
-    var featured = c.featured ? " · ⭐ FEATURED" : "";
-    meta.textContent=c.category+" · YES "+Math.round((c.yesPrice||0.5)*100)+"¢ · NO "+Math.round((c.noPrice||0.5)*100)+"¢ · Volume "+c.volume+featured+resolution;
+    meta.textContent=c.category+" · YES "+Math.round((c.yesPrice||0.5)*100)+"¢ · NO "+Math.round((c.noPrice||0.5)*100)+"¢ · Volume "+c.volume+resolution;
     L.appendChild(top); L.appendChild(meta);
 
     var R=document.createElement("div"); R.className="flex";
@@ -738,12 +783,6 @@
       console.log("🔵 Regular contract button clicked:", { contractId: c.id, currentLive: isLive, newLiveValue: newLiveValue, typeof: typeof newLiveValue });
       toggleLive(c.id, newLiveValue);
     };
-    var featuredBtn=document.createElement("button"); 
-    featuredBtn.textContent=c.featured?"Unfeature":"Feature";
-    featuredBtn.style.marginRight="4px";
-    featuredBtn.style.background=c.featured?"#f59e0b":"#10b981";
-    featuredBtn.disabled=!!c.resolution;
-    featuredBtn.onclick=function(){toggleFeatured(c.id, !c.featured)};
     var editBtn=document.createElement("button"); editBtn.textContent="Edit"; editBtn.style.marginRight="4px";
     editBtn.disabled=!!c.resolution;
     editBtn.onclick=function(){editContract(c)};
@@ -752,7 +791,7 @@
     resolveBtn.onclick=function(){resolveContract(c.id)};
     var del=document.createElement("button"); del.className="danger"; del.textContent="Delete";
     del.onclick=function(){removeContract(c.id)};
-    R.appendChild(code); R.appendChild(liveBtn); R.appendChild(featuredBtn); R.appendChild(editBtn); R.appendChild(resolveBtn); R.appendChild(del);
+    R.appendChild(code); R.appendChild(liveBtn); R.appendChild(editBtn); R.appendChild(resolveBtn); R.appendChild(del);
 
     w.appendChild(L); w.appendChild(R); return w;
   }
@@ -999,7 +1038,23 @@
     }
   }
 
-  async function toggleFeatured(id, featured){
+
+  // Features elements
+  var featureTitle=document.getElementById("featureTitle");
+  var featureDesc=document.getElementById("featureDesc");
+  var featureType=document.getElementById("featureType");
+  var featureStatus=document.getElementById("featureStatus");
+  var featureImg=document.getElementById("featureImg");
+  var featurePreview=document.getElementById("featurePreview");
+  var featureUrl=document.getElementById("featureUrl");
+  var createFeatureBtn=document.getElementById("createFeature");
+  var featureList=document.getElementById("featureList");
+
+  if(createFeatureBtn){
+    createFeatureBtn.onclick=function(){createFeature();};
+  }
+
+  async function createFeature(){
     try{
       var token = getT();
       if (!token) {
@@ -1007,24 +1062,147 @@
         return;
       }
       token = String(token).trim();
-      var r=await fetch(apiEndpoint("/api/contracts/"+encodeURIComponent(id)),{ 
-        method:"PATCH", 
+      if(!featureTitle.value.trim()){alert("Title required");return}
+      if(!featureDesc.value.trim()){alert("Description required");return}
+      
+      var imageUrl = await uploadFeatureImage();
+      var payload = { 
+        title: featureTitle.value.trim(), 
+        description: featureDesc.value.trim(), 
+        type: featureType.value,
+        status: featureStatus.value,
+        url: featureUrl.value.trim() || null,
+        imageUrl: imageUrl || null
+      };
+      
+      var r=await fetch(apiEndpoint("/api/features/create"),{ 
+        method:"POST", 
         headers: { "Content-Type":"application/json","x-admin-token":token }, 
-        body: JSON.stringify({featured: featured}) 
+        body: JSON.stringify(payload) 
       });
       if(!r.ok){
         var j = await r.json().catch(()=>({}));
         if(r.status===401){
           alert("Unauthorized. Check your admin token (default: 'changeme')");
         }else{
-          alert("Update failed: "+(j.error||r.status));
+          alert("Create failed: "+(j.error||r.status));
         }
         return;
       }
-      var j=await r.json(); if(!j.ok){alert("Update failed: "+(j.error||"unknown"));return}
-      loadContracts();
-      alert(featured ? "Contract featured!" : "Contract unfeatured!");
-    }catch(e){ alert(e.message || "Could not update contract"); }
+      var j=await r.json(); if(!j.ok){alert("Create failed: "+(j.error||"unknown"));return}
+      featureTitle.value=""; featureDesc.value=""; featureType.value="Campaign"; featureStatus.value="Draft"; featureUrl.value=""; featureImg.value=""; featurePreview.innerHTML="";
+      loadFeatures();
+      alert("Feature created!");
+    }catch(e){ alert(e.message || "Could not create feature"); }
+  }
+
+  async function uploadFeatureImage(){
+    if(!featureImg.files || !featureImg.files[0]) return null;
+    try{
+      var formData=new FormData();
+      formData.append("file",featureImg.files[0]);
+      var uploadUrl = apiEndpoint("/api/upload");
+      var r=await fetch(uploadUrl,{method:"POST",body:formData});
+      if(!r.ok) throw new Error("Upload failed");
+      var j=await r.json();
+      return j.url||null;
+    }catch(e){
+      console.error("Image upload error:",e);
+      return null;
+    }
+  }
+
+  if(featureImg){
+    featureImg.onchange=function(){
+      featurePreview.innerHTML="";
+      if(featureImg.files && featureImg.files[0]){
+        var url = URL.createObjectURL(featureImg.files[0]);
+        var el = document.createElement("img");
+        el.src = url; el.className = "thumb";
+        featurePreview.appendChild(el);
+      }
+    };
+  }
+
+  async function loadFeatures(){
+    try{
+      var token = getT();
+      if (!token) {
+        featureList.innerHTML = "<div class='meta'>Please set admin token first</div>";
+        return;
+      }
+      token = String(token).trim();
+      var r=await fetch(apiEndpoint("/api/features"),{ 
+        headers: { "x-admin-token":token } 
+      });
+      if(!r.ok){
+        featureList.innerHTML = "<div class='meta'>Failed to load features</div>";
+        return;
+      }
+      var j=await r.json();
+      if(!j.ok || !Array.isArray(j.data)){
+        featureList.innerHTML = "<div class='meta'>No features found</div>";
+        return;
+      }
+      if(j.data.length===0){
+        featureList.innerHTML = "<div class='meta'>No features created yet</div>";
+        return;
+      }
+      featureList.innerHTML="";
+      j.data.forEach(function(f){
+        featureList.appendChild(featureRow(f));
+      });
+    }catch(e){
+      featureList.innerHTML = "<div class='meta'>Error loading features: "+(e.message||"unknown")+"</div>";
+    }
+  }
+
+  function featureRow(f){
+    var w=document.createElement("div"); w.className="list-item";
+    var L=document.createElement("div");
+    var top=document.createElement("div"); top.style.display="flex"; top.style.gap="10px"; top.style.alignItems="center";
+    if (f.imageUrl) { var im=document.createElement("img"); im.src=f.imageUrl; im.className="thumb"; top.appendChild(im); }
+    var title=document.createElement("div"); 
+    title.appendChild(document.createTextNode(f.title||"Untitled"));
+    top.appendChild(title);
+    var meta=document.createElement("div"); meta.className="meta";
+    meta.textContent=(f.type||"Campaign")+" · "+(f.status||"Draft")+(f.url ? " · "+f.url : "");
+    L.appendChild(top); L.appendChild(meta);
+
+    var R=document.createElement("div"); R.className="flex";
+    var del=document.createElement("button"); del.className="danger"; del.textContent="Delete";
+    del.onclick=function(){removeFeature(f.id)};
+    R.appendChild(del);
+
+    w.appendChild(L); w.appendChild(R); return w;
+  }
+
+  async function removeFeature(id){
+    if(!confirm("Delete this feature?")) return;
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      var r=await fetch(apiEndpoint("/api/features/"+encodeURIComponent(id)),{ 
+        method:"DELETE", 
+        headers: { "x-admin-token":token } 
+      });
+      if(!r.ok){
+        var j = await r.json().catch(()=>({}));
+        if(r.status===401){
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        }else{
+          alert("Delete failed: "+(j.error||r.status));
+        }
+        return;
+      }
+      var j=await r.json(); if(!j.ok){alert("Delete failed: "+(j.error||"unknown"));return}
+      loadFeatures();
+      alert("Feature deleted!");
+    }catch(e){ alert(e.message || "Could not delete feature"); }
   }
 
   // Accounts elements
@@ -1475,16 +1653,11 @@
     var top = document.createElement("div"); top.style.display = "flex"; top.style.gap = "10px"; top.style.alignItems = "center";
     if (c.imageUrl) { var im = document.createElement("img"); im.src = c.imageUrl; im.className = "thumb"; top.appendChild(im); }
     var title = document.createElement("div");
-    if (c.featured) {
-      var star = document.createElement("span"); star.textContent = "⭐ "; star.style.color = "#fbbf24";
-      title.appendChild(star);
-    }
     title.appendChild(document.createTextNode(c.question));
     top.appendChild(title);
     var meta = document.createElement("div"); meta.className = "meta";
     var resolution = c.resolution ? " · RESOLVED: " + c.resolution.toUpperCase() : "";
-    var featured = c.featured ? " · ⭐ FEATURED" : "";
-    meta.textContent = c.category + " · YES " + Math.round((c.yesPrice || 0.5) * 100) + "¢ · NO " + Math.round((c.noPrice || 0.5) * 100) + "¢ · Volume " + c.volume + featured + resolution;
+    meta.textContent = c.category + " · YES " + Math.round((c.yesPrice || 0.5) * 100) + "¢ · NO " + Math.round((c.noPrice || 0.5) * 100) + "¢ · Volume " + c.volume + resolution;
     L.appendChild(top); L.appendChild(meta);
 
     // Status badge

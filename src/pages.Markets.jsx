@@ -1,7 +1,6 @@
 import React from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
-import { Clock, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Clock, TrendingUp } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 
 // Small Market Card (for grid)
@@ -62,308 +61,6 @@ function MarketCard({ m }){
   );
 }
 
-// Helper function to wrap index for circular navigation
-function wrap(min, max, value) {
-  const range = max - min + 1;
-  return min + (((value - min) % range) + range) % range;
-}
-
-// Featured Contracts Slideshow Component
-function FeaturedContractsSlideshow({ contracts = [] }) {
-  const [selectedIndex, setSelectedIndex] = React.useState(0);
-  const [direction, setDirection] = React.useState(1);
-
-  // Filter only featured contracts
-  const featuredContracts = contracts.filter(c => c && c.featured === true);
-  
-  // If no featured contracts, return null
-  if (featuredContracts.length === 0) {
-    return null;
-  }
-
-  // If only one featured contract, show it without navigation
-  if (featuredContracts.length === 1) {
-    return (
-      <div className="mb-6">
-        <FeaturedMarketCard m={featuredContracts[0]} markets={contracts} />
-      </div>
-    );
-  }
-
-  function setSlide(newDirection) {
-    const nextIndex = wrap(0, featuredContracts.length - 1, selectedIndex + newDirection);
-    setSelectedIndex(nextIndex);
-    setDirection(newDirection);
-  }
-
-  const currentContract = featuredContracts[selectedIndex];
-
-  return (
-    <div className="mb-6 relative">
-      <div className="flex items-center gap-4">
-        {/* Previous Button */}
-        <motion.button
-          initial={false}
-          animate={{ 
-            backgroundColor: currentContract ? "#3b82f6" : "#6b7280",
-            opacity: featuredContracts.length > 1 ? 1 : 0.5
-          }}
-          aria-label="Previous"
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white z-10 outline-none focus:outline-2 focus:outline-blue-400 focus:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={() => setSlide(-1)}
-          disabled={featuredContracts.length <= 1}
-          whileFocus={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <ChevronLeft size={20} />
-        </motion.button>
-
-        {/* Slideshow Content */}
-        <div className="flex-1 relative min-h-[400px]">
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div
-              key={selectedIndex}
-              custom={direction}
-              initial={{ opacity: 0, x: direction * 50 }}
-              animate={{
-                opacity: 1,
-                x: 0,
-                transition: {
-                  delay: 0.1,
-                  type: "spring",
-                  duration: 0.3,
-                  bounce: 0.4,
-                },
-              }}
-              exit={{ opacity: 0, x: direction * -50 }}
-            >
-              <FeaturedMarketCard m={currentContract} markets={contracts} />
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Next Button */}
-        <motion.button
-          initial={false}
-          animate={{ 
-            backgroundColor: currentContract ? "#3b82f6" : "#6b7280",
-            opacity: featuredContracts.length > 1 ? 1 : 0.5
-          }}
-          aria-label="Next"
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white z-10 outline-none focus:outline-2 focus:outline-blue-400 focus:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={() => setSlide(1)}
-          disabled={featuredContracts.length <= 1}
-          whileFocus={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <ChevronRight size={20} />
-        </motion.button>
-      </div>
-
-      {/* Slide Indicators */}
-      {featuredContracts.length > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
-          {featuredContracts.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                const newDirection = index > selectedIndex ? 1 : -1;
-                setDirection(newDirection);
-                setSelectedIndex(index);
-              }}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === selectedIndex 
-                  ? "bg-blue-400 w-8" 
-                  : "bg-gray-600 hover:bg-gray-500"
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Large Featured Market Card (like Kalshi)
-function FeaturedMarketCard({ m, markets = [] }){
-  const navigate = useNavigate();
-  
-  // Ensure m is valid
-  if (!m || !m.id) {
-    return null;
-  }
-  
-  const yesPrice = Math.round((m.yesPrice||0.5)*100);
-  const noPrice = Math.round((m.noPrice||0.5)*100);
-  
-  // Calculate potential returns
-  const yesReturn = yesPrice > 0 ? (100 / yesPrice).toFixed(0) : 0;
-  const noReturn = noPrice > 0 ? (100 / noPrice).toFixed(0) : 0;
-  
-  // Generate price history for chart
-  const generatePriceHistory = () => {
-    const days = 7;
-    const history = [];
-    const now = Date.now();
-    const dayMs = 24 * 60 * 60 * 1000;
-    
-    let yesPrice = m.yesPrice || 0.5;
-    let noPrice = m.noPrice || 0.5;
-    
-    for (let i = days; i >= 0; i--) {
-      const date = new Date(now - i * dayMs);
-      yesPrice = Math.max(0.01, Math.min(0.99, yesPrice + (Math.random() - 0.5) * 0.05));
-      noPrice = 1 - yesPrice;
-      history.push({ date, yesPrice, noPrice });
-    }
-    return history;
-  };
-
-  const priceHistory = generatePriceHistory();
-  
-  // Find previous/next contracts for navigation
-  const safeMarketsForNav = Array.isArray(markets) ? markets.filter(mkt => mkt && mkt.id) : [];
-  const currentIndex = safeMarketsForNav.findIndex(mkt => mkt.id === m.id);
-  const prevContract = currentIndex > 0 && safeMarketsForNav[currentIndex - 1] && safeMarketsForNav[currentIndex - 1].id ? safeMarketsForNav[currentIndex - 1] : null;
-  const nextContract = currentIndex < safeMarketsForNav.length - 1 && safeMarketsForNav[currentIndex + 1] && safeMarketsForNav[currentIndex + 1].id ? safeMarketsForNav[currentIndex + 1] : null;
-  
-  // Format expiration date
-  const formatExpiration = () => {
-    if (!m.expirationDate) return null;
-    const exp = new Date(m.expirationDate);
-    const now = new Date();
-    const diff = exp - now;
-    if (diff < 0) return null;
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-  };
-
-  const timeRemaining = formatExpiration();
-  
-  return (
-    <Link 
-      to={`/market/${encodeURIComponent(m.id)}`}
-      className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition block"
-    >
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium">{m.category || "General"}</span>
-              {timeRemaining && (
-                <span className="text-gray-400 text-sm">
-                  Begins in {timeRemaining} {m.expirationDate && new Date(m.expirationDate).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
-                </span>
-              )}
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-2">{m.question}</h3>
-          </div>
-        </div>
-        
-        {/* Price Buttons and Chart Side by Side */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          {/* Left: Price Buttons */}
-          <div className="flex flex-col gap-4">
-            <div 
-              onClick={(e) => e.stopPropagation()}
-              className="bg-green-500/10 border-2 border-green-500/50 rounded-lg p-4 hover:bg-green-500/20 transition group cursor-pointer"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-green-400 font-semibold text-sm">YES</span>
-                <span className="text-2xl font-bold text-white">{yesPrice}¢</span>
-              </div>
-              <div className="text-xs text-gray-400">
-                $100 → ${yesReturn}
-              </div>
-            </div>
-            <div 
-              onClick={(e) => e.stopPropagation()}
-              className="bg-red-500/10 border-2 border-red-500/50 rounded-lg p-4 hover:bg-red-500/20 transition group cursor-pointer"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-red-400 font-semibold text-sm">NO</span>
-                <span className="text-2xl font-bold text-white">{noPrice}¢</span>
-              </div>
-              <div className="text-xs text-gray-400">
-                $100 → ${noReturn}
-              </div>
-            </div>
-          </div>
-          
-          {/* Right: Chart */}
-          <div className="bg-gray-800/50 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-gray-400">Price History</span>
-              <div className="flex items-center gap-3 text-xs">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-gray-400">YES {yesPrice}%</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                  <span className="text-gray-400">NO {noPrice}%</span>
-                </div>
-              </div>
-            </div>
-            <MiniChart data={priceHistory} />
-          </div>
-        </div>
-        
-        {/* Description */}
-        {m.description && (
-          <div className="bg-gray-800/30 rounded-lg p-3 mb-4">
-            <p className="text-gray-300 text-sm line-clamp-2">{m.description}</p>
-          </div>
-        )}
-        
-        {/* Volume and Navigation */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-400">
-            <span className="text-white font-semibold">{m.volume || "$0"}</span> volume
-          </span>
-          <div className="flex items-center gap-4 text-xs text-gray-500">
-            {prevContract && prevContract.id && (
-              <span 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (prevContract.id && typeof prevContract.id === 'string') {
-                    navigate(`/market/${encodeURIComponent(prevContract.id)}`);
-                  }
-                }}
-                className="hover:text-white transition cursor-pointer"
-              >
-                ← {(prevContract.question || '').substring(0, 20)}...
-              </span>
-            )}
-            {nextContract && nextContract.id && (
-              <span 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (nextContract.id && typeof nextContract.id === 'string') {
-                    navigate(`/market/${encodeURIComponent(nextContract.id)}`);
-                  }
-                }}
-                className="hover:text-white transition cursor-pointer"
-              >
-                {(nextContract.question || '').substring(0, 20)}... →
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
 
 // Mini Chart Component for Featured Card
 function MiniChart({ data }) {
@@ -650,26 +347,12 @@ export default function MarketsPage({ markets=[], limit, category }){
     );
   }
   
-  // Get all featured contracts for slideshow
-  const featuredContracts = list.filter(m => m && m.featured === true);
-  // If no featured contracts, use first contract as fallback (for backward compatibility)
-  const fallbackMarket = featuredContracts.length === 0 && list.length > 0 ? list[0] : null;
-  const nonFeaturedMarkets = list.filter(m => m.id && !m.featured);
-  // Show all non-featured markets, not just 4
-  const gridMarkets = nonFeaturedMarkets;
+  // All contracts are now standard sized - no featured contracts
+  const allMarkets = list.filter(m => m && m.id);
   
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {!limit && urlCategory !== "sports" && <h2 className="text-2xl font-bold text-white mb-6">{getTitle()}</h2>}
-      
-      {/* Featured Contracts Slideshow */}
-      {featuredContracts.length > 0 ? (
-        <FeaturedContractsSlideshow contracts={safeMarkets} />
-      ) : fallbackMarket ? (
-        <div className="mb-6">
-          <FeaturedMarketCard m={fallbackMarket} markets={safeMarkets} />
-        </div>
-      ) : null}
       
       {/* Feature Fields - Only show on homepage */}
       {limit ? (
@@ -713,26 +396,12 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
           ) : null}
       
-      {list.length === 0 ? (
+      {allMarkets.length === 0 ? (
         <div className="text-gray-400 col-span-full text-center py-8">No markets found in this category.</div>
       ) : (
-        <>
-          {/* Grid of 4 Smaller Market Cards */}
-          {gridMarkets.length > 0 && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {gridMarkets.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
-            </div>
-          )}
-          
-          {/* Show all remaining markets if there are more than featured + grid */}
-          {list.length > (featuredContracts.length + gridMarkets.length) && (
-            <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {list
-                .filter(m => m && m.id && !m.featured && !gridMarkets.find(gm => gm.id === m.id))
-                .map(m => <MarketCard key={m.id} m={m}/>)}
-            </div>
-          )}
-        </>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {allMarkets.map(m => <MarketCard key={m.id} m={m}/>)}
+        </div>
       )}
     </section>
   );

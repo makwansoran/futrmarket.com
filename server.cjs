@@ -39,7 +39,10 @@ const {
   getForumComments,
   createForumComment,
   updateForumComment,
-  deleteForumComment
+  deleteForumComment,
+  getAllFeatures,
+  createFeature,
+  deleteFeature
 } = require("./lib/db.cjs");
 
 const app = express();
@@ -1364,7 +1367,7 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
       competition_id: competitionId ? String(competitionId).trim() : null,
       status: validStatus,
       live: req.body.live === true || req.body.live === "true",
-      featured: false,
+      featured: false, // Always false - featured functionality removed
       created_at: Date.now(),
       created_by: "admin",
       // Legacy fields for backward compatibility
@@ -1480,9 +1483,7 @@ app.get("/api/contracts", async (req, res) => {
       })
       .filter(Boolean) // Remove null entries
       .sort((a, b) => {
-        // Featured contracts first, then by creation date
-        if (a.featured && !b.featured) return -1;
-        if (!a.featured && b.featured) return 1;
+        // Sort by creation date (newest first)
         return (b.createdAt || 0) - (a.createdAt || 0);
       });
     
@@ -1890,7 +1891,7 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
     if (req.body.description !== undefined) updates.description = String(req.body.description || "").trim() || null;
     if (req.body.category !== undefined) updates.category = String(req.body.category || "General").trim();
     if (req.body.imageUrl !== undefined) updates.image_url = req.body.imageUrl || null;
-    if (req.body.featured !== undefined) updates.featured = Boolean(req.body.featured);
+    // Featured functionality removed - always keep as false
     if (req.body.live !== undefined) {
       // Explicitly handle true/false
       if (req.body.live === true || req.body.live === "true" || req.body.live === 1) {
@@ -1909,15 +1910,6 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       } else {
         updates.expiration_date = null;
       }
-    }
-    
-    // If setting this contract as featured, unfeature all others
-    if (req.body.featured === true) {
-      const allContracts = await getAllContracts();
-      const unfeaturePromises = allContracts
-        .filter(c => c.id !== contractId && c.featured === true)
-        .map(c => updateContract(c.id, { featured: false }));
-      await Promise.all(unfeaturePromises);
     }
     
     // Update contract in database
@@ -2354,15 +2346,87 @@ app.patch("/api/news/:id", requireAdmin, (req, res) => {
 });
 
 // Delete news (admin only)
-app.delete("/api/news/:id", requireAdmin, (req, res) => {
-  const newsId = String(req.params.id || "").trim();
-  const news = loadJSON(NEWS_FILE);
-  
-  if (!news[newsId]) return res.status(404).json({ ok: false, error: "News not found" });
-  
-  delete news[newsId];
-  saveJSON(NEWS_FILE, news);
-  res.json({ ok: true, message: "News deleted" });
+app.delete("/api/news/:id", requireAdmin, async (req, res) => {
+  try {
+    const newsId = String(req.params.id || "").trim();
+    if (!newsId) return res.status(400).json({ ok: false, error: "News ID required" });
+    
+    await deleteNews(newsId);
+    res.json({ ok: true, message: "News deleted" });
+  } catch (error) {
+    console.error("Error deleting news:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to delete news" });
+  }
+});
+
+// ---- Features endpoints ----
+// Get all features
+app.get("/api/features", async (req, res) => {
+  try {
+    const features = await getAllFeatures();
+    res.json({ ok: true, data: features });
+  } catch (error) {
+    console.error("Error fetching features:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch features" });
+  }
+});
+
+// Create a new feature (admin only)
+app.post("/api/features/create", requireAdmin, async (req, res) => {
+  try {
+    const { title, description, type, status, imageUrl, url } = req.body || {};
+    const featureTitle = String(title || "").trim();
+    const featureDesc = String(description || "").trim();
+    
+    if (!featureTitle) return res.status(400).json({ ok: false, error: "Title required" });
+    if (!featureDesc) return res.status(400).json({ ok: false, error: "Description required" });
+    
+    const featureId = `feat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const featureData = {
+      id: featureId,
+      title: featureTitle,
+      description: featureDesc,
+      type: String(type || "Campaign").trim(),
+      status: String(status || "Draft").trim(),
+      image_url: imageUrl ? String(imageUrl).trim() : null,
+      url: url ? String(url).trim() : null,
+      created_at: Date.now()
+    };
+    
+    const feature = await createFeature(featureData);
+    
+    // Map database response to API format
+    const mappedFeature = {
+      id: feature.id,
+      title: feature.title,
+      description: feature.description,
+      type: feature.type,
+      status: feature.status,
+      imageUrl: feature.image_url || feature.imageUrl || null,
+      url: feature.url || null,
+      createdAt: feature.created_at || feature.createdAt || Date.now()
+    };
+    
+    res.json({ ok: true, data: mappedFeature });
+  } catch (error) {
+    console.error("Error creating feature:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to create feature" });
+  }
+});
+
+// Delete feature (admin only)
+app.delete("/api/features/:id", requireAdmin, async (req, res) => {
+  try {
+    const featureId = String(req.params.id || "").trim();
+    if (!featureId) return res.status(400).json({ ok: false, error: "Feature ID required" });
+    
+    await deleteFeature(featureId);
+    res.json({ ok: true, message: "Feature deleted" });
+  } catch (error) {
+    console.error("Error deleting feature:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to delete feature" });
+  }
 });
 
 // ---- Sports Competitions endpoints ----

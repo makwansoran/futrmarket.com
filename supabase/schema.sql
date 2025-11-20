@@ -157,6 +157,18 @@ CREATE TABLE IF NOT EXISTS public.news (
   created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000
 );
 
+-- Features table (for campaigns, designs, promotions, etc.)
+CREATE TABLE IF NOT EXISTS public.features (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'Campaign',
+  status TEXT NOT NULL DEFAULT 'Draft',
+  image_url TEXT,
+  url TEXT,
+  created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000
+);
+
 -- Competitions table
 CREATE TABLE IF NOT EXISTS public.competitions (
   id TEXT PRIMARY KEY,
