@@ -2329,71 +2329,86 @@ app.delete("/api/competitions/:id", requireAdmin, (req, res) => {
 
 // ---- User Profile endpoints ----
 // Get leaderboard (public - shows all registered users ranked by total balance)
-app.get("/api/leaderboard", (req, res) => {
+app.get("/api/leaderboard", async (req, res) => {
   try {
-    const users = loadJSON(USERS_FILE) || {};
-    const balances = loadJSON(BALANCES_FILE) || {};
-    const positions = loadJSON(POSITIONS_FILE) || {};
-    const contracts = loadJSON(CONTRACTS_FILE) || {};
+    // Get all users from database
+    const allUsers = await getAllUsers();
     
-    // Only include users who have created accounts (exist in users.json)
     // If no users exist, return empty array
-    if (!users || Object.keys(users).length === 0) {
+    if (!allUsers || allUsers.length === 0) {
       return res.json({ ok: true, data: [] });
     }
     
-    const leaderboard = Object.entries(users)
-      .map(([email, user]) => {
-        try {
-          const cash = Number(balances[email]?.cash || 0);
-          
-          // Calculate portfolio value from positions
-          const userPositions = positions[email] || {};
-          let portfolioValue = 0;
-          
-          Object.entries(userPositions).forEach(([contractId, pos]) => {
-            try {
-              const contract = contracts[contractId];
-              if (!contract) return;
-              
-              // New system: contracts
-              if (pos.contracts !== undefined) {
-                const currentPrice = calculateMarketPrice(contract);
-                portfolioValue += (pos.contracts || 0) * currentPrice;
-              } else {
-                // Legacy system: yesShares/noShares
-                const yesValue = (pos.yesShares || 0) * (contract.yesPrice || 0.5);
-                const noValue = (pos.noShares || 0) * (contract.noPrice || 0.5);
-                portfolioValue += yesValue + noValue;
-              }
-            } catch (e) {
-              console.error(`Error calculating position value for ${contractId}:`, e);
+    // Get all contracts for portfolio calculation
+    const allContracts = await getAllContracts();
+    const contractsMap = {};
+    allContracts.forEach(contract => {
+      contractsMap[contract.id] = contract;
+    });
+    
+    // Process each user to calculate their total balance
+    const leaderboardPromises = allUsers.map(async (user) => {
+      try {
+        const email = (user.email || "").toLowerCase();
+        if (!email) return null;
+        
+        // Get user's balance
+        const balance = await getBalance(email);
+        const cash = Number(balance?.cash || 0);
+        
+        // Get user's positions
+        const userPositions = await getAllPositions(email);
+        let portfolioValue = 0;
+        
+        // Calculate portfolio value from positions
+        Object.entries(userPositions).forEach(([contractId, pos]) => {
+          try {
+            const contract = contractsMap[contractId];
+            if (!contract) return;
+            
+            // New system: contracts
+            if (pos.contracts !== undefined) {
+              const currentPrice = calculateMarketPrice(contract);
+              portfolioValue += (pos.contracts || 0) * currentPrice;
+            } else {
+              // Legacy system: yesShares/noShares
+              const yesValue = (pos.yesShares || 0) * (contract.yesPrice || contract.yes_price || 0.5);
+              const noValue = (pos.noShares || 0) * (contract.noPrice || contract.no_price || 0.5);
+              portfolioValue += yesValue + noValue;
             }
-          });
-          
-          return {
-            email: user.email || email,
-            username: user.username || email.split("@")[0], // Use email prefix if no username
-            profilePicture: user.profilePicture || "",
-            cash: cash,
-            portfolio: Number(portfolioValue.toFixed(2)),
-            totalBalance: Number((cash + portfolioValue).toFixed(2)),
-            createdAt: user.createdAt || 0
-          };
-        } catch (e) {
-          console.error(`Error processing user ${email}:`, e);
-          return null;
-        }
-      })
+          } catch (e) {
+            console.error(`Error calculating position value for ${contractId}:`, e);
+          }
+        });
+        
+        return {
+          email: email,
+          username: (user.username && String(user.username).trim()) ? String(user.username).trim() : "no username",
+          profilePicture: user.profile_picture || user.profilePicture || "",
+          cash: cash,
+          portfolio: Number(portfolioValue.toFixed(2)),
+          totalBalance: Number((cash + portfolioValue).toFixed(2)),
+          createdAt: user.created_at || user.createdAt || 0
+        };
+      } catch (e) {
+        console.error(`Error processing user ${user.email}:`, e);
+        return null;
+      }
+    });
+    
+    // Wait for all user calculations to complete
+    const leaderboard = await Promise.all(leaderboardPromises);
+    
+    // Filter out null entries and sort by total balance
+    const sortedLeaderboard = leaderboard
       .filter(user => user !== null) // Remove any failed user calculations
-      // Show all registered users (they all have accounts in users.json)
       .sort((a, b) => b.totalBalance - a.totalBalance) // Sort by total balance descending
       .map((user, index) => ({
         ...user,
         rank: index + 1
       }));
     
-    res.json({ ok: true, data: leaderboard });
+    res.json({ ok: true, data: sortedLeaderboard });
   } catch (e) {
     console.error("❌ Leaderboard error:", e);
     console.error("❌ Error stack:", e.stack);
