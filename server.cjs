@@ -30,6 +30,9 @@ const {
   getAllPositions,
   getContract,
   getAllContracts,
+  createContract,
+  updateContract,
+  deleteContract,
   getOrders,
   getContractOrders,
   getContractPositions,
@@ -1324,48 +1327,89 @@ function calculateSellProceeds(contract, contractsToSell) {
 // New system uses calculateBuyCost and calculateSellProceeds
 
 // Create contract (admin only)
-app.post("/api/contracts/create", requireAdmin, (req, res) => {
-  const { question, description, category, expirationDate, imageUrl, competitionId, status } = req.body || {};
-  const q = String(question || "").trim();
-  if (!q) return res.status(400).json({ ok: false, error: "Question required" });
-  
-  const contracts = loadJSON(CONTRACTS_FILE);
-  const contractId = `ctr_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  
-  // Validate status if provided
-  const validStatus = status && ["upcoming", "live", "finished", "cancelled"].includes(status) ? status : (category === "Sports" ? "upcoming" : null);
-  
-  const contract = {
-    id: contractId,
-    question: q,
-    description: String(description || "").trim(),
-    category: String(category || "General").trim(),
-    marketPrice: 1.0, // Every contract starts at $1
-    buyVolume: 0, // Total USD spent buying
-    sellVolume: 0, // Total USD received from selling
-    totalContracts: 0, // Total contracts in circulation
-    volume: 0, // Total trading volume
-    traders: {},
-    expirationDate: expirationDate || null,
-    resolution: null, // null, "yes", or "no"
-    imageUrl: imageUrl || null,
-    competitionId: competitionId ? String(competitionId).trim() : null, // Link to competition if sports contract
-    status: validStatus, // Status for sports bets: "upcoming", "live", or "finished"
-    live: req.body.live === true || req.body.live === "true", // Explicitly marked as live for /live page
-    createdAt: Date.now(),
-    createdBy: "admin",
-    featured: false,
-    // Legacy fields for backward compatibility
-    yesPrice: 0.5,
-    noPrice: 0.5,
-    yesShares: 0,
-    noShares: 0
-  };
-  
-  contracts[contractId] = contract;
-  saveJSON(CONTRACTS_FILE, contracts);
-  
-  res.json({ ok: true, data: contract });
+app.post("/api/contracts/create", requireAdmin, async (req, res) => {
+  try {
+    const { question, description, category, expirationDate, imageUrl, competitionId, status } = req.body || {};
+    const q = String(question || "").trim();
+    if (!q) return res.status(400).json({ ok: false, error: "Question required" });
+    
+    const contractId = `ctr_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    
+    // Validate status if provided
+    const validStatus = status && ["upcoming", "live", "finished", "cancelled"].includes(status) ? status : (category === "Sports" ? "upcoming" : null);
+    
+    // Convert expirationDate to timestamp if provided
+    let expirationTimestamp = null;
+    if (expirationDate) {
+      const expDate = new Date(expirationDate);
+      if (!isNaN(expDate.getTime())) {
+        expirationTimestamp = expDate.getTime();
+      }
+    }
+    
+    // Prepare contract data for database (using snake_case for database)
+    const contractData = {
+      id: contractId,
+      question: q,
+      description: String(description || "").trim() || null,
+      category: String(category || "General").trim(),
+      market_price: 1.0, // Every contract starts at $1
+      buy_volume: 0, // Total USD spent buying
+      sell_volume: 0, // Total USD received from selling
+      total_contracts: 0, // Total contracts in circulation
+      volume: 0, // Total trading volume
+      expiration_date: expirationTimestamp,
+      resolution: null, // null, "yes", or "no"
+      image_url: imageUrl || null,
+      competition_id: competitionId ? String(competitionId).trim() : null,
+      status: validStatus,
+      live: req.body.live === true || req.body.live === "true",
+      featured: false,
+      created_at: Date.now(),
+      created_by: "admin",
+      // Legacy fields for backward compatibility
+      yes_price: 0.5,
+      no_price: 0.5,
+      yes_shares: 0,
+      no_shares: 0
+    };
+    
+    // Create contract in database
+    const contract = await createContract(contractData);
+    
+    // Map database response to API format for backward compatibility
+    const mappedContract = {
+      id: contract.id,
+      question: contract.question,
+      description: contract.description || "",
+      category: contract.category,
+      marketPrice: contract.market_price || contract.marketPrice || 1.0,
+      buyVolume: contract.buy_volume || contract.buyVolume || 0,
+      sellVolume: contract.sell_volume || contract.sellVolume || 0,
+      totalContracts: contract.total_contracts || contract.totalContracts || 0,
+      volume: contract.volume || 0,
+      traders: {},
+      expirationDate: contract.expiration_date || contract.expirationDate || null,
+      resolution: contract.resolution || null,
+      imageUrl: contract.image_url || contract.imageUrl || null,
+      competitionId: contract.competition_id || contract.competitionId || null,
+      status: contract.status || null,
+      live: contract.live === true,
+      createdAt: contract.created_at || contract.createdAt || Date.now(),
+      createdBy: contract.created_by || contract.createdBy || "admin",
+      featured: contract.featured === true,
+      // Legacy fields
+      yesPrice: contract.yes_price || contract.yesPrice || 0.5,
+      noPrice: contract.no_price || contract.noPrice || 0.5,
+      yesShares: contract.yes_shares || contract.yesShares || 0,
+      noShares: contract.no_shares || contract.noShares || 0
+    };
+    
+    res.json({ ok: true, data: mappedContract });
+  } catch (error) {
+    console.error("Error creating contract:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to create contract" });
+  }
 });
 
 // Get all contracts
