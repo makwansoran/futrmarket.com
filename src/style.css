@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Apply Montserrat font globally */
+@layer base {
+  body {
+    font-family: 'Montserrat', sans-serif;
+  }
+}
+
 /* Hide scrollbar for category nav */
 .overflow-x-auto::-webkit-scrollbar {
   display: none;

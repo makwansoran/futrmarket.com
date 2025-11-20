@@ -140,7 +140,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
         {/* LEFT: logo + brand */}
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition flex-shrink-0">
-          <span className="text-white font-bold tracking-tight text-2xl">
+          <span className="text-white font-bold tracking-tight text-2xl" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
             FutrMarket
           </span>
         </Link>
