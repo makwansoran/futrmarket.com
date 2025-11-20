@@ -2435,8 +2435,26 @@ app.delete("/api/features/:id", requireAdmin, async (req, res) => {
     const featureId = String(req.params.id || "").trim();
     if (!featureId) return res.status(400).json({ ok: false, error: "Feature ID required" });
     
+    // Check if feature exists before deleting
+    const allFeatures = await getAllFeatures(false);
+    const featureExists = allFeatures.find(f => f.id === featureId);
+    
+    if (!featureExists) {
+      return res.status(404).json({ ok: false, error: "Feature not found" });
+    }
+    
     await deleteFeature(featureId);
-    res.json({ ok: true, message: "Feature deleted" });
+    
+    // Verify deletion
+    const verifyFeatures = await getAllFeatures(false);
+    const stillExists = verifyFeatures.find(f => f.id === featureId);
+    
+    if (stillExists) {
+      console.error("Feature still exists after deletion attempt:", featureId);
+      return res.status(500).json({ ok: false, error: "Feature deletion failed" });
+    }
+    
+    res.json({ ok: true, message: "Feature deleted successfully" });
   } catch (error) {
     console.error("Error deleting feature:", error);
     res.status(500).json({ ok: false, error: error.message || "Failed to delete feature" });
