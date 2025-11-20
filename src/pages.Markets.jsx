@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
-import { Clock, TrendingUp } from "lucide-react";
+import { Clock, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { getApiUrl } from "/src/api.js";
 
 // Small Market Card (for grid)
@@ -526,21 +527,25 @@ export default function MarketsPage({ markets=[], limit, category }){
     );
   }
   
-  // Featured market (marked as featured, or first one if none)
-  const featuredMarket = list.find(m => m.featured) || (list.length > 0 ? list[0] : null);
-  const nonFeaturedMarkets = list.filter(m => m.id !== featuredMarket?.id);
+  // Get all featured contracts for slideshow
+  const featuredContracts = list.filter(m => m && m.featured === true);
+  // If no featured contracts, use first contract as fallback (for backward compatibility)
+  const fallbackMarket = featuredContracts.length === 0 && list.length > 0 ? list[0] : null;
+  const nonFeaturedMarkets = list.filter(m => m.id && !m.featured);
   const gridMarkets = nonFeaturedMarkets.slice(0, 4); // Next 4 markets
   
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {!limit && urlCategory !== "sports" && <h2 className="text-2xl font-bold text-white mb-6">{getTitle()}</h2>}
       
-      {/* Featured Large Market Card */}
-      {featuredMarket && (
+      {/* Featured Contracts Slideshow */}
+      {featuredContracts.length > 0 ? (
+        <FeaturedContractsSlideshow contracts={safeMarkets} />
+      ) : fallbackMarket ? (
         <div className="mb-6">
-          <FeaturedMarketCard m={featuredMarket} markets={safeMarkets} />
+          <FeaturedMarketCard m={fallbackMarket} markets={safeMarkets} />
         </div>
-      )}
+      ) : null}
       
       {/* Feature Fields - Only show on homepage */}
       {limit ? (
