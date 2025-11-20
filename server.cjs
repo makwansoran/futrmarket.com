@@ -2364,7 +2364,18 @@ app.delete("/api/news/:id", requireAdmin, async (req, res) => {
 app.get("/api/features", async (req, res) => {
   try {
     const features = await getAllFeatures();
-    res.json({ ok: true, data: features });
+    // Map database fields (snake_case) to API format (camelCase)
+    const mappedFeatures = features.map(feature => ({
+      id: feature.id,
+      title: feature.title,
+      description: feature.description,
+      type: feature.type,
+      status: feature.status,
+      imageUrl: feature.image_url || feature.imageUrl || null,
+      url: feature.url || null,
+      createdAt: feature.created_at || feature.createdAt || Date.now()
+    }));
+    res.json({ ok: true, data: mappedFeatures });
   } catch (error) {
     console.error("Error fetching features:", error);
     res.status(500).json({ ok: false, error: error.message || "Failed to fetch features" });
