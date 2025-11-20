@@ -1427,12 +1427,20 @@ app.get("/api/contracts", async (req, res) => {
     }
     
     console.log("[CONTRACTS] Processing", contracts.length, "contracts");
+    
+    // Log first few contracts for debugging
+    if (contracts.length > 0) {
+      console.log("[CONTRACTS] Sample contract (first):", JSON.stringify(contracts[0], null, 2));
+    }
+    
     const list = contracts
       .filter(c => {
         if (!c || !c.id) {
           console.warn("[CONTRACTS] Filtering out invalid contract:", c);
           return false;
         }
+        // Log each contract being processed
+        console.log(`[CONTRACTS] Processing contract: ${c.id} - ${c.question || 'No question'}`);
         return true;
       })
       .map((c, index) => {
@@ -1445,14 +1453,14 @@ app.get("/api/contracts", async (req, res) => {
           const createdAt = c.createdAt || c.created_at || 0;
           const traders = c.traders ? (Array.isArray(c.traders) ? c.traders.length : Object.keys(c.traders).length) : 0;
           
-          return {
+          const processed = {
             ...c,
             id: c.id, // Ensure ID is included
             marketPrice: marketPrice, // Ensure marketPrice is always set
             traders: traders,
             volume: `$${Number(volume).toFixed(2)}`,
-            featured: c.featured || false,
-            live: c.live === true, // Explicitly include live field (default to false if not set)
+            featured: c.featured === true || c.featured === "true" || c.featured === 1, // Handle boolean conversion
+            live: c.live === true || c.live === "true" || c.live === 1, // Explicitly include live field (default to false if not set)
             createdAt: createdAt,
             // Ensure all common fields are present
             question: c.question || "",
@@ -1460,8 +1468,11 @@ app.get("/api/contracts", async (req, res) => {
             status: c.status || "upcoming",
             resolution: c.resolution || null
           };
+          
+          console.log(`[CONTRACTS] ✅ Processed contract ${index + 1}: ${processed.id} - ${processed.question}`);
+          return processed;
         } catch (mapError) {
-          console.error(`[CONTRACTS] Error processing contract ${index} (${c?.id}):`, mapError);
+          console.error(`[CONTRACTS] ❌ Error processing contract ${index} (${c?.id}):`, mapError);
           console.error(`[CONTRACTS] Contract data:`, JSON.stringify(c, null, 2));
           console.error(`[CONTRACTS] Error stack:`, mapError.stack);
           return null; // Skip this contract
