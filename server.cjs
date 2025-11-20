@@ -1856,87 +1856,133 @@ app.get("/api/contracts/:id/activity", async (req, res) => {
 });
 
 // Update contract (admin only)
-app.patch("/api/contracts/:id", requireAdmin, (req, res) => {
-  const contracts = loadJSON(CONTRACTS_FILE);
-  const contract = contracts[req.params.id];
-  if (!contract) return res.status(404).json({ ok: false, error: "Contract not found" });
-  
-  // Don't allow editing resolved contracts
-  if (contract.resolution) return res.status(400).json({ ok: false, error: "Cannot edit resolved contract" });
-  
-  // Update allowed fields
-  if (req.body.question !== undefined) contract.question = String(req.body.question || "").trim();
-  if (req.body.description !== undefined) contract.description = String(req.body.description || "").trim();
-  if (req.body.category !== undefined) contract.category = String(req.body.category || "General").trim();
-  if (req.body.expirationDate !== undefined) contract.expirationDate = req.body.expirationDate || null;
-  if (req.body.imageUrl !== undefined) contract.imageUrl = req.body.imageUrl || null;
-  if (req.body.featured !== undefined) contract.featured = Boolean(req.body.featured);
-  if (req.body.live !== undefined) {
-    // Explicitly handle true/false to allow un-live
-    // Convert to boolean: explicitly check for true/false
-    console.log("🔵 Updating live status:", { 
-      contractId: req.params.id, 
-      receivedValue: req.body.live, 
-      typeof: typeof req.body.live,
-      isTrue: req.body.live === true,
-      isStringTrue: req.body.live === "true",
-      isFalse: req.body.live === false,
-      isStringFalse: req.body.live === "false"
-    });
-    // Explicitly handle both true and false
-    if (req.body.live === true || req.body.live === "true" || req.body.live === 1) {
-      contract.live = true;
-      console.log("✅ Setting live to TRUE");
-    } else if (req.body.live === false || req.body.live === "false" || req.body.live === 0 || req.body.live === null) {
-      contract.live = false;
-      console.log("✅ Setting live to FALSE");
-    } else {
-      // Default to false if value is unclear
-      contract.live = false;
-      console.log("⚠️ Unclear value, defaulting to FALSE");
+app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
+  try {
+    const contractId = decodeURIComponent(req.params.id || "");
+    if (!contractId) return res.status(400).json({ ok: false, error: "Contract ID required" });
+    
+    // Get existing contract to check if it exists and is resolved
+    const existingContract = await getContract(contractId);
+    if (!existingContract) return res.status(404).json({ ok: false, error: "Contract not found" });
+    
+    // Don't allow editing resolved contracts
+    if (existingContract.resolution) return res.status(400).json({ ok: false, error: "Cannot edit resolved contract" });
+    
+    // Prepare updates (map to database field names)
+    const updates = {};
+    
+    if (req.body.question !== undefined) {
+      const question = String(req.body.question || "").trim();
+      if (!question) return res.status(400).json({ ok: false, error: "Question cannot be empty" });
+      updates.question = question;
     }
-    console.log("✅ Live status updated to:", contract.live, "Type:", typeof contract.live);
+    if (req.body.description !== undefined) updates.description = String(req.body.description || "").trim() || null;
+    if (req.body.category !== undefined) updates.category = String(req.body.category || "General").trim();
+    if (req.body.imageUrl !== undefined) updates.image_url = req.body.imageUrl || null;
+    if (req.body.featured !== undefined) updates.featured = Boolean(req.body.featured);
+    if (req.body.live !== undefined) {
+      // Explicitly handle true/false
+      if (req.body.live === true || req.body.live === "true" || req.body.live === 1) {
+        updates.live = true;
+      } else {
+        updates.live = false;
+      }
+    }
+    if (req.body.status !== undefined && ["upcoming", "live", "finished", "cancelled"].includes(req.body.status)) {
+      updates.status = String(req.body.status);
+    }
+    if (req.body.expirationDate !== undefined) {
+      if (req.body.expirationDate) {
+        const expDate = new Date(req.body.expirationDate);
+        updates.expiration_date = !isNaN(expDate.getTime()) ? expDate.getTime() : null;
+      } else {
+        updates.expiration_date = null;
+      }
+    }
+    
+    // If setting this contract as featured, unfeature all others
+    if (req.body.featured === true) {
+      const allContracts = await getAllContracts();
+      const unfeaturePromises = allContracts
+        .filter(c => c.id !== contractId && c.featured === true)
+        .map(c => updateContract(c.id, { featured: false }));
+      await Promise.all(unfeaturePromises);
+    }
+    
+    // Update contract in database
+    const updatedContract = await updateContract(contractId, updates);
+    
+    // Map database response to API format
+    const mappedContract = {
+      id: updatedContract.id,
+      question: updatedContract.question,
+      description: updatedContract.description || "",
+      category: updatedContract.category,
+      marketPrice: updatedContract.market_price || updatedContract.marketPrice || 1.0,
+      buyVolume: updatedContract.buy_volume || updatedContract.buyVolume || 0,
+      sellVolume: updatedContract.sell_volume || updatedContract.sellVolume || 0,
+      totalContracts: updatedContract.total_contracts || updatedContract.totalContracts || 0,
+      volume: updatedContract.volume || 0,
+      expirationDate: updatedContract.expiration_date || updatedContract.expirationDate || null,
+      resolution: updatedContract.resolution || null,
+      imageUrl: updatedContract.image_url || updatedContract.imageUrl || null,
+      competitionId: updatedContract.competition_id || updatedContract.competitionId || null,
+      status: updatedContract.status || null,
+      live: updatedContract.live === true,
+      createdAt: updatedContract.created_at || updatedContract.createdAt || Date.now(),
+      createdBy: updatedContract.created_by || updatedContract.createdBy || "admin",
+      featured: updatedContract.featured === true,
+      yesPrice: updatedContract.yes_price || updatedContract.yesPrice || 0.5,
+      noPrice: updatedContract.no_price || updatedContract.noPrice || 0.5,
+      yesShares: updatedContract.yes_shares || updatedContract.yesShares || 0,
+      noShares: updatedContract.no_shares || updatedContract.noShares || 0
+    };
+    
+    res.json({ ok: true, data: mappedContract });
+  } catch (error) {
+    console.error("Error updating contract:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to update contract" });
   }
-  if (req.body.status !== undefined && ["upcoming", "live", "finished", "cancelled"].includes(req.body.status)) {
-    contract.status = String(req.body.status);
-  }
-  
-  if (!contract.question) return res.status(400).json({ ok: false, error: "Question cannot be empty" });
-  
-  // If setting this contract as featured, unfeature all others
-  if (req.body.featured === true) {
-    Object.values(contracts).forEach(c => {
-      if (c.id !== req.params.id) c.featured = false;
-    });
-  }
-  
-  saveJSON(CONTRACTS_FILE, contracts);
-  res.json({ ok: true, data: contract });
 });
 
 // Delete contract (admin only)
-app.delete("/api/contracts/:id", requireAdmin, (req, res) => {
-  const contracts = loadJSON(CONTRACTS_FILE);
-  const contract = contracts[req.params.id];
-  if (!contract) return res.status(404).json({ ok: false, error: "Contract not found" });
-  
-  // Don't allow deleting contracts with active positions (optional safety check)
-  const positions = loadJSON(POSITIONS_FILE);
-  let hasPositions = false;
-  Object.values(positions).forEach(userPositions => {
-    if (userPositions[req.params.id] && 
-        ((userPositions[req.params.id].yesShares > 0) || (userPositions[req.params.id].noShares > 0))) {
-      hasPositions = true;
+app.delete("/api/contracts/:id", requireAdmin, async (req, res) => {
+  try {
+    const contractId = decodeURIComponent(req.params.id || "");
+    if (!contractId) return res.status(400).json({ ok: false, error: "Contract ID required" });
+    
+    // Get existing contract to check if it exists
+    const contract = await getContract(contractId);
+    if (!contract) return res.status(404).json({ ok: false, error: "Contract not found" });
+    
+    // Don't allow deleting contracts with active positions (optional safety check)
+    const allPositions = await getAllPositions(""); // Get all positions (empty string gets all)
+    let hasPositions = false;
+    
+    // Check if any user has positions in this contract
+    for (const email in allPositions) {
+      const userPositions = allPositions[email];
+      if (typeof userPositions === 'object' && userPositions !== null) {
+        const pos = userPositions[contractId];
+        if (pos && ((pos.yesShares > 0) || (pos.noShares > 0) || (pos.contracts > 0))) {
+          hasPositions = true;
+          break;
+        }
+      }
     }
-  });
-  
-  if (hasPositions && !contract.resolution) {
-    return res.status(400).json({ ok: false, error: "Cannot delete contract with active positions. Resolve it first." });
+    
+    if (hasPositions && !contract.resolution) {
+      return res.status(400).json({ ok: false, error: "Cannot delete contract with active positions. Resolve it first." });
+    }
+    
+    // Delete contract from database
+    await deleteContract(contractId);
+    
+    res.json({ ok: true, message: "Contract deleted" });
+  } catch (error) {
+    console.error("Error deleting contract:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to delete contract" });
   }
-  
-  delete contracts[req.params.id];
-  saveJSON(CONTRACTS_FILE, contracts);
-  res.json({ ok: true, message: "Contract deleted" });
 });
 
 // Resolve contract (admin only)
