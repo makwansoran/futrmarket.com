@@ -728,10 +728,31 @@ app.post("/api/send-code", async (req,res)=>{
 
 // Verify code and create account (with password)
 app.post("/api/verify-code", async (req,res)=>{
-  const { email, code, password, confirmPassword, username } = req.body||{};
-  if (!email || !code) {
-    return res.status(400).json({ ok:false, error:"Email and code are required" });
+  // Set CORS headers immediately to ensure they're always set
+  const origin = req.headers.origin;
+  let allowedOrigin = null;
+  if (origin) {
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+    const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
+    const isFutrmarket = origin.includes('futrmarket.com') || origin.includes('futrmarket');
+    if (isLocalhost || isVercel || isFutrmarket) {
+      allowedOrigin = origin;
+    }
   }
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  
+  try {
+    const { email, code, password, confirmPassword, username } = req.body||{};
+    if (!email || !code) {
+      return res.status(400).json({ ok:false, error:"Email and code are required" });
+    }
   
   const emailLower = String(email).trim().toLowerCase();
   const codeStr = String(code).trim();
