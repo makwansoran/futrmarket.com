@@ -2017,16 +2017,26 @@ app.delete("/api/contracts/:id", requireAdmin, async (req, res) => {
     }
     
     // Delete contract from database
+    console.log(`[DELETE] Attempting to delete contract: ${contractId}`);
     await deleteContract(contractId);
     
-    // Verify deletion
+    // Verify deletion by checking database
+    console.log(`[DELETE] Verifying deletion of contract: ${contractId}`);
     const verifyContract = await getContract(contractId);
     if (verifyContract) {
-      console.error("Contract still exists after deletion attempt:", contractId);
+      console.error(`[DELETE] ❌ Contract still exists after deletion attempt: ${contractId}`);
       return res.status(500).json({ ok: false, error: "Contract deletion failed - contract still exists" });
     }
     
-    console.log("✅ Contract successfully deleted:", contractId);
+    // Double-check by querying all contracts
+    const allContracts = await getAllContracts();
+    const stillInList = allContracts.find(c => c.id === contractId);
+    if (stillInList) {
+      console.error(`[DELETE] ❌ Contract found in getAllContracts() after deletion: ${contractId}`);
+      return res.status(500).json({ ok: false, error: "Contract deletion failed - contract still in list" });
+    }
+    
+    console.log(`[DELETE] ✅ Contract successfully deleted from database: ${contractId}`);
     res.json({ ok: true, message: "Contract deleted successfully" });
   } catch (error) {
     console.error("Error deleting contract:", error);
