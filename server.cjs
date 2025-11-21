@@ -1520,6 +1520,13 @@ app.get("/api/contracts", async (req, res) => {
       });
     
     console.log("[CONTRACTS] Returning", list.length, "processed contracts");
+    
+    // Log if we're losing contracts during processing
+    if (contracts.length > 0 && list.length === 0) {
+      console.error("[CONTRACTS] ⚠️ WARNING: Had", contracts.length, "contracts from database but 0 after processing!");
+      console.error("[CONTRACTS] This suggests all contracts are being filtered out or failing processing");
+    }
+    
     res.json({ ok: true, data: list });
   } catch (error) {
     console.error("[CONTRACTS] Error fetching contracts:", error);
