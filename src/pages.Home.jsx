@@ -5,5 +5,6 @@ export default function HomePage({ markets = [] }) {
   // Show all markets on homepage (no limit)
   // Ensure markets is always an array to prevent crashes
   const safeMarkets = Array.isArray(markets) ? markets : [];
-  return <MarketsPage markets={safeMarkets} />
+  // Pass limit={true} to indicate this is the homepage so feature cards show
+  return <MarketsPage markets={safeMarkets} limit={true} />
 }

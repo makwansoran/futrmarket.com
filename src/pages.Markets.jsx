@@ -354,47 +354,47 @@ export default function MarketsPage({ markets=[], limit, category }){
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {!limit && urlCategory !== "sports" && <h2 className="text-2xl font-bold text-white mb-6">{getTitle()}</h2>}
       
-      {/* Feature Fields - Only show on homepage */}
-      {limit ? (
-            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Legal & regulated */}
-              <div className="flex items-start gap-3 p-4">
-                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-blue-400 font-semibold text-sm mb-1">Legal & regulated in the US</div>
-                  <div className="text-white text-xs">Trade on the election, sports and companies</div>
-                </div>
-              </div>
-
-              {/* Grow portfolio */}
-              <div className="flex items-start gap-3 p-4">
-                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-blue-400" />
-                </div>
-                <div>
-                  <div className="text-blue-400 font-semibold text-sm mb-1">Grow your entire portfolio</div>
-                  <div className="text-white text-xs">3.5% APY on all your cash and positions</div>
-                </div>
-              </div>
-
-              {/* Fund account */}
-              <div className="flex items-start gap-3 p-4">
-                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-blue-400 font-semibold text-sm mb-1">Fund your account freely</div>
-                  <div className="text-white text-xs">Bank transfer, debit card, crypto, or wire</div>
-                </div>
-              </div>
+      {/* Feature Fields - Always show on homepage (when limit is true), above contracts */}
+      {limit && (
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Legal & regulated */}
+          <div className="flex items-start gap-3 p-4">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
             </div>
-          ) : null}
+            <div>
+              <div className="text-blue-400 font-semibold text-sm mb-1">Legal & regulated in the US</div>
+              <div className="text-white text-xs">Trade on the election, sports and companies</div>
+            </div>
+          </div>
+
+          {/* Grow portfolio */}
+          <div className="flex items-start gap-3 p-4">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-blue-400" />
+            </div>
+            <div>
+              <div className="text-blue-400 font-semibold text-sm mb-1">Grow your entire portfolio</div>
+              <div className="text-white text-xs">3.5% APY on all your cash and positions</div>
+            </div>
+          </div>
+
+          {/* Fund account */}
+          <div className="flex items-start gap-3 p-4">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-blue-400 font-semibold text-sm mb-1">Fund your account freely</div>
+              <div className="text-white text-xs">Bank transfer, debit card, crypto, or wire</div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {allMarkets.length === 0 ? (
         <div className="text-gray-400 col-span-full text-center py-8">No markets found in this category.</div>
