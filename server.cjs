@@ -1454,17 +1454,29 @@ app.get("/api/contracts", async (req, res) => {
       .map((c, index) => {
         try {
           // Calculate current market price for each contract
-          const marketPrice = calculateMarketPrice(c);
+          let marketPrice = 0.5; // Default fallback
+          try {
+            marketPrice = calculateMarketPrice(c);
+          } catch (priceError) {
+            console.warn(`[CONTRACTS] Error calculating market price for ${c?.id}, using default 0.5:`, priceError.message);
+            marketPrice = 0.5;
+          }
           
           // Handle both snake_case and camelCase field names from database
           const volume = c.volume || c.total_volume || 0;
           const createdAt = c.createdAt || c.created_at || 0;
           const traders = c.traders ? (Array.isArray(c.traders) ? c.traders.length : Object.keys(c.traders).length) : 0;
           
+          // Get yes/no prices from database fields
+          const yesPrice = c.yes_price || c.yesPrice || marketPrice;
+          const noPrice = c.no_price || c.noPrice || (1 - marketPrice);
+          
           const processed = {
             ...c,
             id: c.id, // Ensure ID is included
             marketPrice: marketPrice, // Ensure marketPrice is always set
+            yesPrice: yesPrice,
+            noPrice: noPrice,
             traders: traders,
             volume: `$${Number(volume).toFixed(2)}`,
             featured: c.featured === true || c.featured === "true" || c.featured === 1, // Handle boolean conversion
@@ -1483,7 +1495,22 @@ app.get("/api/contracts", async (req, res) => {
           console.error(`[CONTRACTS] ❌ Error processing contract ${index} (${c?.id}):`, mapError);
           console.error(`[CONTRACTS] Contract data:`, JSON.stringify(c, null, 2));
           console.error(`[CONTRACTS] Error stack:`, mapError.stack);
-          return null; // Skip this contract
+          // Don't skip - return a minimal version instead
+          return {
+            id: c?.id || `unknown_${index}`,
+            question: c?.question || "Unknown",
+            category: c?.category || "General",
+            yesPrice: 0.5,
+            noPrice: 0.5,
+            marketPrice: 0.5,
+            volume: "$0",
+            traders: 0,
+            featured: false,
+            live: false,
+            createdAt: c?.created_at || c?.createdAt || Date.now(),
+            status: c?.status || "upcoming",
+            resolution: c?.resolution || null
+          };
         }
       })
       .filter(Boolean) // Remove null entries
