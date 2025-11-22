@@ -458,7 +458,7 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
             <div>
               <div className="text-blue-400 font-semibold text-sm mb-1">Grow your entire portfolio</div>
-              <div className="text-white text-xs">3.5% APY on all your cash and positions</div>
+              <div className="text-white text-xs">Trade on the election, Oscars, Bitcoin, and more</div>
             </div>
           </div>
 
@@ -527,7 +527,7 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
             <div>
               <div className="text-blue-400 font-semibold text-sm mb-1">Grow your entire portfolio</div>
-              <div className="text-white text-xs">3.5% APY on all your cash and positions</div>
+              <div className="text-white text-xs">Trade on the election, Oscars, Bitcoin, and more</div>
             </div>
           </div>
 
