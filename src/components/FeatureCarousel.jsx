@@ -75,29 +75,8 @@ export default function FeatureCarousel({ features = [] }) {
     }, 6000);
   }, [setSlide, instanceId, selectedIndex, sessionId]);
 
-  // Auto-play carousel - with random offset to prevent sync across instances
-  useEffect(() => {
-    if (features.length <= 1) return;
-    
-    // Add random offset (0-5 seconds) so each instance doesn't sync
-    const offset = (parseInt(instanceId.slice(-2), 36) % 5000);
-    let intervalId = null;
-    
-    const timeoutId = setTimeout(() => {
-      intervalId = setInterval(() => {
-        // Don't auto-play if user is manually controlling
-        if (!isManualControl.current) {
-          setDirection(1);
-          setSelectedIndex((prev) => wrap(0, features.length, prev + 1));
-        }
-      }, 5000 + (parseInt(instanceId.slice(-3, -1), 36) % 2000)); // Random interval between 5-7 seconds
-    }, offset);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [features.length, instanceId]);
+  // Auto-play DISABLED - carousel only moves on manual clicks
+  // Removed auto-play to prevent unwanted movement
 
   const setSlide = React.useCallback((newDirection) => {
     const nextIndex = wrap(0, features.length, selectedIndex + newDirection);
