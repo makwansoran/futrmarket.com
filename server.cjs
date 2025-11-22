@@ -33,6 +33,7 @@ const {
   createContract,
   updateContract,
   deleteContract,
+  removeDuplicateContracts,
   getOrders,
   getContractOrders,
   getContractPositions,
@@ -1471,6 +1472,29 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
       }
     }
     
+    // Validate subject_id if provided (must exist in subjects table)
+    // If not provided or invalid, set to null (subject is optional)
+    let validSubjectId = null;
+    if (subjectId && String(subjectId).trim()) {
+      try {
+        const { getSubject } = require("./lib/db.cjs");
+        const subject = await getSubject(String(subjectId).trim());
+        if (subject) {
+          validSubjectId = subject.id;
+          console.log("[CONTRACTS] Validated subject_id:", validSubjectId);
+        } else {
+          console.warn("[CONTRACTS] Invalid subject_id provided, setting to null:", subjectId);
+          // Set to null - subject is optional
+          validSubjectId = null;
+        }
+      } catch (subjectError) {
+        console.warn("[CONTRACTS] Error validating subject_id, setting to null:", subjectError.message);
+        // Set to null - subject is optional, don't fail contract creation
+        validSubjectId = null;
+      }
+    }
+    // If no subjectId provided, validSubjectId remains null (which is correct - subject is optional)
+    
     // Prepare contract data for database (using snake_case for database)
     const contractData = {
       id: contractId,
@@ -1486,7 +1510,9 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
       resolution: null, // null, "yes", or "no"
       image_url: imageUrl || null,
       competition_id: competitionId ? String(competitionId).trim() : null,
-      subject_id: subjectId ? String(subjectId).trim() : null,
+      // Only include subject_id if it's provided and not empty
+      // If subject_id doesn't exist in subjects table, it will cause foreign key error
+      subject_id: validSubjectId,
       status: validStatus,
       live: req.body.live === true || req.body.live === "true",
       featured: false, // Always false - featured functionality removed
@@ -1500,7 +1526,28 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
     };
     
     // Create contract in database
-    const contract = await createContract(contractData);
+    console.log("[CONTRACTS] Creating contract with data:", JSON.stringify(contractData, null, 2));
+    let contract;
+    try {
+      contract = await createContract(contractData);
+      console.log("[CONTRACTS] Contract created successfully:", contract?.id);
+    } catch (createError) {
+      console.error("[CONTRACTS] Error in createContract:", createError);
+      console.error("[CONTRACTS] Error message:", createError.message);
+      console.error("[CONTRACTS] Error code:", createError.code);
+      console.error("[CONTRACTS] Error details:", createError.details);
+      console.error("[CONTRACTS] Error stack:", createError.stack);
+      
+      // Provide helpful error message if subject_id column is missing
+      if (createError.message && createError.message.includes("subject_id") && createError.message.includes("schema cache")) {
+        const helpfulMessage = "The 'subject_id' column doesn't exist in the contracts table. " +
+          "Please run the migration script 'supabase/add-subject-id-to-contracts.sql' in your Supabase SQL Editor. " +
+          "Alternatively, you can create contracts without a subject (leave Subject field as 'None').";
+        return res.status(500).json({ ok: false, error: helpfulMessage });
+      }
+      
+      throw createError;
+    }
     
     // Map database response to API format for backward compatibility
     const mappedContract = {
@@ -1533,8 +1580,31 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
     
     res.json({ ok: true, data: mappedContract });
   } catch (error) {
-    console.error("Error creating contract:", error);
-    res.status(500).json({ ok: false, error: error.message || "Failed to create contract" });
+    console.error("[CONTRACTS] Error creating contract:", error);
+    console.error("[CONTRACTS] Error message:", error.message);
+    console.error("[CONTRACTS] Error code:", error.code);
+    console.error("[CONTRACTS] Error details:", error.details);
+    console.error("[CONTRACTS] Error stack:", error.stack);
+    
+    // Provide more helpful error messages
+    let errorMessage = error.message || "Failed to create contract";
+    if (error.code === 'PGRST116' || error.message?.includes('schema cache')) {
+      errorMessage = "Contracts table not found in database. Please run the migration SQL to create it.";
+    } else if (error.code === '23503' || error.message?.includes('foreign key')) {
+      if (error.message?.includes('subject_id') || error.details?.includes('subject_id')) {
+        errorMessage = `Invalid subject_id. The subject does not exist in the database. Please create the subject first or leave subject_id empty.`;
+      } else if (error.message?.includes('competition_id') || error.details?.includes('competition_id')) {
+        errorMessage = `Invalid competition_id. The competition does not exist in the database. Please create the competition first or leave competition_id empty.`;
+      } else {
+        errorMessage = `Foreign key constraint violation: ${error.message}`;
+      }
+    } else if (error.code === '23505' || error.message?.includes('unique')) {
+      errorMessage = `Duplicate contract: ${error.message}`;
+    } else if (error.code === '23502' || error.message?.includes('not-null')) {
+      errorMessage = `Required field missing: ${error.message}`;
+    }
+    
+    res.status(500).json({ ok: false, error: errorMessage });
   }
 });
 
@@ -1642,21 +1712,68 @@ app.get("/api/contracts", async (req, res) => {
         return (b.createdAt || 0) - (a.createdAt || 0);
       });
     
-    console.log("[CONTRACTS] Returning", list.length, "processed contracts");
+    // Deduplicate by ID (keep first occurrence - should be newest due to sort)
+    const deduplicated = [];
+    const seenIds = new Set();
+    const seenQuestions = new Map(); // Track questions to detect duplicates
+    
+    for (const contract of list) {
+      const id = String(contract.id || "").trim();
+      const question = String(contract.question || "").trim().toLowerCase();
+      
+      // Skip if we've already seen this ID
+      if (!id || seenIds.has(id)) {
+        console.warn(`[CONTRACTS] ⚠️ Skipping duplicate ID: ${id} - ${contract.question}`);
+        continue;
+      }
+      
+      // Check for duplicate questions (case-insensitive)
+      if (question && seenQuestions.has(question)) {
+        const existingId = seenQuestions.get(question);
+        console.warn(`[CONTRACTS] ⚠️ Skipping duplicate question: "${contract.question}" (ID: ${id}, existing ID: ${existingId})`);
+        continue;
+      }
+      
+      seenIds.add(id);
+      if (question) {
+        seenQuestions.set(question, id);
+      }
+      deduplicated.push(contract);
+    }
+    
+    console.log("[CONTRACTS] After deduplication:", deduplicated.length, "unique contracts (removed", list.length - deduplicated.length, "duplicates)");
     
     // Log if we're losing contracts during processing
-    if (contracts.length > 0 && list.length === 0) {
+    if (contracts.length > 0 && deduplicated.length === 0) {
       console.error("[CONTRACTS] ⚠️ WARNING: Had", contracts.length, "contracts from database but 0 after processing!");
       console.error("[CONTRACTS] This suggests all contracts are being filtered out or failing processing");
     }
     
-    res.json({ ok: true, data: list });
+    res.json({ ok: true, data: deduplicated });
   } catch (error) {
     console.error("[CONTRACTS] Error fetching contracts:", error);
     console.error("[CONTRACTS] Error message:", error.message);
     console.error("[CONTRACTS] Error stack:", error.stack);
     // Ensure we still send a response even on error
     res.status(500).json({ ok: false, error: error.message || "Failed to fetch contracts" });
+  }
+});
+
+// Remove duplicate contracts (admin only) - MUST come before /api/contracts/:id route
+app.post("/api/contracts/cleanup-duplicates", requireAdmin, async (req, res) => {
+  try {
+    console.log("[CLEANUP] Starting duplicate contract cleanup...");
+    const result = await removeDuplicateContracts();
+    console.log("[CLEANUP] Cleanup complete:", result);
+    res.json({ 
+      ok: true, 
+      message: `Cleanup complete: Removed ${result.removed} duplicate contracts, kept ${result.kept} unique contracts`,
+      removed: result.removed,
+      kept: result.kept
+    });
+  } catch (error) {
+    console.error("[CLEANUP] Error cleaning up duplicates:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to clean up duplicate contracts" });
   }
 });
 

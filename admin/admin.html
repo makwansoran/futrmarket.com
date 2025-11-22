@@ -180,7 +180,11 @@
 
     <div class="card mt16">
       <h2>Existing Contracts</h2>
-      <div id="contractList"></div>
+      <div class="mt8">
+        <button id="cleanupDuplicates" class="danger" style="margin-bottom: 8px;">Remove Duplicate Contracts</button>
+        <div class="meta">Removes duplicate contracts with the same question (keeps the oldest one).</div>
+      </div>
+      <div id="contractList" class="mt16"></div>
       <div class="mt8 meta">Tradeable contracts with AMM pricing.</div>
     </div>
   </div>
@@ -867,6 +871,13 @@
 
   async function createContract(){
     try{
+      // Prevent double-submission
+      var btn = createContractBtn;
+      if (btn.disabled) {
+        console.log("Contract creation already in progress, ignoring duplicate click");
+        return;
+      }
+      
       var token = getT();
       if (!token) {
         alert("Please set admin token first (default: 'changeme')");
@@ -874,44 +885,63 @@
       }
       token = String(token).trim();
       if(!contractQ.value.trim()){alert("Question required");return}
-      var imageUrl = await uploadContractImage();
-      var expirationDate = contractExp.value ? new Date(contractExp.value).toISOString() : null;
-      var payload = { 
-        question: contractQ.value.trim(), 
-        description: contractDesc.value.trim(), 
-        category: contractCat.value, 
-        expirationDate: expirationDate,
-        imageUrl: imageUrl,
-        subjectId: contractSubjectId.value || null
-      };
-      var r=await fetch(apiEndpoint("/api/contracts/create"),{ 
-        method:"POST", 
-        headers: { "Content-Type":"application/json","x-admin-token":token }, 
-        body: JSON.stringify(payload) 
-      });
-      if(!r.ok){
-        var errorText = await r.text().catch(() => "");
-        var errorJson = {};
-        try { errorJson = JSON.parse(errorText); } catch {}
-        
-        if(r.status===401){
-          alert("Unauthorized. Check your admin token. Make sure it matches the ADMIN_TOKEN on your server.\n\nCurrent API URL: " + getApiUrl());
-        }else if(r.status===0 || r.status===404){
-          alert("Connection failed. The server at " + getApiUrl() + " is not reachable.\n\nMake sure:\n1. The API URL is correct\n2. The server is running\n3. CORS is configured properly");
-        }else{
-          alert("Create failed (Status " + r.status + "): " + (errorJson.error || errorText || "Unknown error") + "\n\nAPI URL: " + getApiUrl());
+      
+      // Disable button and show loading state
+      var originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Creating...";
+      
+      try {
+        var imageUrl = await uploadContractImage();
+        var expirationDate = contractExp.value ? new Date(contractExp.value).toISOString() : null;
+        var payload = { 
+          question: contractQ.value.trim(), 
+          description: contractDesc.value.trim(), 
+          category: contractCat.value, 
+          expirationDate: expirationDate,
+          imageUrl: imageUrl,
+          subjectId: contractSubjectId.value || null
+        };
+        var r=await fetch(apiEndpoint("/api/contracts/create"),{ 
+          method:"POST", 
+          headers: { "Content-Type":"application/json","x-admin-token":token }, 
+          body: JSON.stringify(payload) 
+        });
+        if(!r.ok){
+          var errorText = await r.text().catch(() => "");
+          var errorJson = {};
+          try { errorJson = JSON.parse(errorText); } catch {}
+          
+          if(r.status===401){
+            alert("Unauthorized. Check your admin token. Make sure it matches the ADMIN_TOKEN on your server.\n\nCurrent API URL: " + getApiUrl());
+          }else if(r.status===0 || r.status===404){
+            alert("Connection failed. The server at " + getApiUrl() + " is not reachable.\n\nMake sure:\n1. The API URL is correct\n2. The server is running\n3. CORS is configured properly");
+          }else{
+            alert("Create failed (Status " + r.status + "): " + (errorJson.error || errorText || "Unknown error") + "\n\nAPI URL: " + getApiUrl());
+          }
+          return;
         }
-        return;
+        var j=await r.json(); 
+        if(!j.ok){
+          alert("Create failed: " + (j.error || "unknown") + "\n\nAPI URL: " + getApiUrl());
+          return;
+        }
+        contractQ.value=""; contractDesc.value=""; contractExp.value=""; contractSubjectId.value=""; contractImg.value=""; contractPreview.innerHTML="";
+        loadContracts();
+        alert("Contract created successfully!\n\nCreated on: " + getApiUrl() + "\nContract ID: " + (j.data?.id || "N/A") + "\n\nRefresh your website to see it.");
+      } finally {
+        // Re-enable button
+        btn.disabled = false;
+        btn.textContent = originalText;
       }
-      var j=await r.json(); 
-      if(!j.ok){
-        alert("Create failed: " + (j.error || "unknown") + "\n\nAPI URL: " + getApiUrl());
-        return;
+    }catch(e){ 
+      // Re-enable button on error
+      if (createContractBtn) {
+        createContractBtn.disabled = false;
+        createContractBtn.textContent = "Create Contract";
       }
-      contractQ.value=""; contractDesc.value=""; contractExp.value=""; contractSubjectId.value=""; contractImg.value=""; contractPreview.innerHTML="";
-      loadContracts();
-      alert("Contract created successfully!\n\nCreated on: " + getApiUrl() + "\nContract ID: " + (j.data?.id || "N/A") + "\n\nRefresh your website to see it.");
-    }catch(e){ alert(e.message || "Could not create contract"); }
+      alert(e.message || "Could not create contract"); 
+    }
   }
 
   async function removeContract(id){
@@ -928,6 +958,45 @@
     }
     loadContracts();
     alert("Contract deleted!");
+  }
+
+  async function cleanupDuplicates(){
+    if (!confirm("This will remove all duplicate contracts with the same question (keeping the oldest one). Continue?")) return;
+    var token = getT();
+    if (!token) {
+      alert("Please set admin token first (default: 'changeme')");
+      return;
+    }
+    var btn = document.getElementById("cleanupDuplicates");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Cleaning up...";
+    }
+    try {
+      var r = await fetch(apiEndpoint("/api/contracts/cleanup-duplicates"), {
+        method: "POST",
+        headers: { "x-admin-token": token }
+      });
+      if (!r.ok) {
+        var j = await r.json().catch(() => ({}));
+        alert("Cleanup failed: " + (j.error || r.status));
+        return;
+      }
+      var j = await r.json();
+      if (!j.ok) {
+        alert("Cleanup failed: " + (j.error || "unknown"));
+        return;
+      }
+      loadContracts();
+      alert("Cleanup complete!\n\nRemoved: " + (j.removed || 0) + " duplicate(s)\nKept: " + (j.kept || 0) + " unique contract(s)");
+    } catch (e) {
+      alert("Error: " + (e.message || "Could not cleanup duplicates"));
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Remove Duplicate Contracts";
+      }
+    }
   }
 
   function editContract(c){
@@ -1319,6 +1388,10 @@
   // Event listeners
   if(createContractBtn) createContractBtn.onclick=function(){ createContract(); };
   if(createNewsBtn) createNewsBtn.onclick=function(){ createNews(); };
+  
+  // Cleanup duplicates button
+  var cleanupDuplicatesBtn = document.getElementById("cleanupDuplicates");
+  if(cleanupDuplicatesBtn) cleanupDuplicatesBtn.onclick=function(){ cleanupDuplicates(); };
 
   // Sports elements
   var competitionName = document.getElementById("competitionName"),
@@ -1638,6 +1711,13 @@
 
   async function createSportsContract(){
     try {
+      // Prevent double-submission
+      var btn = createSportsContractBtn;
+      if (btn && btn.disabled) {
+        console.log("Sports contract creation already in progress, ignoring duplicate click");
+        return;
+      }
+      
       var token = getT();
       if (!token) {
         alert("Please set admin token first (default: 'changeme')");
@@ -1653,33 +1733,41 @@
         return;
       }
       
-      var imageUrl = await uploadSportsContractImage();
-      var expirationDate = sportsContractExp.value ? new Date(sportsContractExp.value).toISOString() : null;
+      // Disable button and show loading state
+      var originalText = btn ? btn.textContent : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Creating...";
+      }
       
-      var payload = {
-        question: sportsContractQ.value.trim(),
-        description: sportsContractDesc.value.trim(),
-        category: "Sports",
-        expirationDate: expirationDate,
-        imageUrl: imageUrl,
-        competitionId: sportsContractCompetition.value,
-        status: sportsContractStatus.value || "upcoming",
-        live: false // Default to not live - admin must explicitly mark it
-      };
-      
-      var r = await fetch(apiEndpoint("/api/contracts/create"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-token": token },
-        body: JSON.stringify(payload)
-      });
-      if (!r.ok) {
-        var errorText = await r.text().catch(() => "");
-        var errorJson = {};
-        try { errorJson = JSON.parse(errorText); } catch {}
+      try {
+        var imageUrl = await uploadSportsContractImage();
+        var expirationDate = sportsContractExp.value ? new Date(sportsContractExp.value).toISOString() : null;
         
-        if (r.status === 401) {
-          alert("Unauthorized. Check your admin token. Make sure it matches the ADMIN_TOKEN on your server.\n\nCurrent API URL: " + getApiUrl());
-        } else if (r.status === 0 || r.status === 404) {
+        var payload = {
+          question: sportsContractQ.value.trim(),
+          description: sportsContractDesc.value.trim(),
+          category: "Sports",
+          expirationDate: expirationDate,
+          imageUrl: imageUrl,
+          competitionId: sportsContractCompetition.value,
+          status: sportsContractStatus.value || "upcoming",
+          live: false // Default to not live - admin must explicitly mark it
+        };
+        
+        var r = await fetch(apiEndpoint("/api/contracts/create"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-admin-token": token },
+          body: JSON.stringify(payload)
+        });
+        if (!r.ok) {
+          var errorText = await r.text().catch(() => "");
+          var errorJson = {};
+          try { errorJson = JSON.parse(errorText); } catch {}
+          
+          if (r.status === 401) {
+            alert("Unauthorized. Check your admin token. Make sure it matches the ADMIN_TOKEN on your server.\n\nCurrent API URL: " + getApiUrl());
+          } else if (r.status === 0 || r.status === 404) {
           alert("Connection failed. The server at " + getApiUrl() + " is not reachable.\n\nMake sure:\n1. The API URL is correct\n2. The server is running\n3. CORS is configured properly");
         } else {
           alert("Create failed (Status " + r.status + "): " + (errorJson.error || errorText || "Unknown error") + "\n\nAPI URL: " + getApiUrl());
@@ -1700,7 +1788,19 @@
       sportsContractPreview.innerHTML = "";
       loadSportsContracts();
       alert("Sports bet created successfully!\n\nCreated on: " + getApiUrl() + "\nContract ID: " + (j.data?.id || "N/A") + "\n\nRefresh your website to see it.");
+      } finally {
+        // Re-enable button
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
     } catch (e) {
+      // Re-enable button on error
+      if (createSportsContractBtn) {
+        createSportsContractBtn.disabled = false;
+        createSportsContractBtn.textContent = "Create Sports Bet";
+      }
       alert(e.message || "Could not create sports bet");
     }
   }
