@@ -131,6 +131,10 @@ export default function MarketsPage({ markets=[], limit, category }){
   const competitionSlug = params.competitionSlug; // For /markets/sports/:competitionSlug
   const isCompetitionPage = !!competitionSlug;
   
+  // Check if we're on a subject page
+  const subjectSlug = params.subjectSlug; // For /subjects/:subjectSlug
+  const isSubjectPage = !!subjectSlug;
+  
   // Determine category:
   // 1. If we have competitionSlug, we're on /markets/sports/:competitionSlug, so category is "sports"
   // 2. If category prop is "sports", use it
@@ -140,6 +144,13 @@ export default function MarketsPage({ markets=[], limit, category }){
   // State for competitions (to map slug to competitionId)
   const [competitions, setCompetitions] = React.useState([]);
   const [competitionsLoaded, setCompetitionsLoaded] = React.useState(false);
+  
+  // State for subjects (to map slug to subjectId)
+  const [subjects, setSubjects] = React.useState([]);
+  const [subjectsLoaded, setSubjectsLoaded] = React.useState(false);
+  
+  // State for features (for homepage feature cards)
+  const [features, setFeatures] = React.useState([]);
   
   // Load competitions if we're on a sports page
   React.useEffect(() => {
@@ -169,13 +180,69 @@ export default function MarketsPage({ markets=[], limit, category }){
     }
   }, [urlCategory, competitionSlug, location.pathname]);
   
+  // Load subjects if we're on a subject page
+  React.useEffect(() => {
+    if (isSubjectPage) {
+      fetch(getApiUrl("/api/subjects"))
+        .then(r => r.json())
+        .then(j => {
+          if (j.ok && Array.isArray(j.data)) {
+            setSubjects(j.data);
+            setSubjectsLoaded(true);
+          }
+        })
+        .catch(e => {
+          console.error("Failed to load subjects:", e);
+        });
+    }
+  }, [isSubjectPage]);
+  
+  // Load features if we're on the homepage (limit is true)
+  React.useEffect(() => {
+    console.log("🔵 Features useEffect - limit:", limit, "location:", location.pathname);
+    // Check if we're on homepage - either limit is true OR we're on the root path
+    const isHomepage = limit === true || location.pathname === "/";
+    if (isHomepage) {
+      const apiUrl = getApiUrl("/api/features?active=true");
+      console.log("🔵 Loading features from:", apiUrl);
+      fetch(apiUrl)
+        .then(r => {
+          console.log("🔵 Features API response status:", r.status);
+          return r.json();
+        })
+        .then(j => {
+          console.log("🔵 Features API response:", j);
+          if (j.ok && Array.isArray(j.data)) {
+            console.log("🔵 Loaded", j.data.length, "features:", j.data);
+            setFeatures(j.data);
+          } else {
+            console.warn("🔵 Features response not ok or not array:", j);
+          }
+        })
+        .catch(e => {
+          console.error("❌ Failed to load features:", e);
+        });
+    } else {
+      console.log("🔵 Not homepage, skipping features load");
+    }
+  }, [limit, location.pathname]);
+  
   // Ensure markets is always an array
   const safeMarkets = Array.isArray(markets) ? markets : [];
   
   let filteredMarkets = safeMarkets;
   
+  // Filter by subject if we're on a subject page
+  if (isSubjectPage && subjectsLoaded) {
+    const subject = subjects.find(s => s.slug === subjectSlug);
+    if (subject) {
+      filteredMarkets = safeMarkets.filter(m => m && m.subjectId === subject.id);
+    } else {
+      filteredMarkets = [];
+    }
+  }
   // Filter by category if specified (but NOT for sports - we handle sports separately)
-  if (urlCategory && urlCategory !== "all" && urlCategory !== "trending" && urlCategory !== "new" && urlCategory !== "sports") {
+  else if (urlCategory && urlCategory !== "all" && urlCategory !== "trending" && urlCategory !== "new" && urlCategory !== "sports") {
     const categoryName = CATEGORY_MAP[urlCategory] || urlCategory;
     filteredMarkets = safeMarkets.filter(m => 
       m && (m.category || "").toLowerCase() === categoryName.toLowerCase()
@@ -200,6 +267,10 @@ export default function MarketsPage({ markets=[], limit, category }){
   const list = limit ? filteredMarkets.slice(0, limit) : filteredMarkets;
   
   const getTitle = () => {
+    if (isSubjectPage && subjectsLoaded) {
+      const subject = subjects.find(s => s.slug === subjectSlug);
+      return subject ? `${subject.name} Markets` : "Subject Markets";
+    }
     if (urlCategory === "trending") return "Trending Markets";
     if (urlCategory === "new") return "New Markets";
     if (urlCategory && CATEGORY_MAP[urlCategory]) return CATEGORY_MAP[urlCategory] + " Markets";
@@ -350,12 +421,105 @@ export default function MarketsPage({ markets=[], limit, category }){
   // All contracts are now standard sized - no featured contracts
   const allMarkets = list.filter(m => m && m.id);
   
+  // Debug logging for features
+  const isHomepage = limit === true || location.pathname === "/";
+  console.log("🔵 MarketsPage render - limit:", limit, "pathname:", location.pathname, "isHomepage:", isHomepage, "features.length:", features.length);
+  
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {!limit && urlCategory !== "sports" && <h2 className="text-2xl font-bold text-white mb-6">{getTitle()}</h2>}
       
-      {/* Feature Fields - Always show on homepage (when limit is true), above contracts */}
-      {limit && (
+      {/* Feature Cards - Load from database, show on homepage (when limit is true), above contracts */}
+      {isHomepage && (
+        <>
+          {features.length > 0 ? (
+            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {features.map((feature) => {
+                console.log("🔵 Rendering feature:", feature);
+                const content = feature.url ? (
+                  <a 
+                    key={feature.id}
+                    href={feature.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition"
+                  >
+                    {feature.imageUrl && (
+                      <img 
+                        src={feature.imageUrl} 
+                        alt={feature.title}
+                        className="w-full h-32 object-cover rounded-lg mb-3"
+                      />
+                    )}
+                    <div className="text-blue-400 font-semibold text-sm mb-1">{feature.title}</div>
+                    <div className="text-white text-xs">{feature.description}</div>
+                  </a>
+                ) : (
+                  <div key={feature.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition">
+                    {feature.imageUrl && (
+                      <img 
+                        src={feature.imageUrl} 
+                        alt={feature.title}
+                        className="w-full h-32 object-cover rounded-lg mb-3"
+                      />
+                    )}
+                    <div className="text-blue-400 font-semibold text-sm mb-1">{feature.title}</div>
+                    <div className="text-white text-xs line-clamp-2">{feature.description}</div>
+                  </div>
+                );
+                return content;
+              })}
+            </div>
+          ) : (
+            <div className="mb-8 text-gray-400 text-sm">
+              Debug: No features loaded (isHomepage: {String(isHomepage)}, features.length: {features.length})
+            </div>
+          )}
+        </>
+      )}
+      
+      {/* Fallback feature cards if no features from database - REMOVED, only show database features */}
+      {isHomepage && features.length === 0 && false && (
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {features.map((feature) => {
+            const content = feature.url ? (
+              <a 
+                key={feature.id}
+                href={feature.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition"
+              >
+                {feature.imageUrl && (
+                  <img 
+                    src={feature.imageUrl} 
+                    alt={feature.title}
+                    className="w-full h-32 object-cover rounded-lg mb-3"
+                  />
+                )}
+                <div className="text-blue-400 font-semibold text-sm mb-1">{feature.title}</div>
+                <div className="text-white text-xs">{feature.description}</div>
+              </a>
+            ) : (
+              <div key={feature.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                {feature.imageUrl && (
+                  <img 
+                    src={feature.imageUrl} 
+                    alt={feature.title}
+                    className="w-full h-32 object-cover rounded-lg mb-3"
+                  />
+                )}
+                <div className="text-blue-400 font-semibold text-sm mb-1">{feature.title}</div>
+                <div className="text-white text-xs">{feature.description}</div>
+              </div>
+            );
+            return content;
+          })}
+        </div>
+      )}
+      
+      {/* Fallback feature cards removed - only show database features */}
+      {false && (
         <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Legal & regulated */}
           <div className="flex items-start gap-3 p-4">

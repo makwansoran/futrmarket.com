@@ -1332,7 +1332,7 @@ function calculateSellProceeds(contract, contractsToSell) {
 // Create contract (admin only)
 app.post("/api/contracts/create", requireAdmin, async (req, res) => {
   try {
-    const { question, description, category, expirationDate, imageUrl, competitionId, status } = req.body || {};
+    const { question, description, category, expirationDate, imageUrl, competitionId, subjectId, status } = req.body || {};
     const q = String(question || "").trim();
     if (!q) return res.status(400).json({ ok: false, error: "Question required" });
     
@@ -1365,6 +1365,7 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
       resolution: null, // null, "yes", or "no"
       image_url: imageUrl || null,
       competition_id: competitionId ? String(competitionId).trim() : null,
+      subject_id: subjectId ? String(subjectId).trim() : null,
       status: validStatus,
       live: req.body.live === true || req.body.live === "true",
       featured: false, // Always false - featured functionality removed
@@ -1396,6 +1397,7 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
       resolution: contract.resolution || null,
       imageUrl: contract.image_url || contract.imageUrl || null,
       competitionId: contract.competition_id || contract.competitionId || null,
+      subjectId: contract.subject_id || contract.subjectId || null,
       status: contract.status || null,
       live: contract.live === true,
       createdAt: contract.created_at || contract.createdAt || Date.now(),
@@ -2580,6 +2582,109 @@ app.delete("/api/competitions/:id", requireAdmin, (req, res) => {
   res.json({ ok: true, message: "Competition deleted" });
 });
 
+// ---- Subjects endpoints ----
+// Get all subjects
+app.get("/api/subjects", async (req, res) => {
+  try {
+    const { getAllSubjects } = require("./lib/db.cjs");
+    const subjects = await getAllSubjects();
+    res.json({ ok: true, data: subjects });
+  } catch (error) {
+    console.error("Error fetching subjects:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch subjects" });
+  }
+});
+
+// Create a new subject (admin only)
+app.post("/api/subjects", requireAdmin, async (req, res) => {
+  try {
+    const { createSubject } = require("./lib/db.cjs");
+    const name = String(req.body.name || "").trim();
+    const description = req.body.description ? String(req.body.description).trim() : null;
+    
+    if (!name) return res.status(400).json({ ok: false, error: "Name required" });
+    
+    // Generate slug from name
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    
+    // Check if subject with this name already exists
+    const { getAllSubjects } = require("./lib/db.cjs");
+    const existingSubjects = await getAllSubjects();
+    const existing = existingSubjects.find(s => s.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      return res.status(400).json({ ok: false, error: "A subject with this name already exists" });
+    }
+    
+    const subjectId = `subj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const subjectData = {
+      id: subjectId,
+      name: name,
+      slug: slug,
+      description: description,
+      order: existingSubjects.length,
+      created_at: Date.now()
+    };
+    
+    const subject = await createSubject(subjectData);
+    res.json({ ok: true, data: subject });
+  } catch (error) {
+    console.error("Error creating subject:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to create subject" });
+  }
+});
+
+// Update a subject (admin only)
+app.patch("/api/subjects/:id", requireAdmin, async (req, res) => {
+  try {
+    const { updateSubject, getSubject } = require("./lib/db.cjs");
+    const subjectId = String(req.params.id || "").trim();
+    
+    const existing = await getSubject(subjectId);
+    if (!existing) {
+      return res.status(404).json({ ok: false, error: "Subject not found" });
+    }
+    
+    const updates = {};
+    if (req.body.name !== undefined) {
+      updates.name = String(req.body.name).trim();
+      // Regenerate slug if name changed
+      updates.slug = updates.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    }
+    if (req.body.description !== undefined) {
+      updates.description = req.body.description ? String(req.body.description).trim() : null;
+    }
+    if (req.body.order !== undefined) {
+      updates.order = parseInt(req.body.order) || 0;
+    }
+    
+    const updated = await updateSubject(subjectId, updates);
+    res.json({ ok: true, data: updated });
+  } catch (error) {
+    console.error("Error updating subject:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to update subject" });
+  }
+});
+
+// Delete a subject (admin only)
+app.delete("/api/subjects/:id", requireAdmin, async (req, res) => {
+  try {
+    const { deleteSubject, getSubject } = require("./lib/db.cjs");
+    const subjectId = String(req.params.id || "").trim();
+    
+    const existing = await getSubject(subjectId);
+    if (!existing) {
+      return res.status(404).json({ ok: false, error: "Subject not found" });
+    }
+    
+    await deleteSubject(subjectId);
+    res.json({ ok: true, message: "Subject deleted" });
+  } catch (error) {
+    console.error("Error deleting subject:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to delete subject" });
+  }
+});
+
 // ---- User Profile endpoints ----
 // Get leaderboard (public - shows all registered users ranked by total balance)
 app.get("/api/leaderboard", async (req, res) => {
@@ -3015,6 +3120,17 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   // Immediate response for Render health checks
   res.status(200).json({ ok: true, status: "healthy", timestamp: Date.now() });
+});
+
+// Serve admin page
+app.get("/admin", (req, res) => {
+  const adminHtmlPath = path.join(__dirname, "admin", "admin.html");
+  if (fs.existsSync(adminHtmlPath)) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(fs.readFileSync(adminHtmlPath, "utf8"));
+  } else {
+    res.status(404).json({ ok: false, error: "Admin page not found" });
+  }
 });
 
 // ---- Static (for any public assets if you need) ----

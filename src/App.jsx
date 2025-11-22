@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import Header from "./layout.Header.jsx";
 import CategoryNav from "./components/CategoryNav.jsx";
 import CompetitionsNav from "./components/CompetitionsNav.jsx";
+import SubjectsNav from "./components/SubjectsNav.jsx";
 import Footer from "./components/Footer.jsx";
 import HomePage from "./pages.Home.jsx";
 import MarketsPage from "./pages.Markets.jsx";
@@ -83,6 +84,7 @@ function AppContent() {
       />
       <CategoryNav />
       <CompetitionsNav />
+      <SubjectsNav />
       <div className="flex-1 pb-32">
         <Routes>
           <Route path="/" element={<HomePage markets={markets} />} />
@@ -92,6 +94,7 @@ function AppContent() {
           {/* Sports routes - must come before /markets/:category to avoid conflicts */}
           <Route path="/markets/sports" element={<MarketsPage markets={markets} category="sports" />} />
           <Route path="/markets/sports/:competitionSlug" element={<MarketsPage markets={markets} />} />
+          <Route path="/subjects/:subjectSlug" element={<MarketsPage markets={markets} />} />
           <Route path="/markets/:category" element={<MarketsPage markets={markets} />} />
           <Route path="/market/:id" element={<MarketDetailPage />} />
           <Route path="/live" element={<LivePage markets={markets} />} />

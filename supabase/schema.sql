@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS public.contracts (
   resolution TEXT CHECK (resolution IN ('yes', 'no') OR resolution IS NULL),
   image_url TEXT,
   competition_id TEXT,
+  subject_id TEXT REFERENCES public.subjects(id) ON DELETE SET NULL,
   status TEXT CHECK (status IN ('upcoming', 'live', 'finished', 'cancelled') OR status IS NULL),
   live BOOLEAN NOT NULL DEFAULT false,
   featured BOOLEAN NOT NULL DEFAULT false,
@@ -179,6 +180,16 @@ CREATE TABLE IF NOT EXISTS public.competitions (
   "order" INTEGER NOT NULL DEFAULT 0
 );
 
+-- Subjects table (sub-categories like "Epstein" under "Politics")
+CREATE TABLE IF NOT EXISTS public.subjects (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  slug TEXT NOT NULL UNIQUE,
+  description TEXT,
+  created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,
+  "order" INTEGER NOT NULL DEFAULT 0
+);
+
 -- Verification codes table (temporary, for migration period)
 CREATE TABLE IF NOT EXISTS public.verification_codes (
   email TEXT PRIMARY KEY REFERENCES public.users(email) ON DELETE CASCADE,
@@ -205,6 +216,8 @@ CREATE INDEX IF NOT EXISTS idx_contracts_category ON public.contracts(category);
 CREATE INDEX IF NOT EXISTS idx_contracts_status ON public.contracts(status);
 CREATE INDEX IF NOT EXISTS idx_contracts_live ON public.contracts(live);
 CREATE INDEX IF NOT EXISTS idx_contracts_featured ON public.contracts(featured);
+CREATE INDEX IF NOT EXISTS idx_contracts_subject_id ON public.contracts(subject_id);
+CREATE INDEX IF NOT EXISTS idx_subjects_slug ON public.subjects(slug);
 
 -- Enable Row Level Security (RLS) on all tables
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
@@ -220,6 +233,7 @@ ALTER TABLE public.forum_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ideas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.news ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.competitions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.verification_codes ENABLE ROW LEVEL SECURITY;
 
 -- Note: RLS policies will be added in a separate step
