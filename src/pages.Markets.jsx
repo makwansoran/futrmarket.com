@@ -450,7 +450,7 @@ export default function MarketsPage({ markets=[], limit, category }){
       
       {/* Small feature cards below carousel dots, above contracts */}
       {isHomepage && (
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto -mt-16 justify-center ml-8">
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto -mt-16 justify-center ml-8">
           {/* Grow portfolio */}
           <div className="flex items-start gap-3 p-4">
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
@@ -472,6 +472,19 @@ export default function MarketsPage({ markets=[], limit, category }){
             <div>
               <div className="text-blue-400 font-semibold text-sm mb-1">Fund your account freely</div>
               <div className="text-white text-xs">Bank transfer, debit card, crypto, or wire</div>
+            </div>
+          </div>
+
+          {/* Security features */}
+          <div className="flex items-start gap-3 p-4">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-blue-400 font-semibold text-sm mb-1">End-to-end encrypted accounts</div>
+              <div className="text-white text-xs">Real-time fraud monitoring</div>
             </div>
           </div>
         </div>
