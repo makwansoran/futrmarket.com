@@ -128,8 +128,8 @@ export default function FeatureCarousel({ features = [] }) {
         )}
 
         {/* Feature Card - Full width like Kalshi with fixed height container */}
-        <div className="flex-1 w-full relative" style={{ minHeight: '400px' }}>
-          <div className="relative w-full" style={{ minHeight: '400px' }}>
+        <div className="flex-1 w-full relative" style={{ minHeight: '300px' }}>
+          <div className="relative w-full" style={{ minHeight: '300px' }}>
             <AnimatePresence mode="wait" custom={direction} initial={false}>
               <FeatureSlide
                 key={selectedIndex}
@@ -247,7 +247,7 @@ function FeatureCardContent({ feature }) {
     <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border-2 border-gray-700 rounded-2xl overflow-hidden hover:border-gray-600 transition-all shadow-2xl cursor-pointer">
       <div className="relative">
         {feature.imageUrl ? (
-          <div className="relative h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
+          <div className="relative h-[300px] md:h-[350px] lg:h-[400px] overflow-hidden">
             <img
               src={feature.imageUrl}
               alt={feature.title}
@@ -256,8 +256,8 @@ function FeatureCardContent({ feature }) {
             <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent" />
           </div>
         ) : (
-          <div className="h-[400px] md:h-[500px] lg:h-[600px] bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-gray-900/40 flex items-center justify-center">
-            <div className="text-8xl opacity-30">📊</div>
+          <div className="h-[300px] md:h-[350px] lg:h-[400px] bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-gray-900/40 flex items-center justify-center">
+            <div className="text-6xl opacity-30">📊</div>
           </div>
         )}
         
