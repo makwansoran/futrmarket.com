@@ -6,7 +6,13 @@ import { BrowserProvider } from "ethers";
 import { getMarkets as getMarketsReadOnly } from "./marketsStore";
 
 /* simple DB helpers for session/wallet */
-localforage.config({ name: "futurbet", storeName: "futurbet_store" });
+// Import session ID for storage isolation
+import { getSessionId } from "./lib/sessionId.js";
+const sessionId = getSessionId();
+localforage.config({ 
+  name: `futurbet_${sessionId}`, 
+  storeName: `futurbet_store_${sessionId}` 
+});
 const USERS_KEY = function(email) { return "users:" + email.toLowerCase(); };
 const SESS_KEY = "session:user";
 const WALLET_KEY = function(email) { return "wallet:" + email.toLowerCase(); };

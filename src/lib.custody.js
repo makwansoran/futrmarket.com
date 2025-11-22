@@ -1,7 +1,13 @@
 import localforage from "localforage";
 import { Wallet } from "ethers";
+import { getSessionId } from "./lib/sessionId.js";
 
-localforage.config({ name: "futurbet", storeName: "futurbet_store" });
+// Use session-specific storage for complete isolation
+const sessionId = getSessionId();
+localforage.config({ 
+  name: `futurbet_${sessionId}`, 
+  storeName: `futurbet_store_${sessionId}` 
+});
 
 const CUSTODY_KEY = (email) => `custody:${email.toLowerCase()}`;
 

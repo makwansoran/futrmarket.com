@@ -1,7 +1,13 @@
 import localforage from 'localforage'
 import { getApiUrl } from '/src/api.js'
+import { getSessionId } from './sessionId.js'
 
-localforage.config({ name: 'futurbet', storeName: 'futurbet_store' })
+// Use session-specific storage to ensure complete isolation per browser instance
+const sessionId = getSessionId();
+localforage.config({ 
+  name: `futurbet_${sessionId}`, 
+  storeName: `futurbet_store_${sessionId}` 
+})
 
 const USERS_KEY = (email) => `users:${email.toLowerCase()}`
 const SESS_KEY = 'session:user'

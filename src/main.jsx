@@ -4,6 +4,12 @@ import { BrowserRouter } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import App from "./App.jsx";
 import "./style.css";
+import { getSessionId, getSessionIdForDebug } from "./lib/sessionId.js";
+
+// Log session ID on app start (dev mode only)
+if (import.meta.env.DEV) {
+  console.log('🔵 App started with session ID:', getSessionIdForDebug());
+}
 
 // Global error handler for unhandled errors
 window.addEventListener("error", (event) => {

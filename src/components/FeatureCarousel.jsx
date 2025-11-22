@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getSessionId } from "../lib/sessionId.js";
 
 // Helper function to wrap index
 function wrap(min, max, value) {
@@ -10,8 +11,15 @@ function wrap(min, max, value) {
 }
 
 export default function FeatureCarousel({ features = [] }) {
-  // Generate unique instance ID to prevent any potential sync issues
-  const instanceId = React.useRef(Math.random().toString(36).slice(2) + Date.now()).current;
+  // Generate unique instance ID using session ID + component mount time to prevent any potential sync issues
+  const sessionId = getSessionId();
+  const mountTime = useRef(Date.now() + Math.random()).current;
+  const instanceId = useRef(`${sessionId}_${mountTime}`).current;
+  
+  // Log for debugging (dev mode only)
+  if (import.meta.env.DEV) {
+    console.log('🔵 FeatureCarousel mounted with instanceId:', instanceId);
+  }
   
   const [selectedIndex, setSelectedIndex] = useState(() => {
     // Initialize with random index to prevent sync
