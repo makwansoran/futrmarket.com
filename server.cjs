@@ -1316,9 +1316,12 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
     // Check if Supabase is enabled
     const supabaseEnabled = isSupabaseEnabled();
     console.log("[UPLOAD] Supabase enabled:", supabaseEnabled);
+    console.log("[UPLOAD] SUPABASE_URL:", process.env.SUPABASE_URL ? "Set" : "NOT SET");
+    console.log("[UPLOAD] SUPABASE_SERVICE_ROLE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "Set" : "NOT SET");
+    console.log("[UPLOAD] Supabase client:", supabase ? "Initialized" : "NULL");
     
     // If Supabase is enabled, upload to Supabase Storage for persistence
-    if (supabaseEnabled) {
+    if (supabaseEnabled && supabase) {
       const fileBuffer = fs.readFileSync(req.file.path);
       const fileName = req.file.filename;
       const filePath = `uploads/${fileName}`;
@@ -1334,7 +1337,17 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       });
       
       // First, check if bucket exists and create it if it doesn't
+      console.log("[UPLOAD] Listing buckets to check if 'featurecards' exists...");
       const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      
+      if (listError) {
+        console.error("[UPLOAD] Error listing buckets:", listError);
+        return res.status(500).json({ 
+          ok: false, 
+          error: `Failed to access Supabase Storage: ${listError.message}` 
+        });
+      }
+      
       console.log("[UPLOAD] Available buckets:", buckets?.map(b => b.name) || []);
       
       const bucketExists = buckets?.some(b => b.name === 'featurecards');
@@ -1354,6 +1367,8 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
           });
         }
         console.log("[UPLOAD] Bucket 'featurecards' created successfully");
+      } else {
+        console.log("[UPLOAD] Bucket 'featurecards' exists, proceeding with upload...");
       }
       
       const { data, error } = await supabase.storage
