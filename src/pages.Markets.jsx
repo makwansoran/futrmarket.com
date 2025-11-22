@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { Clock, TrendingUp } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
+import FeatureCarousel from "./components/FeatureCarousel.jsx";
 
 // Small Market Card (for grid)
 function MarketCard({ m }){
@@ -429,53 +430,9 @@ export default function MarketsPage({ markets=[], limit, category }){
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {!limit && urlCategory !== "sports" && <h2 className="text-2xl font-bold text-white mb-6">{getTitle()}</h2>}
       
-      {/* Feature Cards - Load from database, show on homepage (when limit is true), above contracts */}
-      {isHomepage && (
-        <>
-          {features.length > 0 ? (
-            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {features.map((feature) => {
-                console.log("🔵 Rendering feature:", feature);
-                const content = feature.url ? (
-                  <a 
-                    key={feature.id}
-                    href={feature.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="block bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition"
-                  >
-                    {feature.imageUrl && (
-                      <img 
-                        src={feature.imageUrl} 
-                        alt={feature.title}
-                        className="w-full h-32 object-cover rounded-lg mb-3"
-                      />
-                    )}
-                    <div className="text-blue-400 font-semibold text-sm mb-1">{feature.title}</div>
-                    <div className="text-white text-xs">{feature.description}</div>
-                  </a>
-                ) : (
-                  <div key={feature.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition">
-                    {feature.imageUrl && (
-                      <img 
-                        src={feature.imageUrl} 
-                        alt={feature.title}
-                        className="w-full h-32 object-cover rounded-lg mb-3"
-                      />
-                    )}
-                    <div className="text-blue-400 font-semibold text-sm mb-1">{feature.title}</div>
-                    <div className="text-white text-xs line-clamp-2">{feature.description}</div>
-                  </div>
-                );
-                return content;
-              })}
-            </div>
-          ) : (
-            <div className="mb-8 text-gray-400 text-sm">
-              Debug: No features loaded (isHomepage: {String(isHomepage)}, features.length: {features.length})
-            </div>
-          )}
-        </>
+      {/* Feature Carousel - Large Kalshi-style cards with slideshow */}
+      {isHomepage && features.length > 0 && (
+        <FeatureCarousel features={features} />
       )}
       
       {/* Fallback feature cards if no features from database - REMOVED, only show database features */}
