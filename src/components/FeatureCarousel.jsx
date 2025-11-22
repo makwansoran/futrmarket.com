@@ -113,8 +113,8 @@ export default function FeatureCarousel({ features = [] }) {
   return (
     <div className="mb-12 relative w-full">
       <div className="relative flex items-center justify-center gap-4 w-full">
-        {/* Previous Button */}
-        {features.length > 1 && (
+        {/* Previous Button - Always show if there are features (even with 1, for consistency) */}
+        {features.length > 0 && (
           <motion.button
             initial={false}
             animate={{ 
