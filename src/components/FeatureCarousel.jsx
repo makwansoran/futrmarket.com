@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -10,20 +10,32 @@ function wrap(min, max, value) {
 }
 
 export default function FeatureCarousel({ features = [] }) {
+  // Generate unique instance ID to prevent any potential sync issues
+  const instanceId = React.useMemo(() => Math.random().toString(36).slice(2), []);
+  
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [direction, setDirection] = useState(1);
 
-  // Auto-play carousel
+  // Auto-play carousel - with random offset to prevent sync across instances
   useEffect(() => {
     if (features.length <= 1) return;
     
-    const interval = setInterval(() => {
-      setDirection(1);
-      setSelectedIndex((prev) => wrap(0, features.length, prev + 1));
-    }, 5000); // Change slide every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [features.length]);
+    // Add random offset (0-2 seconds) so each instance doesn't sync
+    const offset = (parseInt(instanceId.slice(-2), 36) % 2000);
+    let intervalId = null;
+    
+    const timeoutId = setTimeout(() => {
+      intervalId = setInterval(() => {
+        setDirection(1);
+        setSelectedIndex((prev) => wrap(0, features.length, prev + 1));
+      }, 5000); // Change slide every 5 seconds
+    }, offset);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [features.length, instanceId]);
 
   function setSlide(newDirection) {
     const nextIndex = wrap(0, features.length, selectedIndex + newDirection);
