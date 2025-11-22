@@ -215,7 +215,17 @@ export default function MarketsPage({ markets=[], limit, category }){
           console.log("🔵 Features API response:", j);
           if (j.ok && Array.isArray(j.data)) {
             console.log("🔵 Loaded", j.data.length, "features:", j.data);
-            setFeatures(j.data);
+            // Only update if features actually changed (prevent unnecessary re-renders)
+            setFeatures(prev => {
+              const prevIds = prev.map(f => f.id).sort().join(',');
+              const newIds = j.data.map(f => f.id).sort().join(',');
+              if (prevIds !== newIds) {
+                console.log("🔵 Features changed, updating:", { prevIds, newIds });
+                return j.data;
+              }
+              console.log("🔵 Features unchanged, keeping previous");
+              return prev;
+            });
           } else {
             console.warn("🔵 Features response not ok or not array:", j);
           }

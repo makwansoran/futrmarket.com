@@ -16,10 +16,8 @@ export default function FeatureCarousel({ features = [] }) {
   const mountTime = useRef(Date.now() + Math.random()).current;
   const instanceId = useRef(`${sessionId}_${mountTime}`).current;
   
-  // Log for debugging (dev mode only)
-  if (import.meta.env.DEV) {
-    console.log('🔵 FeatureCarousel mounted with instanceId:', instanceId);
-  }
+  // Log for debugging (always log to help diagnose)
+  console.log('🔵 FeatureCarousel mounted with instanceId:', instanceId, 'sessionId:', sessionId);
   
   const [selectedIndex, setSelectedIndex] = useState(() => {
     // Initialize with random index to prevent sync
@@ -43,13 +41,13 @@ export default function FeatureCarousel({ features = [] }) {
   
   // Track manual control to prevent auto-play from interfering
   const handleManualSlide = React.useCallback((newDirection) => {
-    if (import.meta.env.DEV) {
-      console.log(`🔵 [${instanceId}] Manual slide triggered:`, { 
-        direction: newDirection,
-        currentIndex: selectedIndex,
-        sessionId: sessionId 
-      });
-    }
+    console.log(`🔵 [${instanceId}] ⚡ MANUAL CLICK - Manual slide triggered:`, { 
+      direction: newDirection,
+      currentIndex: selectedIndex,
+      sessionId: sessionId,
+      timestamp: Date.now(),
+      stack: new Error().stack
+    });
     isManualControl.current = true;
     setSlide(newDirection);
     // Reset manual control flag after a delay
@@ -84,14 +82,13 @@ export default function FeatureCarousel({ features = [] }) {
 
   const setSlide = React.useCallback((newDirection) => {
     const nextIndex = wrap(0, features.length, selectedIndex + newDirection);
-    if (import.meta.env.DEV) {
-      console.log(`🔵 [${instanceId}] Carousel slide:`, { 
-        from: selectedIndex, 
-        to: nextIndex, 
-        direction: newDirection,
-        sessionId: sessionId 
-      });
-    }
+    console.log(`🔵 [${instanceId}] Carousel slide:`, { 
+      from: selectedIndex, 
+      to: nextIndex, 
+      direction: newDirection,
+      sessionId: sessionId,
+      timestamp: Date.now()
+    });
     setSelectedIndex(nextIndex);
     setDirection(newDirection);
   }, [features.length, selectedIndex, instanceId, sessionId]);
