@@ -191,7 +191,7 @@ export default function FeatureCarousel({ features = [], subjects = [] }) {
   );
 }
 
-function FeatureSlide({ feature, direction }) {
+function FeatureSlide({ feature, direction, subjects = [] }) {
   const slideVariants = {
     enter: (dir) => ({
       x: dir > 0 ? '100%' : '-100%',
@@ -215,6 +215,13 @@ function FeatureSlide({ feature, direction }) {
     }),
   };
 
+  // Check if feature has a subject link (via subjectSlug or subject_id)
+  const subject = feature.subjectSlug 
+    ? subjects.find(s => s.slug === feature.subjectSlug)
+    : feature.subject_id
+    ? subjects.find(s => s.id === feature.subject_id)
+    : null;
+  
   const content = feature.url ? (
     <a
       href={feature.url}
@@ -222,10 +229,14 @@ function FeatureSlide({ feature, direction }) {
       rel="noopener noreferrer"
       className="block"
     >
-      <FeatureCardContent feature={feature} />
+      <FeatureCardContent feature={feature} subject={subject} />
     </a>
+  ) : subject ? (
+    <Link to={`/subjects/${subject.slug}`} className="block">
+      <FeatureCardContent feature={feature} subject={subject} />
+    </Link>
   ) : (
-    <FeatureCardContent feature={feature} />
+    <FeatureCardContent feature={feature} subject={subject} />
   );
 
   return (
