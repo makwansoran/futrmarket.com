@@ -3,11 +3,24 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getSessionId } from "../lib/sessionId.js";
 
-// Helper function to wrap index
-function wrap(min, max, value) {
-  const range = max - min;
-  if (range === 0) return min;
-  return ((value - min) % range + range) % range + min;
+// Helper function to wrap index - ensures endless looping
+function wrapIndex(currentIndex, direction, arrayLength) {
+  if (arrayLength === 0) return 0;
+  if (arrayLength === 1) return 0;
+  
+  // Calculate next index
+  let nextIndex = currentIndex + direction;
+  
+  // Loop forward: if past the end, go to beginning
+  if (nextIndex >= arrayLength) {
+    nextIndex = 0;
+  }
+  // Loop backward: if before the start, go to end
+  else if (nextIndex < 0) {
+    nextIndex = arrayLength - 1;
+  }
+  
+  return nextIndex;
 }
 
 export default function FeatureCarousel({ features = [] }) {
@@ -79,11 +92,13 @@ export default function FeatureCarousel({ features = [] }) {
   // Removed auto-play to prevent unwanted movement
 
   const setSlide = React.useCallback((newDirection) => {
-    const nextIndex = wrap(0, features.length, selectedIndex + newDirection);
+    // Always loop - no stopping at ends
+    const nextIndex = wrapIndex(selectedIndex, newDirection, features.length);
     console.log(`🔵 [${instanceId}] Carousel slide:`, { 
       from: selectedIndex, 
       to: nextIndex, 
       direction: newDirection,
+      totalFeatures: features.length,
       sessionId: sessionId,
       timestamp: Date.now()
     });
@@ -132,8 +147,8 @@ export default function FeatureCarousel({ features = [] }) {
           </div>
         </div>
 
-        {/* Next Button */}
-        {features.length > 1 && (
+        {/* Next Button - Always show if there are features */}
+        {features.length > 0 && (
           <motion.button
             initial={false}
             animate={{ 
