@@ -104,7 +104,7 @@ export default function FeatureCarousel({ features = [] }) {
   const currentFeature = features[selectedIndex];
 
   return (
-    <div className="mb-12 relative w-full">
+    <div className="mb-24 relative w-full">
       <div className="relative flex items-center justify-center gap-4 w-full">
         {/* Previous Button - Always show if there are features (even with 1, for consistency) */}
         {features.length > 0 && (
@@ -164,7 +164,7 @@ export default function FeatureCarousel({ features = [] }) {
 
       {/* Dots Indicator */}
       {features.length > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-32 mb-8">
+        <div className="flex items-center justify-center gap-2 mt-48 mb-8">
           {features.map((_, index) => (
             <button
               key={index}
