@@ -223,7 +223,13 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
     ? subjects.find(s => s.id === feature.subject_id)
     : null;
   
-  const content = feature.url ? (
+  // Priority: Subject link > External URL > No link
+  // If feature has a subject, always link to the subject page
+  const content = subject ? (
+    <Link to={`/subjects/${subject.slug}`} className="block">
+      <FeatureCardContent feature={feature} subject={subject} />
+    </Link>
+  ) : feature.url ? (
     <a
       href={feature.url}
       target="_blank"
@@ -232,10 +238,6 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
     >
       <FeatureCardContent feature={feature} subject={subject} />
     </a>
-  ) : subject ? (
-    <Link to={`/subjects/${subject.slug}`} className="block">
-      <FeatureCardContent feature={feature} subject={subject} />
-    </Link>
   ) : (
     <FeatureCardContent feature={feature} subject={subject} />
   );
@@ -317,11 +319,11 @@ function FeatureCardContent({ feature, subject }) {
         
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 lg:p-16">
           <div className="max-w-4xl">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 leading-tight drop-shadow-lg">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 md:mb-6 leading-tight drop-shadow-lg">
               {feature.title}
             </h2>
             {feature.description && (
-              <p className="text-xl md:text-2xl lg:text-3xl text-gray-200 leading-relaxed drop-shadow-md">
+              <p className="text-base md:text-lg lg:text-xl text-gray-200 leading-relaxed drop-shadow-md">
                 {feature.description}
               </p>
             )}
