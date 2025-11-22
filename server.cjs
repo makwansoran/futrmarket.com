@@ -1307,12 +1307,65 @@ function calculateBuyCost(contract, amountUSD) {
 }
 
 // Upload image endpoint
-app.post("/api/upload", requireAdmin, upload.single("image"), (req, res) => {
+app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ ok: false, error: "No file uploaded" });
   }
-  const url = "/uploads/" + req.file.filename;
-  return res.json({ ok: true, url, filename: req.file.filename });
+  
+  try {
+    // If Supabase is enabled, upload to Supabase Storage for persistence
+    if (isSupabaseEnabled()) {
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const fileName = req.file.filename;
+      const filePath = `uploads/${fileName}`;
+      
+      // Upload to Supabase Storage bucket 'public' (or create 'uploads' bucket)
+      const { data, error } = await supabase.storage
+        .from('public')
+        .upload(filePath, fileBuffer, {
+          contentType: req.file.mimetype,
+          upsert: true // Overwrite if exists
+        });
+      
+      if (error) {
+        console.error("[UPLOAD] Supabase Storage error:", error);
+        // Fallback to local storage
+        const url = "/uploads/" + req.file.filename;
+        return res.json({ ok: true, url, filename: req.file.filename });
+      }
+      
+      // Get public URL from Supabase Storage
+      const { data: urlData } = supabase.storage
+        .from('public')
+        .getPublicUrl(filePath);
+      
+      const publicUrl = urlData.publicUrl;
+      console.log("[UPLOAD] File uploaded to Supabase Storage:", {
+        filename: fileName,
+        path: filePath,
+        url: publicUrl
+      });
+      
+      // Clean up local file
+      fs.unlinkSync(req.file.path);
+      
+      return res.json({ ok: true, url: publicUrl, filename: fileName });
+    }
+    
+    // Fallback to local storage (for development)
+    const url = "/uploads/" + req.file.filename;
+    console.log("[UPLOAD] File uploaded to local storage:", {
+      filename: req.file.filename,
+      path: req.file.path,
+      url: url,
+      size: req.file.size,
+      warning: "Local storage is ephemeral on Render - files will be lost on restart"
+    });
+    return res.json({ ok: true, url, filename: req.file.filename });
+  } catch (error) {
+    console.error("[UPLOAD] Upload error:", error);
+    return res.status(500).json({ ok: false, error: error.message || "Upload failed" });
+  }
 });
 
 // Calculate proceeds from selling contracts
