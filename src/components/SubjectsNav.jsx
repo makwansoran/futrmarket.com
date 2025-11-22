@@ -7,45 +7,69 @@ export default function SubjectsNav() {
   const [subjects, setSubjects] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
-  // Only show subjects nav when NOT on homepage (where feature cards are)
+  // Load subjects on all pages (they should be visible everywhere except maybe homepage)
   const isHomepage = location.pathname === "/";
   
   React.useEffect(() => {
-    // Only load subjects if not on homepage
-    if (isHomepage) {
-      setLoading(false);
-      return;
-    }
-    
     async function loadSubjects() {
       try {
-        const r = await fetch(getApiUrl("/api/subjects"));
+        const apiUrl = getApiUrl("/api/subjects");
+        console.log("🔵 SubjectsNav: Fetching subjects from:", apiUrl);
+        const r = await fetch(apiUrl);
+        console.log("🔵 SubjectsNav: Response status:", r.status);
         if (r.ok) {
           const j = await r.json();
+          console.log("🔵 SubjectsNav: Response data:", j);
           if (j.ok && j.data) {
+            console.log("🔵 SubjectsNav: Found", j.data.length, "subjects:", j.data.map(s => ({ id: s.id, name: s.name, slug: s.slug })));
             setSubjects(j.data);
+          } else {
+            console.warn("🔵 SubjectsNav: Invalid response format:", j);
           }
+        } else {
+          console.error("🔵 SubjectsNav: Failed to fetch subjects, status:", r.status);
         }
       } catch (e) {
-        console.error("Failed to load subjects:", e);
+        console.error("🔵 SubjectsNav: Failed to load subjects:", e);
       } finally {
         setLoading(false);
       }
     }
+    // Always load subjects, even on homepage (they might be needed for linking)
     loadSubjects();
-  }, [isHomepage]);
+  }, []);
 
-  // Don't show on homepage (subjects will be linked to feature cards instead)
-  if (isHomepage || loading || subjects.length === 0) {
+  console.log("🔵 SubjectsNav: Render check - isHomepage:", isHomepage, "loading:", loading, "subjects.length:", subjects.length);
+
+  // Show loading state
+  if (loading) {
+    console.log("🔵 SubjectsNav: Still loading subjects...");
+    return (
+      <nav className="sticky top-[98px] z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-center gap-1">
+            <div className="text-gray-400 text-sm py-3">Loading subjects...</div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+  
+  // Always render navbar if we have subjects, even on homepage
+  // On homepage, subjects are also used for feature card linking
+  if (subjects.length === 0) {
+    console.log("🔵 SubjectsNav: No subjects found, not rendering navbar");
     return null;
   }
+  
+  console.log("🔵 SubjectsNav: RENDERING NAVBAR with", subjects.length, "subjects");
 
   const isActive = (slug) => {
     return location.pathname === `/subjects/${slug}` || location.pathname.startsWith(`/subjects/${slug}/`);
   };
 
   return (
-    <nav className="sticky top-[56px] z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50">
+    <nav className="sticky top-[98px] z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-center gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitScrollbar: 'none' }}>
           {subjects.map((subject) => {

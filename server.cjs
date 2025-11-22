@@ -1326,9 +1326,11 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       const fileName = req.file.filename;
       const filePath = `uploads/${fileName}`;
       
-      // Upload to Supabase Storage bucket 'featurecards'
+      // Use 'contracts' bucket for contract images (or 'uploads' as fallback)
+      const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'contracts';
+      
       console.log("[UPLOAD] Attempting to upload to Supabase Storage:", {
-        bucket: 'featurecards',
+        bucket: bucketName,
         filePath: filePath,
         fileName: fileName,
         size: fileBuffer.length,
@@ -1337,7 +1339,7 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       });
       
       // First, check if bucket exists and create it if it doesn't
-      console.log("[UPLOAD] Listing buckets to check if 'featurecards' exists...");
+      console.log(`[UPLOAD] Listing buckets to check if '${bucketName}' exists...`);
       const { data: buckets, error: listError } = await supabase.storage.listBuckets();
       
       if (listError) {
@@ -1350,10 +1352,10 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       
       console.log("[UPLOAD] Available buckets:", buckets?.map(b => b.name) || []);
       
-      const bucketExists = buckets?.some(b => b.name === 'featurecards');
+      const bucketExists = buckets?.some(b => b.name === bucketName);
       if (!bucketExists) {
-        console.log("[UPLOAD] Bucket 'featurecards' not found, attempting to create it...");
-        const { data: newBucket, error: createError } = await supabase.storage.createBucket('featurecards', {
+        console.log(`[UPLOAD] Bucket '${bucketName}' not found, attempting to create it...`);
+        const { data: newBucket, error: createError } = await supabase.storage.createBucket(bucketName, {
           public: true,
           fileSizeLimit: 5242880, // 5MB
           allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -1363,16 +1365,16 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
           console.error("[UPLOAD] Failed to create bucket:", createError);
           return res.status(500).json({ 
             ok: false, 
-            error: `Failed to create storage bucket: ${createError.message}. Please create 'featurecards' bucket manually in Supabase Dashboard.` 
+            error: `Failed to create storage bucket: ${createError.message}. Please create '${bucketName}' bucket manually in Supabase Dashboard.` 
           });
         }
-        console.log("[UPLOAD] Bucket 'featurecards' created successfully");
+        console.log(`[UPLOAD] Bucket '${bucketName}' created successfully`);
       } else {
-        console.log("[UPLOAD] Bucket 'featurecards' exists, proceeding with upload...");
+        console.log(`[UPLOAD] Bucket '${bucketName}' exists, proceeding with upload...`);
       }
       
       const { data, error } = await supabase.storage
-        .from('featurecards')
+        .from(bucketName)
         .upload(filePath, fileBuffer, {
           contentType: req.file.mimetype,
           upsert: true // Overwrite if exists
@@ -1384,36 +1386,36 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
         console.error("[UPLOAD] Error message:", error.message);
         console.error("[UPLOAD] Error statusCode:", error.statusCode);
         
-        // Return error instead of silently falling back
-        return res.status(500).json({ 
-          ok: false, 
-          error: `Supabase Storage upload failed: ${error.message || JSON.stringify(error)}` 
+        // If bucket creation or upload fails, fall back to local storage
+        console.warn("[UPLOAD] Falling back to local storage due to Supabase error");
+        // Continue to local storage fallback below
+      } else {
+        // Upload was successful, return the Supabase URL
+        console.log("[UPLOAD] Upload successful, data:", data);
+        
+        // Get public URL from Supabase Storage
+        const { data: urlData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath);
+        
+        const publicUrl = urlData.publicUrl;
+        console.log("[UPLOAD] File uploaded to Supabase Storage:", {
+          filename: fileName,
+          path: filePath,
+          url: publicUrl,
+          urlData: urlData,
+          bucket: bucketName
         });
+        
+        // Clean up local file
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkError) {
+          console.warn("[UPLOAD] Could not delete local file:", unlinkError);
+        }
+        
+        return res.json({ ok: true, url: publicUrl, filename: fileName });
       }
-      
-      console.log("[UPLOAD] Upload successful, data:", data);
-      
-      // Get public URL from Supabase Storage
-      const { data: urlData } = supabase.storage
-        .from('featurecards')
-        .getPublicUrl(filePath);
-      
-      const publicUrl = urlData.publicUrl;
-      console.log("[UPLOAD] File uploaded to Supabase Storage:", {
-        filename: fileName,
-        path: filePath,
-        url: publicUrl,
-        urlData: urlData
-      });
-      
-      // Clean up local file
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkError) {
-        console.warn("[UPLOAD] Could not delete local file:", unlinkError);
-      }
-      
-      return res.json({ ok: true, url: publicUrl, filename: fileName });
     } else {
       console.log("[UPLOAD] Supabase not enabled, using local storage");
     }
@@ -2593,16 +2595,28 @@ app.post("/api/features/create", requireAdmin, async (req, res) => {
       status: String(status || "Draft").trim(),
       image_url: imageUrl ? String(imageUrl).trim() : null,
       url: url ? String(url).trim() : null,
-      subject_id: subjectId ? String(subjectId).trim() : null,
       created_at: Date.now()
     };
     
+    // Only include subject_id if it has a value (to avoid schema errors if column doesn't exist)
+    if (subjectId && String(subjectId).trim()) {
+      featureData.subject_id = String(subjectId).trim();
+    }
+    
     const feature = await createFeature(featureData);
     
-    // Fetch subject to include slug
-    const { getAllSubjects } = require("./lib/db.cjs");
-    const allSubjects = await getAllSubjects();
-    const subject = feature.subject_id ? allSubjects.find(s => s.id === feature.subject_id) : null;
+    // Fetch subject to include slug (only if subject_id exists and subjects table is available)
+    let subject = null;
+    if (feature.subject_id) {
+      try {
+        const { getAllSubjects } = require("./lib/db.cjs");
+        const allSubjects = await getAllSubjects();
+        subject = allSubjects.find(s => s.id === feature.subject_id) || null;
+      } catch (error) {
+        console.warn("[FEATURES] Could not fetch subjects for slug lookup:", error.message);
+        // Continue without subject slug - not critical
+      }
+    }
     
     // Map database response to API format
     const mappedFeature = {
@@ -2659,75 +2673,137 @@ app.delete("/api/features/:id", requireAdmin, async (req, res) => {
 
 // ---- Sports Competitions endpoints ----
 // Get all competitions
-app.get("/api/competitions", (req, res) => {
-  const competitions = loadJSON(COMPETITIONS_FILE);
-  const competitionList = Object.values(competitions).map(c => {
+app.get("/api/competitions", async (req, res) => {
+  try {
+    const { getAllCompetitions } = require("./lib/db.cjs");
+    const competitions = await getAllCompetitions();
+    
+    // Map database fields (snake_case) to API format (camelCase)
     // Ensure all competitions have a slug (for backwards compatibility)
-    if (!c.slug && c.name) {
-      c.slug = c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    }
-    return c;
-  });
-  const sorted = competitionList.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-  res.json({ ok: true, data: sorted });
+    const competitionList = competitions.map(c => {
+      const mapped = {
+        id: c.id,
+        name: c.name,
+        slug: c.slug || (c.name ? c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : ""),
+        imageUrl: c.image_url || c.imageUrl || null,
+        createdAt: c.created_at || c.createdAt || Date.now(),
+        order: c.order || 0
+      };
+      return mapped;
+    });
+    
+    // Sort by order if available, otherwise by name
+    const sorted = competitionList.sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
+      return (a.name || "").localeCompare(b.name || "");
+    });
+    
+    res.json({ ok: true, data: sorted });
+  } catch (error) {
+    console.error("Error fetching competitions:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch competitions" });
+  }
 });
 
 // Create a new competition (admin only)
-app.post("/api/competitions", requireAdmin, (req, res) => {
-  const name = String(req.body.name || "").trim();
-  const imageUrl = req.body.imageUrl ? String(req.body.imageUrl).trim() : null;
-  
-  if (!name) return res.status(400).json({ ok: false, error: "Name required" });
-  
-  // Generate slug from name
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  
-  const competitions = loadJSON(COMPETITIONS_FILE);
-  
-  // Check if name already exists
-  const existing = Object.values(competitions).find(c => c.name.toLowerCase() === name.toLowerCase());
-  if (existing) {
-    return res.status(400).json({ ok: false, error: "A competition with this name already exists" });
+app.post("/api/competitions", requireAdmin, async (req, res) => {
+  try {
+    const { getAllCompetitions, createCompetition } = require("./lib/db.cjs");
+    const name = String(req.body.name || "").trim();
+    const imageUrl = req.body.imageUrl ? String(req.body.imageUrl).trim() : null;
+    
+    if (!name) return res.status(400).json({ ok: false, error: "Name required" });
+    
+    // Generate slug from name
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    
+    // Check if name already exists
+    const existingCompetitions = await getAllCompetitions();
+    const existing = existingCompetitions.find(c => c.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      return res.status(400).json({ ok: false, error: "A competition with this name already exists" });
+    }
+    
+    const competitionId = `comp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Prepare competition data (using snake_case for database)
+    const competitionData = {
+      id: competitionId,
+      name: name,
+      slug: slug,
+      image_url: imageUrl,
+      created_at: Date.now(),
+      order: existingCompetitions.length // For ordering in nav
+    };
+    
+    const competition = await createCompetition(competitionData);
+    
+    // Map database response to API format (camelCase)
+    const mappedCompetition = {
+      id: competition.id,
+      name: competition.name,
+      slug: competition.slug,
+      imageUrl: competition.image_url || competition.imageUrl || null,
+      createdAt: competition.created_at || competition.createdAt || Date.now(),
+      order: competition.order || 0
+    };
+    
+    res.json({ ok: true, data: mappedCompetition });
+  } catch (error) {
+    console.error("Error creating competition:", error);
+    
+    // Provide helpful error message if table doesn't exist
+    let errorMessage = error.message || "Failed to create competition";
+    if (error.message && error.message.includes("does not exist")) {
+      errorMessage = "competitions table does not exist in database. Please run the migration SQL in Supabase Dashboard → SQL Editor:\n\n" +
+        "CREATE TABLE IF NOT EXISTS public.competitions (\n" +
+        "  id TEXT PRIMARY KEY,\n" +
+        "  name TEXT NOT NULL UNIQUE,\n" +
+        "  slug TEXT NOT NULL UNIQUE,\n" +
+        "  image_url TEXT,\n" +
+        "  created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,\n" +
+        "  \"order\" INTEGER NOT NULL DEFAULT 0\n" +
+        ");";
+    }
+    
+    res.status(500).json({ ok: false, error: errorMessage });
   }
-  
-  const competitionId = `comp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  const competition = {
-    id: competitionId,
-    name,
-    slug: slug,
-    imageUrl: imageUrl,
-    createdAt: Date.now(),
-    order: Object.keys(competitions).length // For ordering in nav
-  };
-  
-  competitions[competitionId] = competition;
-  saveJSON(COMPETITIONS_FILE, competitions);
-  
-  res.json({ ok: true, data: competition });
 });
 
 // Delete competition (admin only)
-app.delete("/api/competitions/:id", requireAdmin, (req, res) => {
-  const competitionId = String(req.params.id || "").trim();
-  const competitions = loadJSON(COMPETITIONS_FILE);
-  
-  if (!competitions[competitionId]) return res.status(404).json({ ok: false, error: "Competition not found" });
-  
-  delete competitions[competitionId];
-  saveJSON(COMPETITIONS_FILE, competitions);
-  res.json({ ok: true, message: "Competition deleted" });
+app.delete("/api/competitions/:id", requireAdmin, async (req, res) => {
+  try {
+    const { deleteCompetition, getAllCompetitions } = require("./lib/db.cjs");
+    const competitionId = String(req.params.id || "").trim();
+    
+    // Check if competition exists
+    const allCompetitions = await getAllCompetitions();
+    const existing = allCompetitions.find(c => c.id === competitionId);
+    if (!existing) {
+      return res.status(404).json({ ok: false, error: "Competition not found" });
+    }
+    
+    await deleteCompetition(competitionId);
+    res.json({ ok: true, message: "Competition deleted" });
+  } catch (error) {
+    console.error("Error deleting competition:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to delete competition" });
+  }
 });
 
 // ---- Subjects endpoints ----
 // Get all subjects
 app.get("/api/subjects", async (req, res) => {
   try {
+    console.log("[API] GET /api/subjects - Fetching all subjects...");
     const { getAllSubjects } = require("./lib/db.cjs");
     const subjects = await getAllSubjects();
+    console.log("[API] GET /api/subjects - Found", subjects.length, "subjects:", subjects.map(s => ({ id: s.id, name: s.name, slug: s.slug })));
     res.json({ ok: true, data: subjects });
   } catch (error) {
-    console.error("Error fetching subjects:", error);
+    console.error("[API] Error fetching subjects:", error);
     res.status(500).json({ ok: false, error: error.message || "Failed to fetch subjects" });
   }
 });
@@ -2767,7 +2843,22 @@ app.post("/api/subjects", requireAdmin, async (req, res) => {
     res.json({ ok: true, data: subject });
   } catch (error) {
     console.error("Error creating subject:", error);
-    res.status(500).json({ ok: false, error: error.message || "Failed to create subject" });
+    
+    // Provide helpful error message if table doesn't exist
+    let errorMessage = error.message || "Failed to create subject";
+    if (error.message && error.message.includes("does not exist")) {
+      errorMessage = "subjects table does not exist in database. Please run the migration SQL in Supabase Dashboard → SQL Editor:\n\n" +
+        "CREATE TABLE IF NOT EXISTS public.subjects (\n" +
+        "  id TEXT PRIMARY KEY,\n" +
+        "  name TEXT NOT NULL UNIQUE,\n" +
+        "  slug TEXT NOT NULL UNIQUE,\n" +
+        "  description TEXT,\n" +
+        "  created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,\n" +
+        "  \"order\" INTEGER NOT NULL DEFAULT 0\n" +
+        ");";
+    }
+    
+    res.status(500).json({ ok: false, error: errorMessage });
   }
 });
 

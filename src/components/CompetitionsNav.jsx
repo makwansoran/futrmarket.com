@@ -2,6 +2,25 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getApiUrl } from "/src/api.js";
 
+// Helper to convert relative URLs to absolute
+const getImageUrl = (url) => {
+  if (!url) return null;
+  // If it's already an absolute URL (http/https), return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  // If it's a Supabase Storage URL, return as is
+  if (url.includes('supabase.co') || url.includes('supabase')) {
+    return url;
+  }
+  // If it's a relative path, make it absolute
+  if (url.startsWith('/')) {
+    const apiBase = getApiUrl('');
+    return apiBase + url;
+  }
+  return url;
+};
+
 export default function CompetitionsNav() {
   const [competitions, setCompetitions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,6 +29,9 @@ export default function CompetitionsNav() {
 
   // Only show on sports page (including /markets/sports and /markets/sports/:competitionSlug)
   const isSportsPage = location.pathname.startsWith("/markets/sports");
+  
+  // VERSION MARKER: If you see this log, you're running the NEW code (v2.0)
+  console.log("🔵 CompetitionsNav v2.0: isSportsPage =", isSportsPage, "pathname =", location.pathname);
   
   useEffect(() => {
     async function fetchCompetitions() {
@@ -23,32 +45,56 @@ export default function CompetitionsNav() {
           console.log("🔵 CompetitionsNav: Competitions data:", data);
           if (data.ok && Array.isArray(data.data)) {
             console.log("🔵 CompetitionsNav: Found", data.data.length, "competitions");
-            setCompetitions(data.data);
+            // Filter out any null/undefined entries and ensure we have valid competitions
+            const validCompetitions = data.data.filter(c => c && c.id && c.name);
+            console.log("🔵 CompetitionsNav: Valid competitions:", validCompetitions.length);
+            // Log each competition's imageUrl for debugging
+            validCompetitions.forEach(c => {
+              console.log(`🔵 CompetitionsNav: Competition "${c.name}": imageUrl =`, c.imageUrl, "type:", typeof c.imageUrl);
+            });
+            setCompetitions(validCompetitions);
+            console.log("🔵 CompetitionsNav: Set competitions state, will render navbar with", validCompetitions.length, "competitions (navbar will ALWAYS show 'All Sports' button)");
           } else {
             console.warn("🔵 CompetitionsNav: Invalid data format:", data);
+            setCompetitions([]);
           }
         } else {
           console.error("🔵 CompetitionsNav: Failed to fetch competitions, status:", res.status);
+          setCompetitions([]);
         }
       } catch (error) {
         console.error("🔵 CompetitionsNav: Failed to load competitions:", error);
+        setCompetitions([]);
       } finally {
         setLoading(false);
       }
     }
     // Only fetch if we're on a sports page
     if (isSportsPage) {
+      console.log("🔵 CompetitionsNav: Fetching competitions because we're on sports page");
       fetchCompetitions();
+    } else {
+      console.log("🔵 CompetitionsNav: Not on sports page, resetting");
+      // Reset competitions when not on sports page
+      setCompetitions([]);
+      setLoading(false);
     }
   }, [isSportsPage]);
 
+  // ALWAYS render on sports pages - NO EARLY RETURNS
   if (!isSportsPage) {
+    console.log("🔵 CompetitionsNav: Not rendering because not on sports page. pathname =", location.pathname);
     return null;
   }
+  
+  // FORCE RENDER - This log proves new code is running
+  console.log("🔵 CompetitionsNav v2.0: Rendering navbar, loading =", loading, "competitions.length =", competitions.length, "isSportsPage =", isSportsPage);
+  console.error("🔴🔴🔴 NEW CODE RUNNING - If you see this, cache is cleared! 🔴🔴🔴");
 
   if (loading) {
+    console.log("🔵 CompetitionsNav: Showing loading state");
     return (
-      <nav className="sticky top-[105px] z-9 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50">
+      <nav className="sticky top-[140px] z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ display: 'block', visibility: 'visible' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center justify-center gap-2">
             <div className="text-gray-400 text-sm">Loading competitions...</div>
@@ -57,16 +103,10 @@ export default function CompetitionsNav() {
       </nav>
     );
   }
-
-  if (competitions.length === 0 && !loading) {
-    console.log("🔵 CompetitionsNav: No competitions found, not rendering");
-    return null;
-  }
   
-  if (competitions.length === 0 && loading) {
-    // Already handled by loading state above
-    return null;
-  }
+  console.log("🔵 CompetitionsNav: Not loading, competitions.length =", competitions.length);
+  console.log("🔵 CompetitionsNav: About to render navbar - will show 'All Sports' button +", competitions.length, "competitions");
+  console.log("🔵 CompetitionsNav: FORCE RENDER - This navbar MUST always render on sports pages, even with 0 competitions");
 
   const handleCompetitionClick = (competition) => {
     // Navigate to sports page filtered by competition
@@ -80,12 +120,36 @@ export default function CompetitionsNav() {
     navigate(targetPath);
   };
 
+  // Calculate top position: Header (56px) + CategoryNav (~42px) + SubjectsNav (~42px) = 140px
+  // But if SubjectsNav is not visible, adjust accordingly
+  const topPosition = "140px"; // Below SubjectsNav
+  
+  console.log("🔵 CompetitionsNav: RENDERING NAVBAR NOW - competitions.length =", competitions.length, "isSportsPage =", isSportsPage);
+  console.log("🔵 CompetitionsNav: NAVBAR WILL RENDER - NO EARLY RETURNS AFTER THIS POINT");
+  console.error("🔴 FORCE VISIBLE - CompetitionsNav is rendering NOW with", competitions.length, "competitions");
+  
+  // CRITICAL: This navbar MUST always render on sports pages, even with 0 competitions
+  // The "All Sports" button should always be visible
   return (
-    <nav className="sticky top-[105px] z-9 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+    <nav 
+      className="sticky top-[140px] z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" 
+      style={{ 
+        display: 'block !important', 
+        visibility: 'visible !important', 
+        minHeight: '60px',
+        position: 'sticky',
+        top: '140px',
+        zIndex: 100,
+        backgroundColor: 'rgba(3, 7, 18, 0.95)',
+        width: '100%',
+        opacity: 1
+      }}
+      data-testid="competitions-navbar"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3" style={{ minHeight: '60px', display: 'flex', alignItems: 'center' }}>
         <div 
           className="flex items-center justify-center gap-4 overflow-x-auto"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', width: '100%' }}
         >
           {/* Add "All Sports" button to show all sports bets */}
           <button
@@ -96,8 +160,9 @@ export default function CompetitionsNav() {
                 : "hover:bg-gray-800/50"
             }`}
             title="All Sports"
+            style={{ minWidth: '80px' }}
           >
-            <div className="w-12 h-12 rounded-full bg-gray-700 border-2 border-gray-600 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-gray-700 border-2 border-gray-600 flex items-center justify-center" style={{ display: 'flex' }}>
               <span className="text-gray-300 text-xs font-semibold">ALL</span>
             </div>
             <span className={`text-xs text-center whitespace-nowrap ${
@@ -112,7 +177,22 @@ export default function CompetitionsNav() {
             // Ensure slug exists, or generate one from name (for old competitions)
             const slug = competition.slug || competition.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
             const isActive = location.pathname === `/markets/sports/${slug}`;
-            console.log("🔵 CompetitionsNav: Competition:", { name: competition.name, slug, isActive, pathname: location.pathname });
+            console.log("🔵 CompetitionsNav: Competition:", { 
+              id: competition.id,
+              name: competition.name, 
+              slug, 
+              imageUrl: competition.imageUrl,
+              isActive, 
+              pathname: location.pathname 
+            });
+            const imageUrl = competition.imageUrl || competition.image_url;
+            const fullImageUrl = imageUrl ? getImageUrl(imageUrl) : null;
+            console.log(`🔵 CompetitionsNav: Rendering "${competition.name}":`, {
+              imageUrl: imageUrl,
+              fullImageUrl: fullImageUrl,
+              hasImage: !!imageUrl
+            });
+            
             return (
             <button
               key={competition.id}
@@ -124,14 +204,28 @@ export default function CompetitionsNav() {
               }`}
               title={competition.name}
             >
-              {competition.imageUrl ? (
+              {fullImageUrl ? (
                 <img
-                  src={competition.imageUrl}
+                  src={fullImageUrl}
                   alt={competition.name}
                   className="w-12 h-12 rounded-full object-cover border-2 border-gray-700 group-hover:border-blue-500 transition-colors"
+                  style={{ width: '48px', height: '48px', display: 'block', objectFit: 'cover' }}
+                  onError={(e) => {
+                    console.error("🔴 CompetitionsNav: Image failed to load:", {
+                      original: imageUrl,
+                      full: fullImageUrl,
+                      competition: competition.name
+                    });
+                    // Show fallback instead
+                    e.target.style.display = 'none';
+                  }}
+                  onLoad={() => {
+                    console.log("✅ CompetitionsNav: Image loaded successfully:", fullImageUrl);
+                  }}
                 />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-gray-700 border-2 border-gray-600 flex items-center justify-center">
+              ) : null}
+              {!fullImageUrl && (
+                <div className="w-12 h-12 rounded-full bg-gray-700 border-2 border-gray-600 flex items-center justify-center" style={{ width: '48px', height: '48px' }}>
                   <span className="text-gray-400 text-xs font-semibold">
                     {competition.name.charAt(0).toUpperCase()}
                   </span>
