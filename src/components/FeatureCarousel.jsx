@@ -59,15 +59,17 @@ export default function FeatureCarousel({ features = [] }) {
           </motion.button>
         )}
 
-        {/* Feature Card - Full width like Kalshi */}
-        <div className="flex-1 w-full">
-          <AnimatePresence mode="popLayout" custom={direction} initial={false}>
-            <FeatureSlide
-              key={selectedIndex}
-              feature={currentFeature}
-              direction={direction}
-            />
-          </AnimatePresence>
+        {/* Feature Card - Full width like Kalshi with fixed height container */}
+        <div className="flex-1 w-full relative" style={{ minHeight: '400px' }}>
+          <div className="relative w-full" style={{ minHeight: '400px' }}>
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <FeatureSlide
+                key={selectedIndex}
+                feature={currentFeature}
+                direction={direction}
+              />
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Next Button */}
@@ -120,7 +122,7 @@ export default function FeatureCarousel({ features = [] }) {
 function FeatureSlide({ feature, direction }) {
   const slideVariants = {
     enter: (dir) => ({
-      x: dir > 0 ? 300 : -300,
+      x: dir > 0 ? '100%' : '-100%',
       opacity: 0,
     }),
     center: {
@@ -132,7 +134,7 @@ function FeatureSlide({ feature, direction }) {
       },
     },
     exit: (dir) => ({
-      x: dir < 0 ? 300 : -300,
+      x: dir < 0 ? '100%' : '-100%',
       opacity: 0,
       transition: {
         x: { type: "spring", stiffness: 300, damping: 30 },
@@ -161,7 +163,7 @@ function FeatureSlide({ feature, direction }) {
       initial="enter"
       animate="center"
       exit="exit"
-      className="w-full"
+      className="w-full absolute inset-0"
     >
       {content}
     </motion.div>
