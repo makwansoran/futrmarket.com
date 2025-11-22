@@ -444,7 +444,8 @@ export default function MarketsPage({ markets=[], limit, category }){
       {isHomepage && features.length > 0 && (
         <FeatureCarousel 
           key={`carousel-${isHomepage ? 'home' : 'other'}-${features.length}`} 
-          features={features} 
+          features={features}
+          subjects={subjectsLoaded ? subjects : []}
         />
       )}
       

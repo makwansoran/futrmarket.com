@@ -7,7 +7,16 @@ export default function SubjectsNav() {
   const [subjects, setSubjects] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
+  // Only show subjects nav when NOT on homepage (where feature cards are)
+  const isHomepage = location.pathname === "/";
+  
   React.useEffect(() => {
+    // Only load subjects if not on homepage
+    if (isHomepage) {
+      setLoading(false);
+      return;
+    }
+    
     async function loadSubjects() {
       try {
         const r = await fetch(getApiUrl("/api/subjects"));
@@ -24,9 +33,10 @@ export default function SubjectsNav() {
       }
     }
     loadSubjects();
-  }, []);
+  }, [isHomepage]);
 
-  if (loading || subjects.length === 0) {
+  // Don't show on homepage (subjects will be linked to feature cards instead)
+  if (isHomepage || loading || subjects.length === 0) {
     return null;
   }
 

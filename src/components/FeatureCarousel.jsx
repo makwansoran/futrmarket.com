@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { getSessionId } from "../lib/sessionId.js";
 
 // Helper function to wrap index - ensures endless looping
@@ -23,7 +24,7 @@ function wrapIndex(currentIndex, direction, arrayLength) {
   return nextIndex;
 }
 
-export default function FeatureCarousel({ features = [] }) {
+export default function FeatureCarousel({ features = [], subjects = [] }) {
   // Generate unique instance ID - compute once at component level (not in hooks)
   const sessionId = getSessionId();
   const mountTime = Date.now() + Math.random();
@@ -129,13 +130,14 @@ export default function FeatureCarousel({ features = [] }) {
 
         {/* Feature Card - Full width like Kalshi with fixed height container */}
         <div className="flex-1 w-full relative" style={{ minHeight: '300px' }}>
-          <AnimatePresence mode="wait" custom={direction} initial={false}>
-            <FeatureSlide
-              key={selectedIndex}
-              feature={currentFeature}
-              direction={direction}
-            />
-          </AnimatePresence>
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <FeatureSlide
+                key={selectedIndex}
+                feature={currentFeature}
+                direction={direction}
+                subjects={subjects}
+              />
+            </AnimatePresence>
         </div>
 
         {/* Next Button - Always show if there are features */}
