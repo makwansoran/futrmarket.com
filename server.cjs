@@ -1320,6 +1320,14 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       const filePath = `uploads/${fileName}`;
       
       // Upload to Supabase Storage bucket 'featurecards'
+      console.log("[UPLOAD] Attempting to upload to Supabase Storage:", {
+        bucket: 'featurecards',
+        filePath: filePath,
+        fileName: fileName,
+        size: fileBuffer.length,
+        mimetype: req.file.mimetype
+      });
+      
       const { data, error } = await supabase.storage
         .from('featurecards')
         .upload(filePath, fileBuffer, {
@@ -1329,10 +1337,24 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       
       if (error) {
         console.error("[UPLOAD] Supabase Storage error:", error);
+        console.error("[UPLOAD] Error details:", JSON.stringify(error, null, 2));
+        
+        // Check if bucket doesn't exist
+        if (error.message && error.message.includes('Bucket not found')) {
+          console.error("[UPLOAD] Bucket 'featurecards' not found. Please create it in Supabase Dashboard.");
+          return res.status(500).json({ 
+            ok: false, 
+            error: "Storage bucket 'featurecards' not found. Please create it in Supabase Dashboard and make it public." 
+          });
+        }
+        
         // Fallback to local storage
         const url = "/uploads/" + req.file.filename;
+        console.log("[UPLOAD] Falling back to local storage:", url);
         return res.json({ ok: true, url, filename: req.file.filename });
       }
+      
+      console.log("[UPLOAD] Upload successful, data:", data);
       
       // Get public URL from Supabase Storage
       const { data: urlData } = supabase.storage
@@ -1343,11 +1365,16 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       console.log("[UPLOAD] File uploaded to Supabase Storage:", {
         filename: fileName,
         path: filePath,
-        url: publicUrl
+        url: publicUrl,
+        urlData: urlData
       });
       
       // Clean up local file
-      fs.unlinkSync(req.file.path);
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkError) {
+        console.warn("[UPLOAD] Could not delete local file:", unlinkError);
+      }
       
       return res.json({ ok: true, url: publicUrl, filename: fileName });
     }
