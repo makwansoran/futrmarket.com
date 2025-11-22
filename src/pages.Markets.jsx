@@ -181,9 +181,10 @@ export default function MarketsPage({ markets=[], limit, category }){
     }
   }, [urlCategory, competitionSlug, location.pathname]);
   
-  // Load subjects if we're on a subject page
+  // Load subjects if we're on a subject page OR on homepage (to link to feature cards)
   React.useEffect(() => {
-    if (isSubjectPage) {
+    const isHomepage = limit === true || location.pathname === "/";
+    if (isSubjectPage || isHomepage) {
       fetch(getApiUrl("/api/subjects"))
         .then(r => r.json())
         .then(j => {
@@ -196,7 +197,7 @@ export default function MarketsPage({ markets=[], limit, category }){
           console.error("Failed to load subjects:", e);
         });
     }
-  }, [isSubjectPage]);
+  }, [isSubjectPage, limit, location.pathname]);
   
   // Load features if we're on the homepage (limit is true)
   React.useEffect(() => {
