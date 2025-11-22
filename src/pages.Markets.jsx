@@ -131,6 +131,9 @@ export default function MarketsPage({ markets=[], limit, category }){
   const params = useParams();
   const location = useLocation();
   
+  // Ref to track rendered contract IDs to prevent duplicates
+  const renderedContractIds = React.useRef(new Set());
+  
   // Reset global rendered contracts when markets change (new data loaded)
   React.useEffect(() => {
     if (markets.length > 0) {
