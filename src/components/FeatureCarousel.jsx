@@ -25,18 +25,21 @@ function wrapIndex(currentIndex, direction, arrayLength) {
 
 export default function FeatureCarousel({ features = [] }) {
   // Generate unique instance ID using session ID + component mount time to prevent any potential sync issues
-  // Use useMemo to ensure sessionId is only called once and cached
-  const sessionId = React.useMemo(() => getSessionId(), []);
+  // Initialize refs first, then compute values
   const mountTimeRef = React.useRef(Date.now() + Math.random());
-  const instanceIdRef = React.useRef(() => {
-    // Initialize instanceId lazily to avoid initialization order issues
-    return `${sessionId}_${mountTimeRef.current}`;
-  });
+  const sessionIdRef = React.useRef(null);
+  const instanceIdRef = React.useRef(null);
   
-  // Get instanceId (lazy initialization)
-  const instanceId = instanceIdRef.current instanceof Function 
-    ? (instanceIdRef.current = instanceIdRef.current()) 
-    : instanceIdRef.current;
+  // Lazy initialization to avoid any timing issues
+  if (!sessionIdRef.current) {
+    sessionIdRef.current = getSessionId();
+  }
+  if (!instanceIdRef.current) {
+    instanceIdRef.current = `${sessionIdRef.current}_${mountTimeRef.current}`;
+  }
+  
+  const sessionId = sessionIdRef.current;
+  const instanceId = instanceIdRef.current;
   
   // Log for debugging (always log to help diagnose)
   console.log('🔵 FeatureCarousel mounted with instanceId:', instanceId, 'sessionId:', sessionId);
