@@ -1319,9 +1319,9 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       const fileName = req.file.filename;
       const filePath = `uploads/${fileName}`;
       
-      // Upload to Supabase Storage bucket 'public' (or create 'uploads' bucket)
+      // Upload to Supabase Storage bucket 'featurecards'
       const { data, error } = await supabase.storage
-        .from('public')
+        .from('featurecards')
         .upload(filePath, fileBuffer, {
           contentType: req.file.mimetype,
           upsert: true // Overwrite if exists
@@ -1336,7 +1336,7 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       
       // Get public URL from Supabase Storage
       const { data: urlData } = supabase.storage
-        .from('public')
+        .from('featurecards')
         .getPublicUrl(filePath);
       
       const publicUrl = urlData.publicUrl;
