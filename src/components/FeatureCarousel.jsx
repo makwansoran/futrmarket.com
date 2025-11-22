@@ -24,11 +24,10 @@ function wrapIndex(currentIndex, direction, arrayLength) {
 }
 
 export default function FeatureCarousel({ features = [] }) {
-  // Generate unique instance ID using session ID + component mount time to prevent any potential sync issues
-  // Use useMemo to ensure these are only computed once
-  const sessionId = useMemo(() => getSessionId(), []);
-  const mountTime = useMemo(() => Date.now() + Math.random(), []);
-  const instanceId = useMemo(() => `${sessionId}_${mountTime}`, [sessionId, mountTime]);
+  // Generate unique instance ID - compute once at component level (not in hooks)
+  const sessionId = getSessionId();
+  const mountTime = Date.now() + Math.random();
+  const instanceId = `${sessionId}_${mountTime}`;
   
   // Log for debugging (always log to help diagnose)
   console.log('🔵 FeatureCarousel mounted with instanceId:', instanceId, 'sessionId:', sessionId);
@@ -70,7 +69,22 @@ export default function FeatureCarousel({ features = [] }) {
       prevFeaturesLength.current = features.length;
       prevFeaturesIds.current = currentIds;
     }
-  }, [features, sessionId]);
+  }, [features, instanceId, sessionId]);
+  
+  const setSlide = useCallback((newDirection) => {
+    // Always loop - no stopping at ends
+    const nextIndex = wrapIndex(selectedIndex, newDirection, features.length);
+    console.log(`🔵 [${instanceId}] Carousel slide:`, { 
+      from: selectedIndex, 
+      to: nextIndex, 
+      direction: newDirection,
+      totalFeatures: features.length,
+      sessionId: sessionId,
+      timestamp: Date.now()
+    });
+    setSelectedIndex(nextIndex);
+    setDirection(newDirection);
+  }, [features.length, selectedIndex, instanceId, sessionId]);
   
   // Track manual control to prevent auto-play from interfering
   const handleManualSlide = useCallback((newDirection) => {
@@ -87,25 +101,7 @@ export default function FeatureCarousel({ features = [] }) {
     setTimeout(() => {
       isManualControl.current = false;
     }, 6000);
-  }, [setSlide, selectedIndex, sessionId]);
-
-  // Auto-play DISABLED - carousel only moves on manual clicks
-  // Removed auto-play to prevent unwanted movement
-
-  const setSlide = useCallback((newDirection) => {
-    // Always loop - no stopping at ends
-    const nextIndex = wrapIndex(selectedIndex, newDirection, features.length);
-    console.log(`🔵 [${instanceId}] Carousel slide:`, { 
-      from: selectedIndex, 
-      to: nextIndex, 
-      direction: newDirection,
-      totalFeatures: features.length,
-      sessionId: sessionId,
-      timestamp: Date.now()
-    });
-    setSelectedIndex(nextIndex);
-    setDirection(newDirection);
-  }, [features.length, selectedIndex, sessionId]);
+  }, [setSlide, selectedIndex, instanceId, sessionId]);
 
   if (features.length === 0) return null;
 
