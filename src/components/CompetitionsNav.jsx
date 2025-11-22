@@ -94,7 +94,7 @@ export default function CompetitionsNav() {
   if (loading) {
     console.log("🔵 CompetitionsNav: Showing loading state");
     return (
-      <nav id="competitions-nav" className="sticky z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ display: 'block', visibility: 'visible', top: '152px' }}>
+      <nav id="competitions-nav" className="sticky z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ display: 'block', visibility: 'visible', top: '144px', position: 'sticky' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center justify-center gap-2">
             <div className="text-gray-400 text-sm">Loading competitions...</div>
@@ -143,7 +143,7 @@ export default function CompetitionsNav() {
         visibility: 'visible !important', 
         minHeight: '60px',
         position: 'sticky',
-        top: '152px',
+        top: '144px',
         zIndex: 10,
         backgroundColor: 'rgba(3, 7, 18, 0.95)',
         width: '100%',

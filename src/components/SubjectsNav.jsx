@@ -69,7 +69,7 @@ export default function SubjectsNav() {
   };
 
   return (
-      <nav id="subjects-nav" className="sticky z-20 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ zIndex: 20, top: '104px' }}>
+      <nav id="subjects-nav" className="sticky z-20 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ zIndex: 20, top: '100px', position: 'sticky' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-center gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitScrollbar: 'none' }}>
           {subjects.map((subject) => {
