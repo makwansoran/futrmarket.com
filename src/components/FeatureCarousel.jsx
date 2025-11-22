@@ -11,24 +11,54 @@ function wrap(min, max, value) {
 
 export default function FeatureCarousel({ features = [] }) {
   // Generate unique instance ID to prevent any potential sync issues
-  const instanceId = React.useMemo(() => Math.random().toString(36).slice(2), []);
+  const instanceId = React.useRef(Math.random().toString(36).slice(2) + Date.now()).current;
   
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(() => {
+    // Initialize with random index to prevent sync
+    return features.length > 0 ? Math.floor(Math.random() * features.length) : 0;
+  });
   const [direction, setDirection] = useState(1);
+  
+  // Only reset index if features array length actually changes (not on every update)
+  const prevFeaturesLength = React.useRef(features.length);
+  const isManualControl = React.useRef(false);
+  
+  React.useEffect(() => {
+    if (features.length !== prevFeaturesLength.current) {
+      // Features array length changed, reset to random index
+      if (features.length > 0) {
+        setSelectedIndex(Math.floor(Math.random() * features.length));
+      }
+      prevFeaturesLength.current = features.length;
+    }
+  }, [features.length]);
+  
+  // Track manual control to prevent auto-play from interfering
+  const handleManualSlide = React.useCallback((newDirection) => {
+    isManualControl.current = true;
+    setSlide(newDirection);
+    // Reset manual control flag after a delay
+    setTimeout(() => {
+      isManualControl.current = false;
+    }, 6000);
+  }, []);
 
   // Auto-play carousel - with random offset to prevent sync across instances
   useEffect(() => {
     if (features.length <= 1) return;
     
-    // Add random offset (0-2 seconds) so each instance doesn't sync
-    const offset = (parseInt(instanceId.slice(-2), 36) % 2000);
+    // Add random offset (0-5 seconds) so each instance doesn't sync
+    const offset = (parseInt(instanceId.slice(-2), 36) % 5000);
     let intervalId = null;
     
     const timeoutId = setTimeout(() => {
       intervalId = setInterval(() => {
-        setDirection(1);
-        setSelectedIndex((prev) => wrap(0, features.length, prev + 1));
-      }, 5000); // Change slide every 5 seconds
+        // Don't auto-play if user is manually controlling
+        if (!isManualControl.current) {
+          setDirection(1);
+          setSelectedIndex((prev) => wrap(0, features.length, prev + 1));
+        }
+      }, 5000 + (parseInt(instanceId.slice(-3, -1), 36) % 2000)); // Random interval between 5-7 seconds
     }, offset);
     
     return () => {
@@ -37,11 +67,11 @@ export default function FeatureCarousel({ features = [] }) {
     };
   }, [features.length, instanceId]);
 
-  function setSlide(newDirection) {
+  const setSlide = React.useCallback((newDirection) => {
     const nextIndex = wrap(0, features.length, selectedIndex + newDirection);
     setSelectedIndex(nextIndex);
     setDirection(newDirection);
-  }
+  }, [features.length, selectedIndex]);
 
   if (features.length === 0) return null;
 
@@ -63,7 +93,7 @@ export default function FeatureCarousel({ features = [] }) {
               scale: 1.1
             }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => setSlide(-1)}
+            onClick={() => handleManualSlide(-1)}
             className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center border border-blue-500/30 hover:border-blue-500/50 transition-colors z-10 bg-gray-900/80 backdrop-blur-sm flex-shrink-0"
             aria-label="Previous feature"
           >
@@ -97,7 +127,7 @@ export default function FeatureCarousel({ features = [] }) {
               scale: 1.1
             }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => setSlide(1)}
+            onClick={() => handleManualSlide(1)}
             className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center border border-blue-500/30 hover:border-blue-500/50 transition-colors z-10 bg-gray-900/80 backdrop-blur-sm flex-shrink-0"
             aria-label="Next feature"
           >
@@ -113,9 +143,13 @@ export default function FeatureCarousel({ features = [] }) {
             <button
               key={index}
               onClick={() => {
+                isManualControl.current = true;
                 const newDirection = index > selectedIndex ? 1 : -1;
                 setDirection(newDirection);
                 setSelectedIndex(index);
+                setTimeout(() => {
+                  isManualControl.current = false;
+                }, 6000);
               }}
               className={`transition-all duration-300 rounded-full ${
                 index === selectedIndex

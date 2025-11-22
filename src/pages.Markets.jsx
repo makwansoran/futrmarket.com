@@ -432,7 +432,7 @@ export default function MarketsPage({ markets=[], limit, category }){
       
       {/* Feature Carousel - Large Kalshi-style cards with slideshow */}
       {isHomepage && features.length > 0 && (
-        <FeatureCarousel features={features} />
+        <FeatureCarousel key={`carousel-${Date.now()}-${Math.random()}`} features={features} />
       )}
       
       {/* Fallback feature cards if no features from database - REMOVED, only show database features */}
