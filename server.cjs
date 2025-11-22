@@ -1313,8 +1313,12 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
   }
   
   try {
+    // Check if Supabase is enabled
+    const supabaseEnabled = isSupabaseEnabled();
+    console.log("[UPLOAD] Supabase enabled:", supabaseEnabled);
+    
     // If Supabase is enabled, upload to Supabase Storage for persistence
-    if (isSupabaseEnabled()) {
+    if (supabaseEnabled) {
       const fileBuffer = fs.readFileSync(req.file.path);
       const fileName = req.file.filename;
       const filePath = `uploads/${fileName}`;
@@ -1325,7 +1329,8 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
         filePath: filePath,
         fileName: fileName,
         size: fileBuffer.length,
-        mimetype: req.file.mimetype
+        mimetype: req.file.mimetype,
+        supabaseUrl: process.env.SUPABASE_URL ? "Set" : "Not set"
       });
       
       const { data, error } = await supabase.storage
@@ -1338,9 +1343,11 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       if (error) {
         console.error("[UPLOAD] Supabase Storage error:", error);
         console.error("[UPLOAD] Error details:", JSON.stringify(error, null, 2));
+        console.error("[UPLOAD] Error message:", error.message);
+        console.error("[UPLOAD] Error statusCode:", error.statusCode);
         
         // Check if bucket doesn't exist
-        if (error.message && error.message.includes('Bucket not found')) {
+        if (error.message && (error.message.includes('Bucket not found') || error.message.includes('not found'))) {
           console.error("[UPLOAD] Bucket 'featurecards' not found. Please create it in Supabase Dashboard.");
           return res.status(500).json({ 
             ok: false, 
@@ -1348,10 +1355,11 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
           });
         }
         
-        // Fallback to local storage
-        const url = "/uploads/" + req.file.filename;
-        console.log("[UPLOAD] Falling back to local storage:", url);
-        return res.json({ ok: true, url, filename: req.file.filename });
+        // Return error instead of silently falling back
+        return res.status(500).json({ 
+          ok: false, 
+          error: `Supabase Storage upload failed: ${error.message || JSON.stringify(error)}` 
+        });
       }
       
       console.log("[UPLOAD] Upload successful, data:", data);
@@ -1377,6 +1385,8 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
       }
       
       return res.json({ ok: true, url: publicUrl, filename: fileName });
+    } else {
+      console.log("[UPLOAD] Supabase not enabled, using local storage");
     }
     
     // Fallback to local storage (for development)
