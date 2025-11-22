@@ -120,9 +120,14 @@ export default function CompetitionsNav() {
     navigate(targetPath);
   };
 
-  // Calculate top position: Header (56px) + CategoryNav (~42px) + SubjectsNav (~42px) = 140px
-  // But if SubjectsNav is not visible, adjust accordingly
-  const topPosition = "140px"; // Below SubjectsNav
+  // Calculate top position dynamically:
+  // - Header: 56px (top-14)
+  // - CategoryNav: ~42px height, starts at 56px
+  // - SubjectsNav: ~42px height, starts at 98px (56px + 42px)
+  // - CompetitionsNav: starts at 140px (56px + 42px + 42px) when SubjectsNav is visible
+  //   OR starts at 98px (56px + 42px) when SubjectsNav is NOT visible
+  // For now, always use 140px to account for SubjectsNav being present
+  const topPosition = "140px"; // Below SubjectsNav (which is below CategoryNav)
   
   console.log("🔵 CompetitionsNav: RENDERING NAVBAR NOW - competitions.length =", competitions.length, "isSportsPage =", isSportsPage);
   console.log("🔵 CompetitionsNav: NAVBAR WILL RENDER - NO EARLY RETURNS AFTER THIS POINT");
