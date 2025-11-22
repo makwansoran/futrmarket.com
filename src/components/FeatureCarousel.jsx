@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getSessionId } from "../lib/sessionId.js";
@@ -25,21 +25,10 @@ function wrapIndex(currentIndex, direction, arrayLength) {
 
 export default function FeatureCarousel({ features = [] }) {
   // Generate unique instance ID using session ID + component mount time to prevent any potential sync issues
-  // Initialize refs first, then compute values
-  const mountTimeRef = React.useRef(Date.now() + Math.random());
-  const sessionIdRef = React.useRef(null);
-  const instanceIdRef = React.useRef(null);
-  
-  // Lazy initialization to avoid any timing issues
-  if (!sessionIdRef.current) {
-    sessionIdRef.current = getSessionId();
-  }
-  if (!instanceIdRef.current) {
-    instanceIdRef.current = `${sessionIdRef.current}_${mountTimeRef.current}`;
-  }
-  
-  const sessionId = sessionIdRef.current;
-  const instanceId = instanceIdRef.current;
+  // Use useMemo to ensure these are only computed once
+  const sessionId = useMemo(() => getSessionId(), []);
+  const mountTime = useMemo(() => Date.now() + Math.random(), []);
+  const instanceId = useMemo(() => `${sessionId}_${mountTime}`, [sessionId, mountTime]);
   
   // Log for debugging (always log to help diagnose)
   console.log('🔵 FeatureCarousel mounted with instanceId:', instanceId, 'sessionId:', sessionId);
@@ -51,11 +40,11 @@ export default function FeatureCarousel({ features = [] }) {
   const [direction, setDirection] = useState(1);
   
   // Only reset index if features array length actually changes (not on every update)
-  const prevFeaturesLength = React.useRef(features.length);
-  const prevFeaturesIds = React.useRef(features.map(f => f.id).join(','));
-  const isManualControl = React.useRef(false);
+  const prevFeaturesLength = useRef(features.length);
+  const prevFeaturesIds = useRef(features.map(f => f.id).join(','));
+  const isManualControl = useRef(false);
   
-  React.useEffect(() => {
+  useEffect(() => {
     const currentIds = features.map(f => f.id).join(',');
     const lengthChanged = features.length !== prevFeaturesLength.current;
     const idsChanged = currentIds !== prevFeaturesIds.current;
@@ -84,7 +73,7 @@ export default function FeatureCarousel({ features = [] }) {
   }, [features, sessionId]);
   
   // Track manual control to prevent auto-play from interfering
-  const handleManualSlide = React.useCallback((newDirection) => {
+  const handleManualSlide = useCallback((newDirection) => {
     console.log(`🔵 [${instanceId}] ⚡ MANUAL CLICK - Manual slide triggered:`, { 
       direction: newDirection,
       currentIndex: selectedIndex,
@@ -103,7 +92,7 @@ export default function FeatureCarousel({ features = [] }) {
   // Auto-play DISABLED - carousel only moves on manual clicks
   // Removed auto-play to prevent unwanted movement
 
-  const setSlide = React.useCallback((newDirection) => {
+  const setSlide = useCallback((newDirection) => {
     // Always loop - no stopping at ends
     const nextIndex = wrapIndex(selectedIndex, newDirection, features.length);
     console.log(`🔵 [${instanceId}] Carousel slide:`, { 
