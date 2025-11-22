@@ -254,14 +254,35 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
   );
 }
 
-function FeatureCardContent({ feature }) {
+function FeatureCardContent({ feature, subject }) {
+  // Convert relative image URLs to absolute URLs
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    // If it's already a full URL (http/https), return as-is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    // If it's a relative path starting with /, prepend API base URL
+    if (url.startsWith('/')) {
+      const apiBase = import.meta.env.VITE_API_URL || '';
+      if (apiBase) {
+        return `${apiBase}${url}`;
+      }
+      // In development, use relative path (Vite proxy will handle it)
+      return url;
+    }
+    return url;
+  };
+
+  const imageUrl = getImageUrl(feature.imageUrl);
+
   return (
     <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border-2 border-gray-700 rounded-2xl overflow-hidden hover:border-gray-600 transition-all shadow-2xl cursor-pointer">
       <div className="relative">
-        {feature.imageUrl ? (
+        {imageUrl ? (
           <div className="relative h-[300px] md:h-[350px] lg:h-[400px] overflow-hidden">
             <img
-              src={feature.imageUrl}
+              src={imageUrl}
               alt={feature.title}
               className="w-full h-full object-cover"
             />
