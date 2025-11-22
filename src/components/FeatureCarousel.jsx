@@ -129,15 +129,13 @@ export default function FeatureCarousel({ features = [] }) {
 
         {/* Feature Card - Full width like Kalshi with fixed height container */}
         <div className="flex-1 w-full relative" style={{ minHeight: '300px' }}>
-          <div className="relative w-full" style={{ minHeight: '300px' }}>
-            <AnimatePresence mode="wait" custom={direction} initial={false}>
-              <FeatureSlide
-                key={selectedIndex}
-                feature={currentFeature}
-                direction={direction}
-              />
-            </AnimatePresence>
-          </div>
+          <AnimatePresence mode="wait" custom={direction} initial={false}>
+            <FeatureSlide
+              key={selectedIndex}
+              feature={currentFeature}
+              direction={direction}
+            />
+          </AnimatePresence>
         </div>
 
         {/* Next Button - Always show if there are features */}
@@ -235,7 +233,7 @@ function FeatureSlide({ feature, direction }) {
       initial="enter"
       animate="center"
       exit="exit"
-      className="w-full absolute inset-0"
+      className="w-full relative"
     >
       {content}
     </motion.div>
