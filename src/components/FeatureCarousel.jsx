@@ -43,13 +43,20 @@ export default function FeatureCarousel({ features = [] }) {
   
   // Track manual control to prevent auto-play from interfering
   const handleManualSlide = React.useCallback((newDirection) => {
+    if (import.meta.env.DEV) {
+      console.log(`🔵 [${instanceId}] Manual slide triggered:`, { 
+        direction: newDirection,
+        currentIndex: selectedIndex,
+        sessionId: sessionId 
+      });
+    }
     isManualControl.current = true;
     setSlide(newDirection);
     // Reset manual control flag after a delay
     setTimeout(() => {
       isManualControl.current = false;
     }, 6000);
-  }, []);
+  }, [setSlide, instanceId, selectedIndex, sessionId]);
 
   // Auto-play carousel - with random offset to prevent sync across instances
   useEffect(() => {
@@ -77,9 +84,17 @@ export default function FeatureCarousel({ features = [] }) {
 
   const setSlide = React.useCallback((newDirection) => {
     const nextIndex = wrap(0, features.length, selectedIndex + newDirection);
+    if (import.meta.env.DEV) {
+      console.log(`🔵 [${instanceId}] Carousel slide:`, { 
+        from: selectedIndex, 
+        to: nextIndex, 
+        direction: newDirection,
+        sessionId: sessionId 
+      });
+    }
     setSelectedIndex(nextIndex);
     setDirection(newDirection);
-  }, [features.length, selectedIndex]);
+  }, [features.length, selectedIndex, instanceId, sessionId]);
 
   if (features.length === 0) return null;
 
