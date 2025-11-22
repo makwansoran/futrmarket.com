@@ -25,9 +25,18 @@ function wrapIndex(currentIndex, direction, arrayLength) {
 
 export default function FeatureCarousel({ features = [] }) {
   // Generate unique instance ID using session ID + component mount time to prevent any potential sync issues
-  const sessionId = getSessionId();
-  const mountTime = useRef(Date.now() + Math.random()).current;
-  const instanceId = useRef(`${sessionId}_${mountTime}`).current;
+  // Use useMemo to ensure sessionId is only called once and cached
+  const sessionId = React.useMemo(() => getSessionId(), []);
+  const mountTimeRef = React.useRef(Date.now() + Math.random());
+  const instanceIdRef = React.useRef(() => {
+    // Initialize instanceId lazily to avoid initialization order issues
+    return `${sessionId}_${mountTimeRef.current}`;
+  });
+  
+  // Get instanceId (lazy initialization)
+  const instanceId = instanceIdRef.current instanceof Function 
+    ? (instanceIdRef.current = instanceIdRef.current()) 
+    : instanceIdRef.current;
   
   // Log for debugging (always log to help diagnose)
   console.log('🔵 FeatureCarousel mounted with instanceId:', instanceId, 'sessionId:', sessionId);
@@ -69,7 +78,7 @@ export default function FeatureCarousel({ features = [] }) {
       prevFeaturesLength.current = features.length;
       prevFeaturesIds.current = currentIds;
     }
-  }, [features, instanceId, sessionId]);
+  }, [features, sessionId]);
   
   // Track manual control to prevent auto-play from interfering
   const handleManualSlide = React.useCallback((newDirection) => {
@@ -86,7 +95,7 @@ export default function FeatureCarousel({ features = [] }) {
     setTimeout(() => {
       isManualControl.current = false;
     }, 6000);
-  }, [setSlide, instanceId, selectedIndex, sessionId]);
+  }, [setSlide, selectedIndex, sessionId]);
 
   // Auto-play DISABLED - carousel only moves on manual clicks
   // Removed auto-play to prevent unwanted movement
@@ -104,7 +113,7 @@ export default function FeatureCarousel({ features = [] }) {
     });
     setSelectedIndex(nextIndex);
     setDirection(newDirection);
-  }, [features.length, selectedIndex, instanceId, sessionId]);
+  }, [features.length, selectedIndex, sessionId]);
 
   if (features.length === 0) return null;
 
