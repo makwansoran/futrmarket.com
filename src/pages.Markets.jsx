@@ -216,6 +216,10 @@ export default function MarketsPage({ markets=[], limit, category }){
           console.log("🔵 Features API response:", j);
           if (j.ok && Array.isArray(j.data)) {
             console.log("🔵 Loaded", j.data.length, "features:", j.data);
+            // Log image URLs for debugging
+            j.data.forEach((f, idx) => {
+              console.log(`🔵 Feature ${idx + 1} (${f.title}): imageUrl =`, f.imageUrl);
+            });
             // Only update if features actually changed (prevent unnecessary re-renders)
             setFeatures(prev => {
               const prevIds = prev.map(f => f.id).sort().join(',');

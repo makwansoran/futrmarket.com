@@ -257,24 +257,37 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
 function FeatureCardContent({ feature, subject }) {
   // Convert relative image URLs to absolute URLs
   const getImageUrl = (url) => {
-    if (!url) return null;
+    if (!url) {
+      console.log("🔵 FeatureCardContent: No imageUrl provided");
+      return null;
+    }
+    console.log("🔵 FeatureCardContent: Original imageUrl:", url);
+    
     // If it's already a full URL (http/https), return as-is
     if (url.startsWith('http://') || url.startsWith('https://')) {
+      console.log("🔵 FeatureCardContent: Already absolute URL, using as-is");
       return url;
     }
+    
     // If it's a relative path starting with /, prepend API base URL
     if (url.startsWith('/')) {
       const apiBase = import.meta.env.VITE_API_URL || '';
+      console.log("🔵 FeatureCardContent: API base URL:", apiBase);
       if (apiBase) {
-        return `${apiBase}${url}`;
+        const fullUrl = `${apiBase}${url}`;
+        console.log("🔵 FeatureCardContent: Converted to full URL:", fullUrl);
+        return fullUrl;
       }
       // In development, use relative path (Vite proxy will handle it)
+      console.log("🔵 FeatureCardContent: No API base URL, using relative path");
       return url;
     }
+    console.log("🔵 FeatureCardContent: URL doesn't start with /, returning as-is");
     return url;
   };
 
   const imageUrl = getImageUrl(feature.imageUrl);
+  console.log("🔵 FeatureCardContent: Final imageUrl:", imageUrl);
 
   return (
     <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border-2 border-gray-700 rounded-2xl overflow-hidden hover:border-gray-600 transition-all shadow-2xl cursor-pointer">
