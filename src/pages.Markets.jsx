@@ -450,7 +450,7 @@ export default function MarketsPage({ markets=[], limit, category }){
       
       {/* Small feature cards below carousel dots, above contracts */}
       {isHomepage && (
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto -mt-4">
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto -mt-8">
           {/* Grow portfolio */}
           <div className="flex items-start gap-3 p-4">
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
