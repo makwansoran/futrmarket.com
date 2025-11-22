@@ -1333,6 +1333,29 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
         supabaseUrl: process.env.SUPABASE_URL ? "Set" : "Not set"
       });
       
+      // First, check if bucket exists and create it if it doesn't
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      console.log("[UPLOAD] Available buckets:", buckets?.map(b => b.name) || []);
+      
+      const bucketExists = buckets?.some(b => b.name === 'featurecards');
+      if (!bucketExists) {
+        console.log("[UPLOAD] Bucket 'featurecards' not found, attempting to create it...");
+        const { data: newBucket, error: createError } = await supabase.storage.createBucket('featurecards', {
+          public: true,
+          fileSizeLimit: 5242880, // 5MB
+          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+        });
+        
+        if (createError) {
+          console.error("[UPLOAD] Failed to create bucket:", createError);
+          return res.status(500).json({ 
+            ok: false, 
+            error: `Failed to create storage bucket: ${createError.message}. Please create 'featurecards' bucket manually in Supabase Dashboard.` 
+          });
+        }
+        console.log("[UPLOAD] Bucket 'featurecards' created successfully");
+      }
+      
       const { data, error } = await supabase.storage
         .from('featurecards')
         .upload(filePath, fileBuffer, {
@@ -1345,15 +1368,6 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
         console.error("[UPLOAD] Error details:", JSON.stringify(error, null, 2));
         console.error("[UPLOAD] Error message:", error.message);
         console.error("[UPLOAD] Error statusCode:", error.statusCode);
-        
-        // Check if bucket doesn't exist
-        if (error.message && (error.message.includes('Bucket not found') || error.message.includes('not found'))) {
-          console.error("[UPLOAD] Bucket 'featurecards' not found. Please create it in Supabase Dashboard.");
-          return res.status(500).json({ 
-            ok: false, 
-            error: "Storage bucket 'featurecards' not found. Please create it in Supabase Dashboard and make it public." 
-          });
-        }
         
         // Return error instead of silently falling back
         return res.status(500).json({ 
