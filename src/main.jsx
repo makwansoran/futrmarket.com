@@ -6,10 +6,11 @@ import App from "./App.jsx";
 import "./style.css";
 import { getSessionId, getSessionIdForDebug } from "./lib/sessionId.js";
 
-// Log session ID on app start (dev mode only)
-if (import.meta.env.DEV) {
-  console.log('🔵 App started with session ID:', getSessionIdForDebug());
-}
+// Log session ID on app start (always log to help diagnose)
+console.log('🔵 ===== APP STARTED =====');
+console.log('🔵 Session ID:', getSessionIdForDebug());
+console.log('🔵 Environment:', import.meta.env.MODE);
+console.log('🔵 =======================');
 
 // Global error handler for unhandled errors
 window.addEventListener("error", (event) => {

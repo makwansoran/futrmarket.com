@@ -27,17 +27,36 @@ export default function FeatureCarousel({ features = [] }) {
   
   // Only reset index if features array length actually changes (not on every update)
   const prevFeaturesLength = React.useRef(features.length);
+  const prevFeaturesIds = React.useRef(features.map(f => f.id).join(','));
   const isManualControl = React.useRef(false);
   
   React.useEffect(() => {
-    if (features.length !== prevFeaturesLength.current) {
-      // Features array length changed, reset to random index
-      if (features.length > 0) {
-        setSelectedIndex(Math.floor(Math.random() * features.length));
+    const currentIds = features.map(f => f.id).join(',');
+    const lengthChanged = features.length !== prevFeaturesLength.current;
+    const idsChanged = currentIds !== prevFeaturesIds.current;
+    
+    if (lengthChanged || idsChanged) {
+      console.log(`🔵 [${instanceId}] Features array changed:`, {
+        lengthChanged,
+        idsChanged,
+        oldLength: prevFeaturesLength.current,
+        newLength: features.length,
+        oldIds: prevFeaturesIds.current,
+        newIds: currentIds,
+        sessionId: sessionId
+      });
+      
+      // Only reset if length changed (not just IDs)
+      if (lengthChanged && features.length > 0) {
+        const newIndex = Math.floor(Math.random() * features.length);
+        console.log(`🔵 [${instanceId}] Resetting carousel index to:`, newIndex);
+        setSelectedIndex(newIndex);
       }
+      
       prevFeaturesLength.current = features.length;
+      prevFeaturesIds.current = currentIds;
     }
-  }, [features.length]);
+  }, [features, instanceId, sessionId]);
   
   // Track manual control to prevent auto-play from interfering
   const handleManualSlide = React.useCallback((newDirection) => {
