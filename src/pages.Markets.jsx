@@ -448,6 +448,35 @@ export default function MarketsPage({ markets=[], limit, category }){
         />
       )}
       
+      {/* Small feature cards below carousel dots, above contracts */}
+      {isHomepage && (
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+          {/* Grow portfolio */}
+          <div className="flex items-start gap-3 p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-blue-400" />
+            </div>
+            <div>
+              <div className="text-blue-400 font-semibold text-sm mb-1">Grow your entire portfolio</div>
+              <div className="text-white text-xs">3.5% APY on all your cash and positions</div>
+            </div>
+          </div>
+
+          {/* Fund account */}
+          <div className="flex items-start gap-3 p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-blue-400 font-semibold text-sm mb-1">Fund your account freely</div>
+              <div className="text-white text-xs">Bank transfer, debit card, crypto, or wire</div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Fallback feature cards if no features from database - REMOVED, only show database features */}
       {isHomepage && features.length === 0 && false && (
         <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
