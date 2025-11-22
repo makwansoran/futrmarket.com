@@ -3152,6 +3152,9 @@ app.get("/admin", (req, res) => {
 });
 
 // ---- Static (for any public assets if you need) ----
+// Serve uploads directory explicitly
+app.use("/uploads", express.static(UPLOAD_DIR));
+// Serve all other public files
 app.use(express.static(path.join(process.cwd(), "public")));
 
 console.log("[STARTUP] Starting server on port", PORT);
