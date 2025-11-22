@@ -496,6 +496,50 @@ export default function MarketsPage({ markets=[], limit, category }){
         </div>
       )}
       
+      {/* Contracts by Category Section - Only on homepage */}
+      {isHomepage && (
+        <div className="mb-12 mt-8">
+          <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore Markets by Category</h2>
+          {[
+            { name: "Politics", slug: "politics" },
+            { name: "Crypto", slug: "crypto" },
+            { name: "Climate", slug: "climate" },
+            { name: "Economics", slug: "economics" },
+            { name: "Sports", slug: "sports" },
+            { name: "Mentions", slug: "mentions" },
+            { name: "Companies", slug: "companies" },
+            { name: "Financials", slug: "financials" },
+            { name: "Tech & Science", slug: "tech-science" }
+          ].map((category) => {
+            // Filter contracts by category (case-insensitive)
+            const categoryContracts = safeMarkets
+              .filter(m => m && m.category && m.category.toLowerCase() === category.name.toLowerCase())
+              .slice(0, 4); // Only show 4 contracts per category
+            
+            if (categoryContracts.length === 0) return null;
+            
+            return (
+              <div key={category.slug} className="mb-12">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-white">{category.name}</h3>
+                  <Link 
+                    to={`/markets/${category.slug}`}
+                    className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                  >
+                    View all →
+                  </Link>
+                </div>
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {categoryContracts.map(m => (
+                    <MarketCard key={m.id} m={m} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      
       {/* Fallback feature cards if no features from database - REMOVED, only show database features */}
       {isHomepage && features.length === 0 && false && (
         <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
