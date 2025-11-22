@@ -22,7 +22,7 @@ export function MarketsProvider({ children }) {
   const loadMarkets = React.useCallback(async (signal = null) => {
     try {
       setError(null);
-      const controller = signal || new AbortController();
+      const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
       
       const marketsData = await fetchMarkets();

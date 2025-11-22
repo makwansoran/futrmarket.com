@@ -4,9 +4,6 @@ import { Clock, TrendingUp } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import FeatureCarousel from "./components/FeatureCarousel.jsx";
 
-// Global Set to track rendered contracts across all renders and components
-const globalRenderedContracts = new Set();
-
 // Small Market Card (for grid)
 function MarketCard({ m }){
   const getStatusBadge = () => {
@@ -131,21 +128,6 @@ export default function MarketsPage({ markets=[], limit, category }){
   const params = useParams();
   const location = useLocation();
   
-  // Ref to track rendered contract IDs to prevent duplicates
-  const renderedContractIds = React.useRef(new Set());
-  
-  // Reset global rendered contracts when markets change (new data loaded)
-  React.useEffect(() => {
-    if (markets.length > 0) {
-      const currentIds = new Set(markets.map(m => String(m?.id)).filter(Boolean));
-      // Only clear if we have completely new contracts
-      const hasNewContracts = Array.from(currentIds).some(id => !globalRenderedContracts.has(id));
-      if (hasNewContracts && markets.length > globalRenderedContracts.size) {
-        globalRenderedContracts.clear();
-      }
-    }
-  }, [markets]);
-  
   // Check if we're on a competition-specific sports page
   const competitionSlug = params.competitionSlug; // For /markets/sports/:competitionSlug
   const isCompetitionPage = !!competitionSlug;
@@ -261,42 +243,8 @@ export default function MarketsPage({ markets=[], limit, category }){
     }
   }, [limit, location.pathname]);
   
-  // Ensure markets is always an array and deduplicate by ID immediately
-  // This prevents any duplicates from propagating through the component
-  const safeMarkets = React.useMemo(() => {
-    if (!Array.isArray(markets)) return [];
-    const seen = new Set();
-    const unique = [];
-    const idMap = new Map(); // Track by ID to keep the first occurrence
-    
-    for (const m of markets) {
-      if (!m || !m.id) continue;
-      const id = String(m.id); // Normalize ID to string
-      
-      // If we've seen this ID before, skip it (keep first occurrence)
-      if (seen.has(id)) {
-        console.warn("🔵 DUPLICATE DETECTED in markets array:", id, m.question);
-        continue;
-      }
-      
-      seen.add(id);
-      idMap.set(id, m);
-      unique.push(m);
-    }
-    
-    // Double-check: ensure absolutely no duplicates slipped through
-    const finalUnique = [];
-    const finalSeen = new Set();
-    for (const m of unique) {
-      const id = String(m.id);
-      if (!finalSeen.has(id)) {
-        finalSeen.add(id);
-        finalUnique.push(m);
-      }
-    }
-    
-    return finalUnique;
-  }, [markets]);
+  // Ensure markets is always an array
+  const safeMarkets = Array.isArray(markets) ? markets : [];
   
   let filteredMarkets = safeMarkets;
   
@@ -332,9 +280,7 @@ export default function MarketsPage({ markets=[], limit, category }){
     });
   }
   
-  // On homepage (limit === true), don't create a limited list - we'll show contracts in category sections only
-  // On other pages, use filteredMarkets
-  const list = limit === true ? [] : filteredMarkets; // Empty list on homepage to prevent showing in bottom grid
+  const list = limit ? filteredMarkets.slice(0, limit) : filteredMarkets;
   
   const getTitle = () => {
     if (isSubjectPage && subjectsLoaded) {
@@ -489,12 +435,11 @@ export default function MarketsPage({ markets=[], limit, category }){
   }
   
   // All contracts are now standard sized - no featured contracts
-  // On homepage, allMarkets should be empty (contracts shown in category sections only)
-  const isHomepage = limit === true || location.pathname === "/";
-  const allMarkets = isHomepage ? [] : list.filter(m => m && m.id); // Empty on homepage to prevent duplicates
+  const allMarkets = list.filter(m => m && m.id);
   
   // Debug logging for features
-  console.log("🔵 MarketsPage render - limit:", limit, "pathname:", location.pathname, "isHomepage:", isHomepage, "features.length:", features.length, "allMarkets.length:", allMarkets.length);
+  const isHomepage = limit === true || location.pathname === "/";
+  console.log("🔵 MarketsPage render - limit:", limit, "pathname:", location.pathname, "isHomepage:", isHomepage, "features.length:", features.length);
   
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -552,172 +497,48 @@ export default function MarketsPage({ markets=[], limit, category }){
       )}
       
       {/* Contracts by Category Section - Only on homepage */}
-      {isHomepage && React.useMemo(() => {
-        // Reset rendered contracts when markets change (new data loaded)
-        // But keep track across renders to prevent duplicates
-        const currentMarketIds = new Set(safeMarkets.map(m => String(m?.id)).filter(Boolean));
-        const previousMarketIds = renderedContractIds.current;
-        
-        // If markets have completely changed (new fetch), reset the tracking
-        const marketsChanged = safeMarkets.length > 0 && 
-          Array.from(currentMarketIds).some(id => !previousMarketIds.has(id));
-        
-        if (marketsChanged) {
-          renderedContractIds.current.clear();
-        }
-        
-        // Track which contract IDs we've already shown to prevent duplicates
-        const shownContractIds = new Set();
-        
-        // Process all categories and their contracts
-        const categorySections = [
-          { name: "Politics", slug: "politics" },
-          { name: "Crypto", slug: "crypto" },
-          { name: "Climate", slug: "climate" },
-          { name: "Economics", slug: "economics" },
-          { name: "Sports", slug: "sports" },
-          { name: "Mentions", slug: "mentions" },
-          { name: "Companies", slug: "companies" },
-          { name: "Financials", slug: "financials" },
-          { name: "Tech & Science", slug: "tech-science" }
-        ].map((category) => {
-          // Track both IDs and questions to prevent duplicates
-          const shownQuestions = new Set();
-          
-          // Filter contracts by category (case-insensitive) AND only show contracts with a subjectId
-          const categoryContracts = safeMarkets
-            .filter(m => {
-              // Must be a valid contract
-              if (!m || !m.id) return false;
-              const id = String(m.id);
-              const question = String(m.question || "").trim().toLowerCase();
-              
-              // CRITICAL: Check both local shownContractIds AND the ref to prevent duplicates by ID
-              if (shownContractIds.has(id) || renderedContractIds.current.has(id)) {
-                console.warn("🔵 BLOCKED DUPLICATE ID: Contract", id, "already rendered");
-                return false;
-              }
-              
-              // Also check for duplicate questions (case-insensitive)
-              if (question && shownQuestions.has(question)) {
-                console.warn("🔵 BLOCKED DUPLICATE QUESTION: Contract", id, "with question already rendered:", m.question);
-                return false;
-              }
-              
-              // Must match category
-              if (!m.category || m.category.toLowerCase() !== category.name.toLowerCase()) return false;
-              
-              // Prefer contracts with subjectId, but don't require it
-              // (subjectId is optional - contracts can exist without being linked to a subject)
-              
-              // Mark as shown
-              if (question) {
-                shownQuestions.add(question);
-              }
-              
-              return true;
-            })
-            .slice(0, 4); // Only show 4 contracts per category
-          
-          // Mark these contracts as shown globally (use normalized string ID)
-          categoryContracts.forEach(m => {
-            const id = String(m.id);
-            shownContractIds.add(id);
-            globalRenderedContracts.add(id); // Add to global set
-          });
-          
-          return { category, contracts: categoryContracts };
-        }).filter(section => section.contracts.length > 0); // Only show sections with contracts
-        
-        if (categorySections.length === 0) return null;
-        
-        return (
-          <div className="mb-12 mt-8">
-            <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore Markets by Category</h2>
-            {categorySections.map(({ category, contracts }) => {
-              // Final deduplication check before rendering - use Sets for both IDs and questions
-              const finalContracts = [];
-              const finalIds = new Set();
-              const finalQuestions = new Set();
-              
-              for (const m of contracts) {
-                if (!m || !m.id) continue;
-                const id = String(m.id);
-                const question = String(m.question || "").trim().toLowerCase();
-                
-                // Double-check: if already in finalIds OR in global set, skip it
-                if (finalIds.has(id) || globalRenderedContracts.has(id)) {
-                  continue;
-                }
-                
-                // Also check for duplicate questions
-                if (question && finalQuestions.has(question)) {
-                  console.warn("🔵 BLOCKED DUPLICATE QUESTION in final check:", question, "ID:", id);
-                  continue;
-                }
-                
-                finalIds.add(id);
-                if (question) {
-                  finalQuestions.add(question);
-                }
-                finalContracts.push(m);
-              }
-              
-              return (
-                <div key={category.slug} className="mb-12">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-semibold text-white">{category.name}</h3>
-                    <Link 
-                      to={`/markets/${category.slug}`}
-                      className="text-blue-400 hover:text-blue-300 text-sm font-medium"
-                    >
-                      View all →
-                    </Link>
-                  </div>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {(() => {
-                      // FINAL BULLETPROOF DEDUPLICATION - right before rendering
-                      const renderList = [];
-                      const renderIds = new Set();
-                      const renderQuestions = new Set();
-                      
-                      for (const m of finalContracts) {
-                        if (!m || !m.id) continue;
-                        const id = String(m.id);
-                        const question = String(m.question || "").trim().toLowerCase();
-                        
-                        // If already in render list OR already rendered globally, skip it
-                        if (renderIds.has(id) || renderedContractIds.current.has(id)) {
-                          continue;
-                        }
-                        
-                        // Also check for duplicate questions at render time
-                        if (question && renderQuestions.has(question)) {
-                          console.warn("🔵 BLOCKED DUPLICATE QUESTION at render:", question, "ID:", id);
-                          continue;
-                        }
-                        
-                        renderIds.add(id);
-                        if (question) {
-                          renderQuestions.add(question);
-                        }
-                        renderedContractIds.current.add(id);
-                        renderList.push(m);
-                      }
-                      
-                      return renderList.map((m, idx) => {
-                        const id = String(m.id);
-                        const uniqueKey = `${category.slug}-${id}-${idx}`;
-                        return <MarketCard key={uniqueKey} m={m} />;
-                      });
-                    })()}
-                  </div>
+      {isHomepage && (
+        <div className="mb-12 mt-8">
+          <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore Markets by Category</h2>
+          {[
+            { name: "Politics", slug: "politics" },
+            { name: "Crypto", slug: "crypto" },
+            { name: "Climate", slug: "climate" },
+            { name: "Economics", slug: "economics" },
+            { name: "Sports", slug: "sports" },
+            { name: "Mentions", slug: "mentions" },
+            { name: "Companies", slug: "companies" },
+            { name: "Financials", slug: "financials" },
+            { name: "Tech & Science", slug: "tech-science" }
+          ].map((category) => {
+            // Filter contracts by category (case-insensitive)
+            const categoryContracts = safeMarkets
+              .filter(m => m && m.category && m.category.toLowerCase() === category.name.toLowerCase())
+              .slice(0, 4); // Only show 4 contracts per category
+            
+            if (categoryContracts.length === 0) return null;
+            
+            return (
+              <div key={category.slug} className="mb-12">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-white">{category.name}</h3>
+                  <Link 
+                    to={`/markets/${category.slug}`}
+                    className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                  >
+                    View all →
+                  </Link>
                 </div>
-              );
-            })}
-          </div>
-        );
-      }, [safeMarkets, isHomepage])}
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {categoryContracts.map(m => (
+                    <MarketCard key={m.id} m={m} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
       
       {/* Fallback feature cards if no features from database - REMOVED, only show database features */}
       {isHomepage && features.length === 0 && false && (
@@ -788,15 +609,12 @@ export default function MarketsPage({ markets=[], limit, category }){
         </div>
       )}
       
-      {/* Only show "all markets" grid if NOT on homepage (homepage shows contracts in category sections above) */}
-      {!isHomepage && (
-        allMarkets.length === 0 ? (
-          <div className="text-gray-400 col-span-full text-center py-8">No markets found in this category.</div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {allMarkets.map(m => <MarketCard key={m.id} m={m}/>)}
-          </div>
-        )
+      {allMarkets.length === 0 ? (
+        <div className="text-gray-400 col-span-full text-center py-8">No markets found in this category.</div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {allMarkets.map(m => <MarketCard key={m.id} m={m}/>)}
+        </div>
       )}
     </section>
   );
