@@ -32,10 +32,7 @@ export default function FeatureCarousel({ features = [] }) {
   // Log for debugging (always log to help diagnose)
   console.log('🔵 FeatureCarousel mounted with instanceId:', instanceId, 'sessionId:', sessionId);
   
-  const [selectedIndex, setSelectedIndex] = useState(() => {
-    // Initialize with random index to prevent sync
-    return features.length > 0 ? Math.floor(Math.random() * features.length) : 0;
-  });
+  const [selectedIndex, setSelectedIndex] = useState(0); // Always start at index 0
   const [direction, setDirection] = useState(1);
   
   // Only reset index if features array length actually changes (not on every update)
@@ -59,11 +56,10 @@ export default function FeatureCarousel({ features = [] }) {
         sessionId: sessionId
       });
       
-      // Only reset if length changed (not just IDs)
+      // Only reset if length changed (not just IDs) - always reset to 0
       if (lengthChanged && features.length > 0) {
-        const newIndex = Math.floor(Math.random() * features.length);
-        console.log(`🔵 [${instanceId}] Resetting carousel index to:`, newIndex);
-        setSelectedIndex(newIndex);
+        console.log(`🔵 [${instanceId}] Resetting carousel index to: 0`);
+        setSelectedIndex(0);
       }
       
       prevFeaturesLength.current = features.length;
