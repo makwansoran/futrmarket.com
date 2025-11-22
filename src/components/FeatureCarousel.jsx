@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getSessionId } from "../lib/sessionId.js";
+import { getApiUrl } from "/src/api.js";
 
 // Helper function to wrap index - ensures endless looping
 function wrapIndex(currentIndex, direction, arrayLength) {
