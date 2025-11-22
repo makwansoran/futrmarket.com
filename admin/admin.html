@@ -1172,6 +1172,24 @@
         return;
       }
       token = String(token).trim();
+      
+      // Load subjects for dropdown
+      if (featureSubjectId) {
+        var subjectsR = await fetch(apiEndpoint("/api/subjects"), { headers: { "x-admin-token": token } });
+        if (subjectsR.ok) {
+          var subjectsJ = await subjectsR.json();
+          if (subjectsJ.ok && subjectsJ.data && subjectsJ.data.length) {
+            featureSubjectId.innerHTML = "<option value=''>None</option>";
+            for (var i = 0; i < subjectsJ.data.length; i++) {
+              var opt = document.createElement("option");
+              opt.value = subjectsJ.data[i].id;
+              opt.textContent = subjectsJ.data[i].name;
+              featureSubjectId.appendChild(opt);
+            }
+          }
+        }
+      }
+      
       var r=await fetch(apiEndpoint("/api/features"),{ 
         headers: { "x-admin-token":token } 
       });
