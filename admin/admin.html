@@ -222,6 +222,13 @@
         <input id="featureUrl" type="url" placeholder="https://example.com">
       </div>
 
+      <div class="mt16">
+        <label>Subject (optional - links feature card to subject page)</label>
+        <select id="featureSubjectId">
+          <option value="">None</option>
+        </select>
+      </div>
+
       <div class="mt16"><button id="createFeature">Create Feature</button></div>
       <div class="mt8 meta">Create campaigns, designs, promotions, and other features for the website.</div>
     </div>
@@ -1078,6 +1085,7 @@
   var featureImg=document.getElementById("featureImg");
   var featurePreview=document.getElementById("featurePreview");
   var featureUrl=document.getElementById("featureUrl");
+  var featureSubjectId=document.getElementById("featureSubjectId");
   var createFeatureBtn=document.getElementById("createFeature");
   var featureList=document.getElementById("featureList");
 
@@ -1103,7 +1111,8 @@
         type: featureType.value,
         status: featureStatus.value,
         url: featureUrl.value.trim() || null,
-        imageUrl: imageUrl || null
+        imageUrl: imageUrl || null,
+        subjectId: featureSubjectId.value || null
       };
       
       var r=await fetch(apiEndpoint("/api/features/create"),{ 
@@ -1121,7 +1130,7 @@
         return;
       }
       var j=await r.json(); if(!j.ok){alert("Create failed: "+(j.error||"unknown"));return}
-      featureTitle.value=""; featureDesc.value=""; featureType.value="Campaign"; featureStatus.value="Draft"; featureUrl.value=""; featureImg.value=""; featurePreview.innerHTML="";
+      featureTitle.value=""; featureDesc.value=""; featureType.value="Campaign"; featureStatus.value="Draft"; featureUrl.value=""; featureSubjectId.value=""; featureImg.value=""; featurePreview.innerHTML="";
       loadFeatures();
       alert("Feature created!");
     }catch(e){ alert(e.message || "Could not create feature"); }

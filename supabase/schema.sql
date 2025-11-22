@@ -167,6 +167,7 @@ CREATE TABLE IF NOT EXISTS public.features (
   status TEXT NOT NULL DEFAULT 'Draft',
   image_url TEXT,
   url TEXT,
+  subject_id TEXT REFERENCES public.subjects(id) ON DELETE SET NULL,
   created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000
 );
 

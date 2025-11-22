@@ -2427,16 +2427,26 @@ app.get("/api/features", async (req, res) => {
     const features = await getAllFeatures(activeOnly);
     
     // Map database fields (snake_case) to API format (camelCase)
-    const mappedFeatures = features.map(feature => ({
-      id: feature.id,
-      title: feature.title,
-      description: feature.description,
-      type: feature.type,
-      status: feature.status,
-      imageUrl: feature.image_url || feature.imageUrl || null,
-      url: feature.url || null,
-      createdAt: feature.created_at || feature.createdAt || Date.now()
-    }));
+    // Also fetch subjects to include subject slug for linking
+    const { getAllSubjects } = require("./lib/db.cjs");
+    const allSubjects = await getAllSubjects();
+    const subjectsMap = new Map(allSubjects.map(s => [s.id, s]));
+    
+    const mappedFeatures = features.map(feature => {
+      const subject = feature.subject_id ? subjectsMap.get(feature.subject_id) : null;
+      return {
+        id: feature.id,
+        title: feature.title,
+        description: feature.description,
+        type: feature.type,
+        status: feature.status,
+        imageUrl: feature.image_url || feature.imageUrl || null,
+        url: feature.url || null,
+        subjectId: feature.subject_id || null,
+        subjectSlug: subject ? subject.slug : null,
+        createdAt: feature.created_at || feature.createdAt || Date.now()
+      };
+    });
     res.json({ ok: true, data: mappedFeatures });
   } catch (error) {
     console.error("Error fetching features:", error);
@@ -2447,7 +2457,7 @@ app.get("/api/features", async (req, res) => {
 // Create a new feature (admin only)
 app.post("/api/features/create", requireAdmin, async (req, res) => {
   try {
-    const { title, description, type, status, imageUrl, url } = req.body || {};
+    const { title, description, type, status, imageUrl, url, subjectId } = req.body || {};
     const featureTitle = String(title || "").trim();
     const featureDesc = String(description || "").trim();
     
@@ -2464,10 +2474,16 @@ app.post("/api/features/create", requireAdmin, async (req, res) => {
       status: String(status || "Draft").trim(),
       image_url: imageUrl ? String(imageUrl).trim() : null,
       url: url ? String(url).trim() : null,
+      subject_id: subjectId ? String(subjectId).trim() : null,
       created_at: Date.now()
     };
     
     const feature = await createFeature(featureData);
+    
+    // Fetch subject to include slug
+    const { getAllSubjects } = require("./lib/db.cjs");
+    const allSubjects = await getAllSubjects();
+    const subject = feature.subject_id ? allSubjects.find(s => s.id === feature.subject_id) : null;
     
     // Map database response to API format
     const mappedFeature = {
@@ -2478,6 +2494,8 @@ app.post("/api/features/create", requireAdmin, async (req, res) => {
       status: feature.status,
       imageUrl: feature.image_url || feature.imageUrl || null,
       url: feature.url || null,
+      subjectId: feature.subject_id || null,
+      subjectSlug: subject ? subject.slug : null,
       createdAt: feature.created_at || feature.createdAt || Date.now()
     };
     
