@@ -139,7 +139,7 @@ export default function CompetitionsNav() {
         minHeight: '60px',
         position: 'sticky',
         top: '140px',
-        zIndex: 100,
+        zIndex: 10,
         backgroundColor: 'rgba(3, 7, 18, 0.95)',
         width: '100%',
         opacity: 1
