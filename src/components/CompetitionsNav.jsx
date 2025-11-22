@@ -94,7 +94,7 @@ export default function CompetitionsNav() {
   if (loading) {
     console.log("🔵 CompetitionsNav: Showing loading state");
     return (
-      <nav id="competitions-nav" className="sticky z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ display: 'block', visibility: 'visible', top: '144px', position: 'sticky' }}>
+      <nav id="competitions-nav" className="sticky z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ display: 'block', visibility: 'visible', top: '100px', position: 'sticky' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center justify-center gap-2">
             <div className="text-gray-400 text-sm">Loading competitions...</div>
@@ -120,14 +120,11 @@ export default function CompetitionsNav() {
     navigate(targetPath);
   };
 
-  // Calculate top position dynamically:
+  // Calculate top position:
   // - Header: 56px (top-14)
-  // - CategoryNav: ~42px height, starts at 56px
-  // - SubjectsNav: ~42px height, starts at 98px (56px + 42px)
-  // - CompetitionsNav: starts at 140px (56px + 42px + 42px) when SubjectsNav is visible
-  //   OR starts at 98px (56px + 42px) when SubjectsNav is NOT visible
-  // For now, always use 140px to account for SubjectsNav being present
-  const topPosition = "140px"; // Below SubjectsNav (which is below CategoryNav)
+  // - CategoryNav: ~44px height, starts at 56px
+  // - CompetitionsNav: starts at 100px (56px + 44px) - directly after CategoryNav
+  const topPosition = "100px"; // Below CategoryNav
   
   console.log("🔵 CompetitionsNav: RENDERING NAVBAR NOW - competitions.length =", competitions.length, "isSportsPage =", isSportsPage);
   console.log("🔵 CompetitionsNav: NAVBAR WILL RENDER - NO EARLY RETURNS AFTER THIS POINT");
@@ -143,7 +140,7 @@ export default function CompetitionsNav() {
         visibility: 'visible !important', 
         minHeight: '60px',
         position: 'sticky',
-        top: '144px',
+        top: '100px',
         zIndex: 10,
         backgroundColor: 'rgba(3, 7, 18, 0.95)',
         width: '100%',

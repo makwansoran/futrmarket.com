@@ -4,7 +4,6 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import Header from "./layout.Header.jsx";
 import CategoryNav from "./components/CategoryNav.jsx";
 import CompetitionsNav from "./components/CompetitionsNav.jsx";
-import SubjectsNav from "./components/SubjectsNav.jsx";
 import Footer from "./components/Footer.jsx";
 import HomePage from "./pages.Home.jsx";
 import MarketsPage from "./pages.Markets.jsx";
@@ -84,7 +83,6 @@ function AppContent() {
       />
       <CategoryNav />
       <CompetitionsNav />
-      <SubjectsNav />
       <div className="flex-1 pb-32">
         <Routes>
           <Route path="/" element={<HomePage markets={markets} />} />
