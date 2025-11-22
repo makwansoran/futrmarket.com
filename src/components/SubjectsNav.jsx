@@ -45,7 +45,7 @@ export default function SubjectsNav() {
   if (loading) {
     console.log("🔵 SubjectsNav: Still loading subjects...");
     return (
-      <nav className="sticky top-[98px] z-20 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ zIndex: 20, top: '98px' }}>
+      <nav className="sticky z-20 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ zIndex: 20, top: 'calc(56px + 48px)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-center gap-1">
             <div className="text-gray-400 text-sm py-3">Loading subjects...</div>
@@ -69,7 +69,7 @@ export default function SubjectsNav() {
   };
 
   return (
-    <nav className="sticky top-[98px] z-20 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ zIndex: 20 }}>
+    <nav className="sticky z-20 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ zIndex: 20, top: 'calc(56px + 48px)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-center gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitScrollbar: 'none' }}>
           {subjects.map((subject) => {
