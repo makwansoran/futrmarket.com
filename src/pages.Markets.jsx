@@ -604,10 +604,11 @@ export default function MarketsPage({ markets=[], limit, category }){
                 return false;
               }
               
-              // Must have a subjectId (be linked to a subject)
-              if (!m.subjectId) return false;
               // Must match category
               if (!m.category || m.category.toLowerCase() !== category.name.toLowerCase()) return false;
+              
+              // Prefer contracts with subjectId, but don't require it
+              // (subjectId is optional - contracts can exist without being linked to a subject)
               
               // Mark as shown
               if (question) {
