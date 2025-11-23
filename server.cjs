@@ -2332,8 +2332,57 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       }
     }
     
+    // Ensure we have updates to make
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ ok: false, error: "No valid updates provided" });
+    }
+    
     // Update contract in database
-    const updatedContract = await updateContract(contractId, updates);
+    let updatedContract;
+    try {
+      updatedContract = await updateContract(contractId, updates);
+      if (!updatedContract) {
+        return res.status(404).json({ ok: false, error: "Contract not found" });
+      }
+    } catch (updateError) {
+      console.error("Error updating contract in database:", updateError);
+      console.error("Update error details:", {
+        message: updateError.message,
+        code: updateError.code,
+        details: updateError.details,
+        hint: updateError.hint
+      });
+      
+      // Check if it's a column error (trending column might not exist)
+      const errorMsg = updateError.message || "";
+      const errorCode = updateError.code || "";
+      
+      if ((errorMsg.includes("column") || errorMsg.includes("Cannot coerce")) && updates.trending !== undefined) {
+        return res.status(500).json({ 
+          ok: false, 
+          error: "Database schema error: 'trending' column does not exist in the contracts table. Please add it with: ALTER TABLE contracts ADD COLUMN trending BOOLEAN DEFAULT false;" 
+        });
+      }
+      
+      // Check for "Cannot coerce" error which often means 0 rows or column issue
+      if (errorMsg.includes("Cannot coerce") || errorCode === "PGRST116") {
+        if (updates.trending !== undefined) {
+          return res.status(500).json({ 
+            ok: false, 
+            error: "Database error: The 'trending' column may not exist. Please add it to your contracts table: ALTER TABLE contracts ADD COLUMN trending BOOLEAN DEFAULT false;" 
+          });
+        }
+        return res.status(404).json({ 
+          ok: false, 
+          error: "Contract not found or update failed" 
+        });
+      }
+      
+      return res.status(500).json({ 
+        ok: false, 
+        error: `Failed to update contract: ${errorMsg || "Unknown error"}` 
+      });
+    }
     
     // Map database response to API format
     const mappedContract = {
