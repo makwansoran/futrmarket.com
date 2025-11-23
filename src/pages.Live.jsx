@@ -30,8 +30,22 @@ function MarketCard({ m }){
   const imageUrl = rawImageUrl ? getImageUrl(rawImageUrl) : null;
   
   return (
-    <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition block h-full min-h-[140px]">
-      <div className="flex items-start gap-4">
+    <motion.div
+      whileHover={{
+        scale: [null, 1.01, 1.03],
+        transition: {
+          duration: 0.5,
+          times: [0, 0.6, 1],
+          ease: ["easeInOut", "easeOut"],
+        },
+      }}
+      transition={{
+        duration: 0.3,
+        ease: "easeOut",
+      }}
+    >
+      <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition block h-full min-h-[140px]">
+        <div className="flex items-start gap-4">
         {/* Square profile picture at start, like Polymarket - extra small */}
         {imageUrl ? (
           <div className="flex-shrink-0" style={{ marginTop: '8px' }}>
@@ -139,7 +153,8 @@ function MarketCard({ m }){
           </div>
         </div>
       </div>
-    </Link>
+      </Link>
+    </motion.div>
   );
 }
 

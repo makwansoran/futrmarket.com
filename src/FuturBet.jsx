@@ -129,7 +129,18 @@ function MarketCard(props) {
   var market = props.market, onClick = props.onClick;
   return (
     <motion.button
-      whileHover={{ scale: 1.01 }}
+      whileHover={{
+        scale: [null, 1.01, 1.03],
+        transition: {
+          duration: 0.5,
+          times: [0, 0.6, 1],
+          ease: ["easeInOut", "easeOut"],
+        },
+      }}
+      transition={{
+        duration: 0.3,
+        ease: "easeOut",
+      }}
       onClick={onClick}
       className="w-full text-left bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-blue-700 transition"
     >

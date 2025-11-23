@@ -64,9 +64,23 @@ function MarketCard({ m }){
   const imageUrl = rawImageUrl ? getImageUrl(rawImageUrl) : null;
   
   return (
-    <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl overflow-hidden hover:border-[var(--border-secondary)] transition block h-full relative min-h-[140px]">
-      {getStatusBadge()}
-      <div className="p-5">
+    <motion.div
+      whileHover={{
+        scale: [null, 1.01, 1.03],
+        transition: {
+          duration: 0.5,
+          times: [0, 0.6, 1],
+          ease: ["easeInOut", "easeOut"],
+        },
+      }}
+      transition={{
+        duration: 0.3,
+        ease: "easeOut",
+      }}
+    >
+      <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl overflow-hidden hover:border-[var(--border-secondary)] transition block h-full relative min-h-[140px]">
+        {getStatusBadge()}
+        <div className="p-5">
         <div className="flex items-start gap-4">
           {/* Square profile picture at start - extra small */}
           <div 
@@ -198,7 +212,8 @@ function MarketCard({ m }){
           <span>{m.traders || 0} traders</span>
         </div>
       </div>
-    </Link>
+      </Link>
+    </motion.div>
   );
 }
 
