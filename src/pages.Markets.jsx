@@ -517,55 +517,73 @@ export default function MarketsPage({ markets=[], limit, category }){
       )}
       
       {/* Contracts by Category Section - Only on homepage */}
-      {isHomepage && (
-        <div className="mb-12 mt-8">
-          <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore Markets by Category</h2>
-          {[
-            { name: "Politics", slug: "politics" },
-            { name: "Crypto", slug: "crypto" },
-            { name: "Climate", slug: "climate" },
-            { name: "Economics", slug: "economics" },
-            { name: "Sports", slug: "sports" },
-            { name: "Mentions", slug: "mentions" },
-            { name: "Companies", slug: "companies" },
-            { name: "Financials", slug: "financials" },
-            { name: "Tech & Science", slug: "tech-science" }
-          ].map((category) => {
-            // Filter contracts by category (case-insensitive) and only show live contracts on homepage
-            const categoryContracts = safeMarkets
-              .filter(m => {
-                if (!m || !m.id) return false;
-                if (m.resolution) return false; // Exclude resolved
-                // Only show live contracts on homepage
-                if (m.live !== true) return false;
-                // Check category match
-                return m.category && m.category.toLowerCase() === category.name.toLowerCase();
-              })
-              .slice(0, 4); // Only show 4 contracts per category
-            
-            if (categoryContracts.length === 0) return null;
-            
-            return (
-              <div key={category.slug} className="mb-12">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-white">{category.name}</h3>
-                  <Link 
-                    to={`/markets/${category.slug}`}
-                    className="text-blue-400 hover:text-blue-300 text-sm font-medium"
-                  >
-                    View all →
-                  </Link>
+      {isHomepage && (() => {
+        // Define allowed categories - only these will be displayed
+        const allowedCategories = [
+          { name: "Politics", slug: "politics" },
+          { name: "Crypto", slug: "crypto" },
+          { name: "Climate", slug: "climate" },
+          { name: "Economics", slug: "economics" },
+          { name: "Sports", slug: "sports" },
+          { name: "Mentions", slug: "mentions" },
+          { name: "Companies", slug: "companies" },
+          { name: "Financials", slug: "financials" },
+          { name: "Tech & Science", slug: "tech-science" }
+        ];
+        
+        // Track seen contract IDs to prevent duplicates across categories
+        const seenContractIds = new Set();
+        
+        return (
+          <div className="mb-12 mt-8">
+            <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore Markets by Category</h2>
+            {allowedCategories.map((category) => {
+              // Filter contracts by category (case-insensitive) and only show live contracts on homepage
+              // Also exclude contracts that have already been shown in other categories
+              const categoryContracts = safeMarkets
+                .filter(m => {
+                  if (!m || !m.id) return false;
+                  if (m.resolution) return false; // Exclude resolved
+                  // Only show live contracts on homepage
+                  if (m.live !== true) return false;
+                  // Check category match (case-insensitive)
+                  const categoryMatch = m.category && m.category.toLowerCase() === category.name.toLowerCase();
+                  if (!categoryMatch) return false;
+                  // Prevent duplicates - skip if this contract ID has already been shown
+                  if (seenContractIds.has(m.id)) return false;
+                  return true;
+                })
+                .slice(0, 4) // Only show 4 contracts per category
+                .map(m => {
+                  // Mark this contract as seen
+                  seenContractIds.add(m.id);
+                  return m;
+                });
+              
+              if (categoryContracts.length === 0) return null;
+              
+              return (
+                <div key={category.slug} className="mb-12">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold text-white">{category.name}</h3>
+                    <Link 
+                      to={`/markets/${category.slug}`}
+                      className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                    >
+                      View all →
+                    </Link>
+                  </div>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {categoryContracts.map(m => (
+                      <MarketCard key={m.id} m={m} />
+                    ))}
+                  </div>
                 </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {categoryContracts.map(m => (
-                    <MarketCard key={m.id} m={m} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        );
+      })()}
       
       {/* Fallback feature cards if no features from database - REMOVED, only show database features */}
       {isHomepage && features.length === 0 && false && (
