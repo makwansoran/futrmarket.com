@@ -83,7 +83,7 @@ function AccountMenu({ userEmail, onLogout }) {
             className="fixed inset-0 z-20" 
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-44 rounded-md border border-white/10 bg-gray-900/95 shadow-xl z-30">
+          <div className="absolute right-0 mt-2 w-44 rounded-md border border-white/10 bg-gray-900/95 shadow-xl z-[60]">
             <Link 
               to="/account" 
               onClick={() => setOpen(false)}
@@ -136,7 +136,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
         {/* LEFT: logo + brand */}
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition flex-shrink-0">
