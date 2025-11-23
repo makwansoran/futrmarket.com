@@ -956,10 +956,15 @@ export default function MarketDetailPage(){
                 <AnimatePresence>
                   {openOrderbook === 'yes' && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0, y: -10 }}
-                      animate={{ opacity: 1, height: 'auto', y: 0 }}
-                      exit={{ opacity: 0, height: 0, y: -10 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      initial={{ opacity: 0, scale: 0.95, y: -20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                      transition={{ 
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 25,
+                        mass: 0.8
+                      }}
                       className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden z-10 shadow-xl"
                     >
                       <div className="p-3 bg-green-500/10 border-b border-gray-700">
@@ -1027,10 +1032,15 @@ export default function MarketDetailPage(){
                 <AnimatePresence>
                   {openOrderbook === 'no' && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0, y: -10 }}
-                      animate={{ opacity: 1, height: 'auto', y: 0 }}
-                      exit={{ opacity: 0, height: 0, y: -10 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      initial={{ opacity: 0, scale: 0.95, y: -20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                      transition={{ 
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 25,
+                        mass: 0.8
+                      }}
                       className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden z-10 shadow-xl"
                     >
                       <div className="p-3 bg-red-500/10 border-b border-gray-700">
