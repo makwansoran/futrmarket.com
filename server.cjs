@@ -2282,6 +2282,11 @@ app.get("/api/contracts/:id/activity", async (req, res) => {
 // Update contract (admin only)
 app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
   try {
+    console.log("[PATCH /api/contracts/:id] Request received:", {
+      contractId: req.params.id,
+      body: req.body
+    });
+    
     const contractId = decodeURIComponent(req.params.id || "");
     if (!contractId) return res.status(400).json({ ok: false, error: "Contract ID required" });
     
@@ -2330,6 +2335,7 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       } else {
         updates.trending = false;
       }
+      console.log("[PATCH /api/contracts/:id] Setting trending to:", updates.trending);
     }
     
     // Ensure we have updates to make
@@ -2337,40 +2343,62 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       return res.status(400).json({ ok: false, error: "No valid updates provided" });
     }
     
+    console.log("[PATCH /api/contracts/:id] Updates to apply:", updates);
+    
     // Update contract in database
     let updatedContract;
     try {
+      console.log("[PATCH /api/contracts/:id] Calling updateContract...");
       updatedContract = await updateContract(contractId, updates);
+      console.log("[PATCH /api/contracts/:id] Update successful:", updatedContract?.id);
       if (!updatedContract) {
         return res.status(404).json({ ok: false, error: "Contract not found" });
       }
     } catch (updateError) {
-      console.error("Error updating contract in database:", updateError);
-      console.error("Update error details:", {
+      console.error("[PATCH /api/contracts/:id] Error updating contract in database:", updateError);
+      console.error("[PATCH /api/contracts/:id] Update error details:", {
         message: updateError.message,
         code: updateError.code,
         details: updateError.details,
         hint: updateError.hint,
-        stack: updateError.stack
+        stack: updateError.stack,
+        name: updateError.name
       });
       
       // Check if it's a column error (trending column might not exist)
       const errorMsg = String(updateError.message || "");
       const errorCode = String(updateError.code || "");
       const errorDetails = String(updateError.details || "");
+      const errorHint = String(updateError.hint || "");
       
-      // Check if this is related to the trending column
-      if (updates.trending !== undefined && (
-        errorMsg.includes("column") || 
-        errorMsg.includes("Cannot coerce") ||
-        errorMsg.toLowerCase().includes("trending") ||
-        errorCode === "PGRST116" ||
-        errorDetails.includes("trending")
-      )) {
-        return res.status(500).json({ 
-          ok: false, 
-          error: "Database schema error: The 'trending' column does not exist in your contracts table.\n\nTo fix this, run this SQL in your Supabase SQL Editor:\n\nALTER TABLE contracts ADD COLUMN IF NOT EXISTS trending BOOLEAN DEFAULT false;" 
-        });
+      console.log("[PATCH /api/contracts/:id] Error analysis:", {
+        errorMsg,
+        errorCode,
+        errorDetails,
+        errorHint,
+        hasTrendingUpdate: updates.trending !== undefined
+      });
+      
+      // Check if this is related to the trending column - be very broad in detection
+      if (updates.trending !== undefined) {
+        const isColumnError = 
+          errorMsg.includes("column") || 
+          errorMsg.includes("Cannot coerce") ||
+          errorMsg.toLowerCase().includes("trending") ||
+          errorCode === "PGRST116" ||
+          errorCode === "42703" || // PostgreSQL undefined column error code
+          errorDetails.includes("trending") ||
+          errorDetails.includes("column") ||
+          errorHint.includes("trending") ||
+          errorHint.includes("column");
+        
+        if (isColumnError) {
+          console.error("[PATCH /api/contracts/:id] Detected missing trending column error");
+          return res.status(500).json({ 
+            ok: false, 
+            error: "Database schema error: The 'trending' column does not exist in your contracts table.\n\nTo fix this, run this SQL in your Supabase SQL Editor:\n\nALTER TABLE contracts ADD COLUMN IF NOT EXISTS trending BOOLEAN DEFAULT false;" 
+          });
+        }
       }
       
       // Check for "Cannot coerce" error which often means 0 rows or column issue
@@ -2382,9 +2410,11 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       }
       
       // Return the error message from the database layer if it's clear
+      const finalErrorMsg = errorMsg || "Unknown error occurred while updating contract";
+      console.error("[PATCH /api/contracts/:id] Returning error to client:", finalErrorMsg);
       return res.status(500).json({ 
         ok: false, 
-        error: errorMsg || "Unknown error occurred while updating contract" 
+        error: finalErrorMsg
       });
     }
     
@@ -2415,10 +2445,15 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       noShares: updatedContract.no_shares || updatedContract.noShares || 0
     };
     
+    console.log("[PATCH /api/contracts/:id] Successfully returning updated contract");
     res.json({ ok: true, data: mappedContract });
   } catch (error) {
-    console.error("Error updating contract:", error);
-    res.status(500).json({ ok: false, error: error.message || "Failed to update contract" });
+    console.error("[PATCH /api/contracts/:id] Outer catch - Error updating contract:", error);
+    console.error("[PATCH /api/contracts/:id] Outer catch - Error stack:", error.stack);
+    res.status(500).json({ 
+      ok: false, 
+      error: error.message || "Failed to update contract" 
+    });
   }
 });
 
