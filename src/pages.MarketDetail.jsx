@@ -925,6 +925,18 @@ export default function MarketDetailPage(){
             </div>
             <PriceChart data={priceHistory} />
           </div>
+          
+          {/* Create Market Context Field Button */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <motion.button
+              className="w-full bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-lg p-4 text-white font-semibold transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Create Market Context Field
+            </motion.button>
+          </div>
+          
           {/* Probability Display - Buttons with Orderbook Dropdowns */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div className="flex flex-col gap-4">
