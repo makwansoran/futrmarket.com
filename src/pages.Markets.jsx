@@ -71,10 +71,10 @@ function MarketCard({ m }){
           <div 
             className="flex-shrink-0"
             style={{ 
-              width: '20px', 
-              height: '20px', 
-              minWidth: '20px', 
-              minHeight: '20px',
+              width: '40px', 
+              height: '40px', 
+              minWidth: '40px', 
+              minHeight: '40px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
