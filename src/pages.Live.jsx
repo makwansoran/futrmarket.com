@@ -63,7 +63,8 @@ function MarketCard({ m }){
           <div className="text-white font-semibold text-sm mt-2 line-clamp-2">{m.question}</div>
           <div className="flex gap-2 mt-3">
             <motion.div 
-              className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[40px]"
+              className="flex-1 border rounded-md p-2 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[40px]"
+              style={{ backgroundColor: 'rgba(64, 185, 35, 0.1)', borderColor: 'rgba(64, 185, 35, 0.3)' }}
               whileHover="hover"
               initial="rest"
               animate="rest"
@@ -80,10 +81,11 @@ function MarketCard({ m }){
                 }}
                 transition={{ duration: 0.2 }}
               >
-                <span className="text-green-400 text-sm font-semibold">YES</span>
+                <span className="text-sm font-semibold" style={{ color: 'rgb(64, 185, 35)' }}>YES</span>
               </motion.div>
               <motion.div
-                className="absolute inset-0 flex items-center justify-center bg-green-500/20"
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ backgroundColor: 'rgba(64, 185, 35, 0.2)' }}
                 variants={{
                   rest: { opacity: 0, y: 10 },
                   hover: { opacity: 1, y: 0 }
@@ -97,7 +99,7 @@ function MarketCard({ m }){
             </motion.div>
             <motion.div 
               className="flex-1 border rounded-md p-2 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[40px]"
-              style={{ backgroundColor: 'rgba(207, 54, 79, 0.1)', borderColor: 'rgba(207, 54, 79, 0.3)' }}
+              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.3)' }}
               whileHover="hover"
               initial="rest"
               animate="rest"
@@ -118,7 +120,7 @@ function MarketCard({ m }){
               </motion.div>
               <motion.div
                 className="absolute inset-0 flex items-center justify-center"
-                style={{ backgroundColor: 'rgba(207, 54, 79, 0.2)' }}
+                style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }}
                 variants={{
                   rest: { opacity: 0, y: 10 },
                   hover: { opacity: 1, y: 0 }
@@ -213,7 +215,8 @@ export default function LivePage({ markets = [] }){
                   {/* Price Buttons */}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <motion.div 
-                      className="bg-green-500/10 border-2 border-green-500/50 rounded-lg p-4 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[60px]"
+                      className="border-2 rounded-lg p-4 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[60px]"
+                      style={{ backgroundColor: 'rgba(64, 185, 35, 0.1)', borderColor: 'rgba(64, 185, 35, 0.5)' }}
                       whileHover="hover"
                       initial="rest"
                       animate="rest"
@@ -230,10 +233,11 @@ export default function LivePage({ markets = [] }){
                         }}
                         transition={{ duration: 0.2 }}
                       >
-                        <span className="text-green-400 font-semibold text-lg">YES</span>
+                        <span className="font-semibold text-lg" style={{ color: 'rgb(64, 185, 35)' }}>YES</span>
                       </motion.div>
                       <motion.div
-                        className="absolute inset-0 flex items-center justify-center bg-green-500/20"
+                        className="absolute inset-0 flex items-center justify-center"
+                        style={{ backgroundColor: 'rgba(64, 185, 35, 0.2)' }}
                         variants={{
                           rest: { opacity: 0, y: 10 },
                           hover: { opacity: 1, y: 0 }
@@ -247,7 +251,7 @@ export default function LivePage({ markets = [] }){
                     </motion.div>
                     <motion.div 
                       className="border-2 rounded-lg p-4 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[60px]"
-                      style={{ backgroundColor: 'rgba(207, 54, 79, 0.1)', borderColor: 'rgba(207, 54, 79, 0.5)' }}
+                      style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.5)' }}
                       whileHover="hover"
                       initial="rest"
                       animate="rest"
@@ -268,7 +272,7 @@ export default function LivePage({ markets = [] }){
                       </motion.div>
                       <motion.div
                         className="absolute inset-0 flex items-center justify-center"
-                        style={{ backgroundColor: 'rgba(207, 54, 79, 0.2)' }}
+                        style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }}
                         variants={{
                           rest: { opacity: 0, y: 10 },
                           hover: { opacity: 1, y: 0 }

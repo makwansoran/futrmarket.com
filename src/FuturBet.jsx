@@ -148,7 +148,8 @@ function MarketCard(props) {
           </div>
           <div className="mt-2 flex items-center gap-2">
             <motion.div 
-              className="px-2 py-1 rounded-md bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-semibold cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[28px] min-w-[40px]"
+              className="px-2 py-1 rounded-md border text-xs font-semibold cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[28px] min-w-[40px]"
+              style={{ backgroundColor: 'rgba(64, 185, 35, 0.1)', borderColor: 'rgba(64, 185, 35, 0.3)' }}
               whileHover="hover"
               initial="rest"
               animate="rest"
@@ -165,10 +166,11 @@ function MarketCard(props) {
                 }}
                 transition={{ duration: 0.2 }}
               >
-                YES
+                <span style={{ color: 'rgb(64, 185, 35)' }}>YES</span>
               </motion.span>
               <motion.span
-                className="absolute inset-0 flex items-center justify-center bg-green-500/20"
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ backgroundColor: 'rgba(64, 185, 35, 0.2)' }}
                 variants={{
                   rest: { opacity: 0, y: 5 },
                   hover: { opacity: 1, y: 0 }
@@ -182,7 +184,7 @@ function MarketCard(props) {
             </motion.div>
             <motion.div 
               className="px-2 py-1 rounded-md border text-xs font-semibold cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[28px] min-w-[40px]"
-              style={{ backgroundColor: 'rgba(207, 54, 79, 0.1)', borderColor: 'rgba(207, 54, 79, 0.3)' }}
+              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.3)' }}
               whileHover="hover"
               initial="rest"
               animate="rest"
@@ -203,7 +205,7 @@ function MarketCard(props) {
               </motion.span>
               <motion.span
                 className="absolute inset-0 flex items-center justify-center"
-                style={{ backgroundColor: 'rgba(207, 54, 79, 0.2)' }}
+                style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }}
                 variants={{
                   rest: { opacity: 0, y: 5 },
                   hover: { opacity: 1, y: 0 }
