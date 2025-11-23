@@ -2419,14 +2419,22 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
         errorCode,
         errorDetails,
         errorHint,
-        hasTrendingUpdate: updates.trending !== undefined
+        hasTrendingUpdate: updates.trending !== undefined,
+        fullError: JSON.stringify(updateError, Object.getOwnPropertyNames(updateError), 2)
       });
       
       // Check if this is related to the trending column - be very broad in detection
       if (updates.trending !== undefined) {
         // "Cannot coerce" when updating trending almost always means the column doesn't exist
-        if (errorMsg.includes("Cannot coerce") || errorCode === "PGRST116") {
+        // Check for various forms of this error
+        const isCannotCoerce = errorMsg.includes("Cannot coerce") || 
+                               errorMsg.includes("cannot coerce") ||
+                               errorMsg.includes("coerce") ||
+                               errorCode === "PGRST116";
+        
+        if (isCannotCoerce) {
           console.error("[PATCH /api/contracts/:id] Detected missing trending column error (Cannot coerce)");
+          console.error("[PATCH /api/contracts/:id] Returning improved error message");
           return res.status(500).json({ 
             ok: false, 
             error: "Database schema error: The 'trending' column does not exist in your contracts table.\n\nTo fix this, run this SQL in your Supabase SQL Editor:\n\nALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS trending BOOLEAN NOT NULL DEFAULT false;\n\nAfter running this SQL, refresh the page and try again." 
