@@ -123,7 +123,7 @@ function MarketCard({ m }){
         <div className="flex gap-2 mt-4">
           <motion.div 
             className="flex-1 border rounded-md p-2.5 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[48px]"
-            style={{ backgroundColor: 'rgba(64, 185, 35, 0.1)', borderColor: 'rgba(64, 185, 35, 0.3)' }}
+            style={{ backgroundColor: 'rgb(64, 185, 35)', borderColor: 'rgb(64, 185, 35)' }}
             whileHover="hover"
             initial="rest"
             animate="rest"
@@ -140,25 +140,25 @@ function MarketCard({ m }){
               }}
               transition={{ duration: 0.2 }}
             >
-              <span className="text-sm font-semibold" style={{ color: 'rgb(64, 185, 35)' }}>YES</span>
+              <span className="text-sm font-semibold text-white">YES</span>
             </motion.div>
             <motion.div
               className="absolute inset-0 flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(64, 185, 35, 0.2)' }}
+              style={{ backgroundColor: 'rgb(64, 185, 35)' }}
               variants={{
                 rest: { opacity: 0, y: 10 },
                 hover: { opacity: 1, y: 0 }
               }}
               transition={{ duration: 0.2 }}
             >
-              <span className="text-lg font-bold" style={{ color: 'rgb(20, 120, 50)' }}>
+              <span className="text-lg font-bold text-white">
                 {Math.round((m.yesPrice||0.5)*100)}¢
               </span>
             </motion.div>
           </motion.div>
           <motion.div 
             className="flex-1 border rounded-md p-2.5 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[48px]"
-            style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+            style={{ backgroundColor: 'rgb(239, 68, 68)', borderColor: 'rgb(239, 68, 68)' }}
             whileHover="hover"
             initial="rest"
             animate="rest"
@@ -175,18 +175,18 @@ function MarketCard({ m }){
               }}
               transition={{ duration: 0.2 }}
             >
-              <span className="text-sm font-semibold" style={{ color: 'rgb(207, 54, 79)' }}>NO</span>
+              <span className="text-sm font-semibold text-white">NO</span>
             </motion.div>
             <motion.div
               className="absolute inset-0 flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)' }}
+              style={{ backgroundColor: 'rgb(239, 68, 68)' }}
               variants={{
                 rest: { opacity: 0, y: 10 },
                 hover: { opacity: 1, y: 0 }
               }}
               transition={{ duration: 0.2 }}
             >
-              <span className="text-lg font-bold" style={{ color: 'rgb(150, 30, 50)' }}>
+              <span className="text-lg font-bold text-white">
                 {Math.round((m.noPrice||0.5)*100)}¢
               </span>
             </motion.div>
