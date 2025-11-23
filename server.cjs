@@ -2424,11 +2424,18 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       
       // Check if this is related to the trending column - be very broad in detection
       if (updates.trending !== undefined) {
+        // "Cannot coerce" when updating trending almost always means the column doesn't exist
+        if (errorMsg.includes("Cannot coerce") || errorCode === "PGRST116") {
+          console.error("[PATCH /api/contracts/:id] Detected missing trending column error (Cannot coerce)");
+          return res.status(500).json({ 
+            ok: false, 
+            error: "Database schema error: The 'trending' column does not exist in your contracts table.\n\nTo fix this, run this SQL in your Supabase SQL Editor:\n\nALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS trending BOOLEAN NOT NULL DEFAULT false;\n\nAfter running this SQL, refresh the page and try again." 
+          });
+        }
+        
         const isColumnError = 
           errorMsg.includes("column") || 
-          errorMsg.includes("Cannot coerce") ||
           errorMsg.toLowerCase().includes("trending") ||
-          errorCode === "PGRST116" ||
           errorCode === "42703" || // PostgreSQL undefined column error code
           errorDetails.includes("trending") ||
           errorDetails.includes("column") ||
@@ -2439,7 +2446,7 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
           console.error("[PATCH /api/contracts/:id] Detected missing trending column error");
           return res.status(500).json({ 
             ok: false, 
-            error: "Database schema error: The 'trending' column does not exist in your contracts table.\n\nTo fix this, run this SQL in your Supabase SQL Editor:\n\nALTER TABLE contracts ADD COLUMN IF NOT EXISTS trending BOOLEAN DEFAULT false;" 
+            error: "Database schema error: The 'trending' column does not exist in your contracts table.\n\nTo fix this, run this SQL in your Supabase SQL Editor:\n\nALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS trending BOOLEAN NOT NULL DEFAULT false;\n\nAfter running this SQL, refresh the page and try again." 
           });
         }
       }
