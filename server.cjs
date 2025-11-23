@@ -2482,10 +2482,16 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
     res.json({ ok: true, data: mappedContract });
   } catch (error) {
     console.error("[PATCH /api/contracts/:id] Outer catch - Error updating contract:", error);
+    console.error("[PATCH /api/contracts/:id] Outer catch - Error message:", error.message);
+    console.error("[PATCH /api/contracts/:id] Outer catch - Error code:", error.code);
+    console.error("[PATCH /api/contracts/:id] Outer catch - Error details:", error.details);
     console.error("[PATCH /api/contracts/:id] Outer catch - Error stack:", error.stack);
+    console.error("[PATCH /api/contracts/:id] Outer catch - Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    
+    const errorMsg = error.message || "Failed to update contract";
     res.status(500).json({ 
       ok: false, 
-      error: error.message || "Failed to update contract" 
+      error: errorMsg
     });
   }
 });
