@@ -7,11 +7,12 @@
 
 :root {
   /* Main Background Colors */
-  --bg-primary: rgb(255, 255, 255);        /* gray-950 */
-  --bg-secondary: rgb(255, 255, 255);     /* gray-900 */
-  --bg-tertiary: rgb(255, 255, 255);     /* gray-800 */
-  --bg-quaternary: rgb(255, 255, 255);   /* gray-700 */
+  --bg-primary: rgb(3, 7, 18);        /* gray-950 */
+  --bg-secondary: rgb(17, 24, 39);     /* gray-900 */
+  --bg-tertiary: rgb(31, 41, 55);     /* gray-800 */
+  --bg-quaternary: rgb(55, 65, 81);   /* gray-700 */
   --bg-footer: rgb(0, 0, 0);          /* black */
+
   
   /* Navbar Backgrounds (with transparency) */
   --bg-header: rgba(3, 7, 18, 0.7);   /* gray-950/70 */
@@ -30,12 +31,54 @@
   --bg-card: rgb(17, 24, 39);         /* gray-900 */
   --bg-card-hover: rgb(31, 41, 55);  /* gray-800 */
   
-  /* Text Colors */
-  --text-primary: rgb(243, 244, 246);   /* gray-100 */
-  --text-secondary: rgb(209, 213, 219);  /* gray-300 */
-  --text-tertiary: rgb(156, 163, 175);   /* gray-400 */
-  --text-muted: rgb(107, 114, 128);     /* gray-500 */
-  --text-white: rgb(255, 255, 255);     /* white */
+  /* Text Colors - Main Content */
+  --text-primary: rgb(243, 244, 246);   /* Main body text, headings, titles - Used for: page titles, card titles, main content */
+  --text-secondary: rgb(209, 213, 219);  /* Secondary text, descriptions - Used for: subtitles, descriptions, secondary info */
+  --text-tertiary: rgb(156, 163, 175);   /* Tertiary text, less important info - Used for: metadata, timestamps, labels */
+  --text-muted: rgb(107, 114, 128);     /* Muted text, disabled states - Used for: placeholder text, disabled buttons, inactive links */
+  --text-white: rgb(255, 255, 255);     /* Pure white text - Used for: high contrast text, buttons, important labels */
+  
+  /* Text Colors - Navigation & UI */
+  --text-nav: rgb(243, 244, 246);       /* Navigation links text - Used for: navbar links, menu items */
+  --text-nav-hover: rgb(255, 255, 255); /* Navigation hover state - Used for: navbar links on hover */
+  --text-nav-active: rgb(96, 165, 250); /* Active navigation item - Used for: current page indicator in nav */
+  --text-link: rgb(96, 165, 250);       /* Regular links - Used for: clickable links, external links */
+  --text-link-hover: rgb(147, 197, 253); /* Link hover state - Used for: links on hover */
+  
+  /* Text Colors - Market Cards */
+  --text-card-title: rgb(255, 255, 255); /* Card/question title - Used for: market card question text */
+  --text-card-meta: rgb(156, 163, 175);  /* Card metadata - Used for: dates, timestamps on cards */
+  --text-card-price: rgb(255, 255, 255); /* Price text - Used for: YES/NO prices on market cards */
+  --text-card-label: rgb(156, 163, 175);  /* Card labels - Used for: "YES", "NO" labels */
+  
+  /* Text Colors - Status & Badges */
+  --text-status-live: rgb(248, 113, 113); /* Live status indicator - Used for: "LIVE" badges, active status */
+  --text-status-resolved: rgb(156, 163, 175); /* Resolved status - Used for: closed/resolved market text */
+  --text-badge-category: rgb(96, 165, 250); /* Category badges - Used for: category tags on cards */
+  
+  /* Text Colors - Buttons & Actions */
+  --text-button-primary: rgb(255, 255, 255); /* Primary button text - Used for: main action buttons */
+  --text-button-secondary: rgb(243, 244, 246); /* Secondary button text - Used for: secondary buttons */
+  --text-button-disabled: rgb(107, 114, 128); /* Disabled button text - Used for: disabled/inactive buttons */
+  
+  /* Text Colors - Forms & Inputs */
+  --text-input: rgb(243, 244, 246);     /* Input field text - Used for: text in input fields, search bars */
+  --text-input-placeholder: rgb(107, 114, 128); /* Placeholder text - Used for: input placeholders */
+  --text-input-label: rgb(209, 213, 219); /* Form labels - Used for: form field labels */
+  
+  /* Text Colors - Footer */
+  --text-footer: rgb(209, 213, 219);    /* Footer text - Used for: footer links and text */
+  --text-footer-hover: rgb(255, 255, 255); /* Footer link hover - Used for: footer links on hover */
+  --text-footer-copyright: rgb(156, 163, 175); /* Footer copyright - Used for: copyright text, disclaimers */
+  
+  /* Text Colors - Modals & Overlays */
+  --text-modal-title: rgb(255, 255, 255); /* Modal title - Used for: modal/dialog titles */
+  --text-modal-body: rgb(243, 244, 246);  /* Modal body text - Used for: modal content text */
+  
+  /* Text Colors - Success, Warning, Error */
+  --text-success: rgb(74, 222, 128);     /* Success messages - Used for: success notifications, positive feedback */
+  --text-warning: rgb(251, 191, 36);     /* Warning messages - Used for: warning notifications, caution text */
+  --text-error: rgb(248, 113, 113);      /* Error messages - Used for: error notifications, validation errors */
   
   /* Border Colors */
   --border-default: rgb(31, 41, 55);     /* gray-800 */

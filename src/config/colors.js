@@ -43,13 +43,55 @@ export const colors = {
     hover: 'bg-gray-800',         // Card hover state
   },
   
-  // Text Colors
+  // Text Colors - Main Content
   text: {
-    primary: 'text-gray-100',     // Main text
-    secondary: 'text-gray-300',   // Secondary text
-    tertiary: 'text-gray-400',    // Tertiary text
-    muted: 'text-gray-500',       // Muted text
-    white: 'text-white',          // White text
+    primary: 'text-gray-100',     // Main body text, headings, titles
+    secondary: 'text-gray-300',   // Secondary text, descriptions
+    tertiary: 'text-gray-400',   // Tertiary text, less important info
+    muted: 'text-gray-500',       // Muted text, disabled states
+    white: 'text-white',          // Pure white text
+    
+    // Navigation & UI
+    nav: 'text-gray-100',         // Navigation links text
+    navHover: 'text-white',       // Navigation hover state
+    navActive: 'text-blue-400',   // Active navigation item
+    link: 'text-blue-400',        // Regular links
+    linkHover: 'text-blue-300',   // Link hover state
+    
+    // Market Cards
+    cardTitle: 'text-white',      // Card/question title
+    cardMeta: 'text-gray-400',    // Card metadata
+    cardPrice: 'text-white',      // Price text
+    cardLabel: 'text-gray-400',   // Card labels
+    
+    // Status & Badges
+    statusLive: 'text-red-400',   // Live status indicator
+    statusResolved: 'text-gray-400', // Resolved status
+    badgeCategory: 'text-blue-400', // Category badges
+    
+    // Buttons & Actions
+    buttonPrimary: 'text-white',    // Primary button text
+    buttonSecondary: 'text-gray-100', // Secondary button text
+    buttonDisabled: 'text-gray-500', // Disabled button text
+    
+    // Forms & Inputs
+    input: 'text-gray-100',       // Input field text
+    inputPlaceholder: 'text-gray-500', // Placeholder text
+    inputLabel: 'text-gray-300',  // Form labels
+    
+    // Footer
+    footer: 'text-gray-300',      // Footer text
+    footerHover: 'text-white',     // Footer link hover
+    footerCopyright: 'text-gray-400', // Footer copyright
+    
+    // Modals & Overlays
+    modalTitle: 'text-white',     // Modal title
+    modalBody: 'text-gray-100',   // Modal body text
+    
+    // Success, Warning, Error
+    success: 'text-green-400',     // Success messages
+    warning: 'text-yellow-400',   // Warning messages
+    error: 'text-red-400',        // Error messages
   },
   
   // Border Colors
