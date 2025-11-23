@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { Clock, TrendingUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { getApiUrl } from "/src/api.js";
 import FeatureCarousel from "./components/FeatureCarousel.jsx";
 
@@ -120,12 +121,62 @@ function MarketCard({ m }){
           </div>
         </div>
         <div className="flex gap-2 mt-4">
-          <div className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2.5">
-            <div className="text-green-400 text-sm font-semibold">YES</div>
-          </div>
-          <div className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2.5">
-            <div className="text-red-400 text-sm font-semibold">NO</div>
-          </div>
+          <motion.div 
+            className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2.5 cursor-pointer relative overflow-hidden"
+            whileHover={{ scale: 1.02 }}
+            initial="rest"
+            animate="rest"
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key="yes"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="text-green-400 text-sm font-semibold"
+              >
+                YES
+              </motion.div>
+            </AnimatePresence>
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center bg-green-500/20"
+              initial={{ opacity: 0, y: 10 }}
+              whileHover={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className="text-green-400 text-lg font-bold">
+                {Math.round((m.yesPrice||0.5)*100)}¢
+              </span>
+            </motion.div>
+          </motion.div>
+          <motion.div 
+            className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2.5 cursor-pointer relative overflow-hidden"
+            whileHover={{ scale: 1.02 }}
+            initial="rest"
+            animate="rest"
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key="no"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="text-red-400 text-sm font-semibold"
+              >
+                NO
+              </motion.div>
+            </AnimatePresence>
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center bg-red-500/20"
+              initial={{ opacity: 0, y: 10 }}
+              whileHover={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className="text-red-400 text-lg font-bold">
+                {Math.round((m.noPrice||0.5)*100)}¢
+              </span>
+            </motion.div>
+          </motion.div>
         </div>
         <div className="text-xs text-gray-400 mt-3 flex justify-between">
           <span>{m.volume || "$0"} volume</span>

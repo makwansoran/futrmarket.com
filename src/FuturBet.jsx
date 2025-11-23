@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { TrendingUp, Wallet, Clock, Mail } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import localforage from "localforage";
 import { BrowserProvider } from "ethers";
 import { getMarkets as getMarketsReadOnly } from "./marketsStore";
@@ -147,12 +147,56 @@ function MarketCard(props) {
             {market.question}
           </div>
           <div className="mt-2 flex items-center gap-2">
-            <div className="px-2 py-1 rounded-md bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-semibold">
-              YES
-            </div>
-            <div className="px-2 py-1 rounded-md bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold">
-              NO
-            </div>
+            <motion.div 
+              className="px-2 py-1 rounded-md bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-semibold cursor-pointer relative overflow-hidden"
+              whileHover={{ scale: 1.05 }}
+            >
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key="yes"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  YES
+                </motion.span>
+              </AnimatePresence>
+              <motion.span
+                className="absolute inset-0 flex items-center justify-center bg-green-500/20"
+                initial={{ opacity: 0, y: 5 }}
+                whileHover={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span className="text-green-400 text-xs font-bold">
+                  {Math.round(market.yesPrice * 100)}¢
+                </span>
+              </motion.span>
+            </motion.div>
+            <motion.div 
+              className="px-2 py-1 rounded-md bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold cursor-pointer relative overflow-hidden"
+              whileHover={{ scale: 1.05 }}
+            >
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key="no"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  NO
+                </motion.span>
+              </AnimatePresence>
+              <motion.span
+                className="absolute inset-0 flex items-center justify-center bg-red-500/20"
+                initial={{ opacity: 0, y: 5 }}
+                whileHover={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span className="text-red-400 text-xs font-bold">
+                  {Math.round(market.noPrice * 100)}¢
+                </span>
+              </motion.span>
+            </motion.div>
             <div className="ml-auto text-[11px] text-gray-500 hidden sm:block">
               {market.volume} • {market.traders} traders
             </div>
