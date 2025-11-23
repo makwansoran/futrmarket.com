@@ -2279,6 +2279,39 @@ app.get("/api/contracts/:id/activity", async (req, res) => {
   }
 });
 
+// Test endpoint to check if trending column exists (admin only)
+app.get("/api/test/trending-column", requireAdmin, async (req, res) => {
+  try {
+    const { supabase, isSupabaseEnabled } = require("./lib/supabase.cjs");
+    if (!isSupabaseEnabled()) {
+      return res.json({ ok: true, usingFileStorage: true, message: "Using file storage, column check not needed" });
+    }
+    
+    // Try to select the trending column from a contract
+    const { data, error } = await supabase
+      .from("contracts")
+      .select("id, trending")
+      .limit(1);
+    
+    if (error) {
+      const errorMsg = String(error.message || "");
+      if (errorMsg.includes("column") || errorMsg.includes("trending")) {
+        return res.json({ 
+          ok: false, 
+          columnExists: false, 
+          error: error.message,
+          fix: "Run: ALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS trending BOOLEAN NOT NULL DEFAULT false;"
+        });
+      }
+      return res.json({ ok: false, error: error.message });
+    }
+    
+    return res.json({ ok: true, columnExists: true, message: "Trending column exists and is accessible" });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 // Update contract (admin only)
 app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
   try {
