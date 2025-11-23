@@ -595,6 +595,7 @@ export default function MarketsPage({ markets=[], limit, category }){
         
         for (const category of allowedCategories) {
           const categoryContracts = [];
+          const categoryIds = new Set(); // Track IDs in THIS category to prevent duplicates
           
           for (const m of deduplicatedMarkets) {
             // Check if this contract matches the category
@@ -604,19 +605,30 @@ export default function MarketsPage({ markets=[], limit, category }){
             // Use ID as the absolute key - if we've seen this ID, skip it
             const contractId = String(m.id || "").trim().toLowerCase();
             
-            // CRITICAL: If this ID has been displayed ANYWHERE, skip it
+            // CRITICAL: If this ID has been displayed ANYWHERE globally, skip it
             if (globalDisplayedIds.has(contractId)) {
-              console.error("🔴 [CATEGORIES] Contract ID already displayed:", m.id, m.question);
+              console.error("🔴 [CATEGORIES] Contract ID already displayed globally:", m.id, m.question);
+              continue;
+            }
+            
+            // CRITICAL: If this ID is already in THIS category, skip it (shouldn't happen, but safety)
+            if (categoryIds.has(contractId)) {
+              console.error("🔴 [CATEGORIES] Contract ID already in this category:", category.name, m.id, m.question);
               continue;
             }
             
             // Add to category
             categoryContracts.push(m);
-            globalDisplayedIds.add(contractId); // Mark this ID as displayed
+            categoryIds.add(contractId); // Mark in this category
+            globalDisplayedIds.add(contractId); // Mark globally
+            
+            console.log(`✅ [CATEGORIES] Added to ${category.name}:`, m.id, m.question);
             
             // Stop at 4 contracts per category
             if (categoryContracts.length >= 4) break;
           }
+          
+          console.log(`🔵 [CATEGORIES] ${category.name}: ${categoryContracts.length} contracts`);
           
           if (categoryContracts.length > 0) {
             categorySections.push({ category, contracts: categoryContracts });
@@ -738,12 +750,17 @@ export default function MarketsPage({ markets=[], limit, category }){
         </div>
       )}
       
-      {allMarkets.length === 0 ? (
-        <div className="text-gray-400 col-span-full text-center py-8">No markets found in this category.</div>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {allMarkets.map(m => <MarketCard key={m.id} m={m}/>)}
-        </div>
+      {/* On homepage, don't show allMarkets section - categories already show them */}
+      {!isHomepage && (
+        <>
+          {allMarkets.length === 0 ? (
+            <div className="text-gray-400 col-span-full text-center py-8">No markets found in this category.</div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {allMarkets.map(m => <MarketCard key={m.id} m={m}/>)}
+            </div>
+          )}
+        </>
       )}
     </section>
   );
