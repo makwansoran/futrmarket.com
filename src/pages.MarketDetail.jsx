@@ -836,7 +836,7 @@ export default function MarketDetailPage(){
               <img 
                 src={m.imageUrl || m.image_url} 
                 alt={m.question}
-                className="w-10 h-10 md:w-12 md:h-12 rounded object-cover border border-gray-700"
+                className="w-11 h-11 md:w-14 md:h-14 rounded object-cover border border-gray-700"
                 onError={(e) => {
                   console.error("❌ Image failed to load:", m.imageUrl || m.image_url, "for contract:", m.id);
                   e.target.style.display = 'none';
