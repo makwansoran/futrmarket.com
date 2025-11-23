@@ -149,9 +149,13 @@ function MarketCard(props) {
           <div className="mt-2 flex items-center gap-2">
             <motion.div 
               className="px-2 py-1 rounded-md bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-semibold cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[28px] min-w-[40px]"
-              whileHover={{ scale: 1.05 }}
+              whileHover="hover"
               initial="rest"
               animate="rest"
+              variants={{
+                rest: { scale: 1 },
+                hover: { scale: 1.05 }
+              }}
             >
               <motion.span
                 className="absolute inset-0 flex items-center justify-center"
@@ -178,9 +182,13 @@ function MarketCard(props) {
             </motion.div>
             <motion.div 
               className="px-2 py-1 rounded-md bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[28px] min-w-[40px]"
-              whileHover={{ scale: 1.05 }}
+              whileHover="hover"
               initial="rest"
               animate="rest"
+              variants={{
+                rest: { scale: 1 },
+                hover: { scale: 1.05 }
+              }}
             >
               <motion.span
                 className="absolute inset-0 flex items-center justify-center"

@@ -122,10 +122,14 @@ function MarketCard({ m }){
         </div>
         <div className="flex gap-2 mt-4">
           <motion.div 
-            className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2.5 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[48px] group"
-            whileHover={{ scale: 1.02 }}
+            className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2.5 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[48px]"
+            whileHover="hover"
             initial="rest"
             animate="rest"
+            variants={{
+              rest: { scale: 1 },
+              hover: { scale: 1.02 }
+            }}
           >
             <motion.div
               className="absolute inset-0 flex items-center justify-center"
@@ -151,10 +155,14 @@ function MarketCard({ m }){
             </motion.div>
           </motion.div>
           <motion.div 
-            className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2.5 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[48px] group"
-            whileHover={{ scale: 1.02 }}
+            className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2.5 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[48px]"
+            whileHover="hover"
             initial="rest"
             animate="rest"
+            variants={{
+              rest: { scale: 1 },
+              hover: { scale: 1.02 }
+            }}
           >
             <motion.div
               className="absolute inset-0 flex items-center justify-center"

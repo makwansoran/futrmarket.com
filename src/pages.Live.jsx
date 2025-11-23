@@ -64,9 +64,13 @@ function MarketCard({ m }){
           <div className="flex gap-2 mt-3">
             <motion.div 
               className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[40px]"
-              whileHover={{ scale: 1.02 }}
+              whileHover="hover"
               initial="rest"
               animate="rest"
+              variants={{
+                rest: { scale: 1 },
+                hover: { scale: 1.02 }
+              }}
             >
               <motion.div
                 className="absolute inset-0 flex items-center justify-center"
@@ -93,9 +97,13 @@ function MarketCard({ m }){
             </motion.div>
             <motion.div 
               className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[40px]"
-              whileHover={{ scale: 1.02 }}
+              whileHover="hover"
               initial="rest"
               animate="rest"
+              variants={{
+                rest: { scale: 1 },
+                hover: { scale: 1.02 }
+              }}
             >
               <motion.div
                 className="absolute inset-0 flex items-center justify-center"
@@ -204,9 +212,13 @@ export default function LivePage({ markets = [] }){
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <motion.div 
                       className="bg-green-500/10 border-2 border-green-500/50 rounded-lg p-4 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[60px]"
-                      whileHover={{ scale: 1.02 }}
+                      whileHover="hover"
                       initial="rest"
                       animate="rest"
+                      variants={{
+                        rest: { scale: 1 },
+                        hover: { scale: 1.02 }
+                      }}
                     >
                       <motion.div
                         className="absolute inset-0 flex items-center justify-center"
@@ -233,9 +245,13 @@ export default function LivePage({ markets = [] }){
                     </motion.div>
                     <motion.div 
                       className="bg-red-500/10 border-2 border-red-500/50 rounded-lg p-4 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[60px]"
-                      whileHover={{ scale: 1.02 }}
+                      whileHover="hover"
                       initial="rest"
                       animate="rest"
+                      variants={{
+                        rest: { scale: 1 },
+                        hover: { scale: 1.02 }
+                      }}
                     >
                       <motion.div
                         className="absolute inset-0 flex items-center justify-center"
