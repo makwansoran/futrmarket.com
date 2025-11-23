@@ -832,7 +832,7 @@ export default function MarketDetailPage(){
         <div className="flex items-start gap-4 mb-4">
           {/* Small square profile picture at start, like Polymarket */}
           {(m.imageUrl || m.image_url) && (
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0" style={{ marginTop: '8px' }}>
               <img 
                 src={m.imageUrl || m.image_url} 
                 alt={m.question}

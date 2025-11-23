@@ -84,7 +84,8 @@ function MarketCard({ m }){
               borderRadius: '4px',
               flexShrink: 0,
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              marginTop: '8px'
             }}
           >
             {imageUrl ? (

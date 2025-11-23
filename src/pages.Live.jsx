@@ -34,7 +34,7 @@ function MarketCard({ m }){
       <div className="flex items-start gap-4">
         {/* Square profile picture at start, like Polymarket - extra small */}
         {imageUrl ? (
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0" style={{ marginTop: '8px' }}>
             <img 
               src={imageUrl} 
               alt={m.question}
@@ -50,7 +50,7 @@ function MarketCard({ m }){
             />
           </div>
         ) : (
-          <div className="flex-shrink-0 rounded bg-gray-800 border border-gray-700" style={{ width: '44px', height: '44px' }}></div>
+          <div className="flex-shrink-0 rounded bg-gray-800 border border-gray-700" style={{ width: '44px', height: '44px', marginTop: '8px' }}></div>
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
