@@ -1737,29 +1737,31 @@ app.get("/api/contracts", async (req, res) => {
         return (b.createdAt || 0) - (a.createdAt || 0);
       });
     
-    // Deduplicate by ID (keep first occurrence - should be newest due to sort)
+    // Deduplicate by ID AND question (keep first occurrence - should be newest due to sort)
+    // Use case-insensitive comparison for both ID and question to catch all duplicates
     const deduplicated = [];
     const seenIds = new Set();
     const seenQuestions = new Map(); // Track questions to detect duplicates
     
     for (const contract of list) {
       const id = String(contract.id || "").trim();
+      const normalizedId = id.toLowerCase(); // Normalize ID for case-insensitive comparison
       const question = String(contract.question || "").trim().toLowerCase();
       
-      // Skip if we've already seen this ID
-      if (!id || seenIds.has(id)) {
+      // Skip if we've already seen this ID (case-insensitive)
+      if (!id || seenIds.has(normalizedId)) {
         console.warn(`[CONTRACTS] ⚠️ Skipping duplicate ID: ${id} - ${contract.question}`);
         continue;
       }
       
-      // Check for duplicate questions (case-insensitive)
+      // Check for duplicate questions (case-insensitive, normalized)
       if (question && seenQuestions.has(question)) {
         const existingId = seenQuestions.get(question);
         console.warn(`[CONTRACTS] ⚠️ Skipping duplicate question: "${contract.question}" (ID: ${id}, existing ID: ${existingId})`);
         continue;
       }
       
-      seenIds.add(id);
+      seenIds.add(normalizedId); // Store normalized ID
       if (question) {
         seenQuestions.set(question, id);
       }

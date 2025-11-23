@@ -25,10 +25,20 @@ export async function fetchMarkets() {
       console.log("🔵 Contracts API response:", j);
       
       if (j.ok && Array.isArray(j.data)) {
-        console.log("🔵 Found", j.data.length, "contracts");
+        console.log("🔵 Found", j.data.length, "contracts from API");
+        
+        // Check for duplicates in API response
+        const apiIds = j.data.map(c => c?.id).filter(Boolean);
+        const uniqueApiIds = new Set(apiIds);
+        if (apiIds.length !== uniqueApiIds.size) {
+          console.error("🔵 ERROR: API returned duplicate contracts! Total:", apiIds.length, "Unique:", uniqueApiIds.size);
+          const duplicates = apiIds.filter((id, idx) => apiIds.indexOf(id) !== idx);
+          console.error("🔵 Duplicate IDs:", duplicates);
+        }
+        
         // Transform contract format to market format for compatibility
         // Filter out invalid contracts (missing ID or invalid ID format)
-        return j.data
+        const transformed = j.data
           .filter(c => {
             // Ensure contract has a valid ID (string or number, not null/undefined)
             if (!c || c.id === null || c.id === undefined) {
@@ -59,8 +69,38 @@ export async function fetchMarkets() {
             featured: c.featured || false,
             expirationDate: c.expirationDate,
             status: c.status || null,
-            competitionId: c.competitionId || null // Include competitionId for filtering
+            competitionId: c.competitionId || null, // Include competitionId for filtering
+            subjectId: c.subjectId || null // Include subjectId for filtering
           }));
+        
+        // Deduplicate by ID AND question - keep only the first occurrence of each contract
+        // This prevents duplicates even if they have different IDs but same question
+        const deduplicated = [];
+        const seenIds = new Set();
+        const seenQuestions = new Set();
+        for (const contract of transformed) {
+          const contractId = String(contract.id || "").trim().toLowerCase();
+          const contractQuestion = String(contract.question || "").trim().toLowerCase();
+          
+          // Check for duplicate ID
+          if (seenIds.has(contractId)) {
+            console.error("🔵 REMOVED DUPLICATE ID from transformed data:", contract.id, contract.question);
+            continue;
+          }
+          
+          // Check for duplicate question (even if different ID)
+          if (contractQuestion && seenQuestions.has(contractQuestion)) {
+            console.error("🔵 REMOVED DUPLICATE QUESTION from transformed data:", contract.question, "ID:", contract.id);
+            continue;
+          }
+          
+          seenIds.add(contractId);
+          if (contractQuestion) seenQuestions.add(contractQuestion);
+          deduplicated.push(contract);
+        }
+        
+        console.log("🔵 After deduplication:", deduplicated.length, "contracts");
+        return deduplicated;
       } else {
         console.warn("🔵 API response not ok or data not array:", j);
       }

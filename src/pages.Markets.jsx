@@ -624,16 +624,29 @@ export default function MarketsPage({ markets=[], limit, category }){
                 });
               
               // LAYER 3: Final validation - ensure no duplicates in the final array
+              // Use BOTH ID and question to catch duplicates with different IDs but same question
               const finalContracts = [];
               const finalIds = new Set();
+              const finalQuestions = new Set();
               for (const contract of categoryContracts) {
                 const contractId = String(contract.id).trim().toLowerCase();
-                if (!finalIds.has(contractId)) {
-                  finalIds.add(contractId);
-                  finalContracts.push(contract);
-                } else {
-                  console.error("🔴 [CATEGORIES] CRITICAL: Duplicate detected in final array for", category.name + ":", contract.id);
+                const contractQuestion = String(contract.question || "").trim().toLowerCase();
+                
+                // Check for duplicate ID
+                if (finalIds.has(contractId)) {
+                  console.error("🔴 [CATEGORIES] CRITICAL: Duplicate ID detected in final array for", category.name + ":", contract.id);
+                  continue;
                 }
+                
+                // Check for duplicate question (even if different ID)
+                if (contractQuestion && finalQuestions.has(contractQuestion)) {
+                  console.error("🔴 [CATEGORIES] CRITICAL: Duplicate question detected in final array for", category.name + ":", contract.question, "ID:", contract.id);
+                  continue;
+                }
+                
+                finalIds.add(contractId);
+                if (contractQuestion) finalQuestions.add(contractQuestion);
+                finalContracts.push(contract);
               }
               
               if (finalContracts.length === 0) return null;
@@ -652,9 +665,25 @@ export default function MarketsPage({ markets=[], limit, category }){
                     </Link>
                   </div>
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {finalContracts.map(m => (
-                      <MarketCard key={`${category.slug}-${m.id}`} m={m} />
-                    ))}
+                    {finalContracts.map((m, idx) => {
+                      // Use a unique key that combines category, ID, and index to prevent React duplicates
+                      const uniqueKey = `${category.slug}-${m.id}-${idx}`;
+                      // Final safety check - log if we somehow have duplicates
+                      if (idx > 0) {
+                        const prevContract = finalContracts[idx - 1];
+                        if (prevContract && (
+                          String(prevContract.id).toLowerCase() === String(m.id).toLowerCase() ||
+                          String(prevContract.question || "").trim().toLowerCase() === String(m.question || "").trim().toLowerCase()
+                        )) {
+                          console.error("🔴 [CATEGORIES] FINAL CHECK: Duplicate found in render!", {
+                            prev: { id: prevContract.id, question: prevContract.question },
+                            current: { id: m.id, question: m.question }
+                          });
+                          return null; // Don't render duplicate
+                        }
+                      }
+                      return <MarketCard key={uniqueKey} m={m} />;
+                    })}
                   </div>
                 </div>
               );
