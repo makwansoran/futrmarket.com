@@ -63,22 +63,17 @@ function MarketCard({ m }){
           <div className="text-white font-semibold text-sm mt-2 line-clamp-2">{m.question}</div>
           <div className="flex gap-2 mt-3">
             <motion.div 
-              className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2 cursor-pointer relative overflow-hidden"
+              className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[40px]"
               whileHover={{ scale: 1.02 }}
-              initial="rest"
-              animate="rest"
             >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key="yes"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-green-400 text-sm font-semibold"
-                >
-                  YES
-                </motion.div>
-              </AnimatePresence>
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                initial={{ opacity: 1 }}
+                whileHover={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span className="text-green-400 text-sm font-semibold">YES</span>
+              </motion.div>
               <motion.div
                 className="absolute inset-0 flex items-center justify-center bg-green-500/20"
                 initial={{ opacity: 0, y: 10 }}
@@ -91,22 +86,17 @@ function MarketCard({ m }){
               </motion.div>
             </motion.div>
             <motion.div 
-              className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2 cursor-pointer relative overflow-hidden"
+              className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[40px]"
               whileHover={{ scale: 1.02 }}
-              initial="rest"
-              animate="rest"
             >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key="no"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-red-400 text-sm font-semibold"
-                >
-                  NO
-                </motion.div>
-              </AnimatePresence>
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                initial={{ opacity: 1 }}
+                whileHover={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span className="text-red-400 text-sm font-semibold">NO</span>
+              </motion.div>
               <motion.div
                 className="absolute inset-0 flex items-center justify-center bg-red-500/20"
                 initial={{ opacity: 0, y: 10 }}
@@ -201,20 +191,17 @@ export default function LivePage({ markets = [] }){
                   {/* Price Buttons */}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <motion.div 
-                      className="bg-green-500/10 border-2 border-green-500/50 rounded-lg p-4 cursor-pointer relative overflow-hidden"
+                      className="bg-green-500/10 border-2 border-green-500/50 rounded-lg p-4 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[60px]"
                       whileHover={{ scale: 1.02 }}
                     >
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key="yes"
-                          initial={{ opacity: 1 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex items-center justify-center"
-                        >
-                          <span className="text-green-400 font-semibold text-lg">YES</span>
-                        </motion.div>
-                      </AnimatePresence>
+                      <motion.div
+                        className="absolute inset-0 flex items-center justify-center"
+                        initial={{ opacity: 1 }}
+                        whileHover={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <span className="text-green-400 font-semibold text-lg">YES</span>
+                      </motion.div>
                       <motion.div
                         className="absolute inset-0 flex items-center justify-center bg-green-500/20"
                         initial={{ opacity: 0, y: 10 }}
@@ -227,20 +214,17 @@ export default function LivePage({ markets = [] }){
                       </motion.div>
                     </motion.div>
                     <motion.div 
-                      className="bg-red-500/10 border-2 border-red-500/50 rounded-lg p-4 cursor-pointer relative overflow-hidden"
+                      className="bg-red-500/10 border-2 border-red-500/50 rounded-lg p-4 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[60px]"
                       whileHover={{ scale: 1.02 }}
                     >
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key="no"
-                          initial={{ opacity: 1 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex items-center justify-center"
-                        >
-                          <span className="text-red-400 font-semibold text-lg">NO</span>
-                        </motion.div>
-                      </AnimatePresence>
+                      <motion.div
+                        className="absolute inset-0 flex items-center justify-center"
+                        initial={{ opacity: 1 }}
+                        whileHover={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <span className="text-red-400 font-semibold text-lg">NO</span>
+                      </motion.div>
                       <motion.div
                         className="absolute inset-0 flex items-center justify-center bg-red-500/20"
                         initial={{ opacity: 0, y: 10 }}
