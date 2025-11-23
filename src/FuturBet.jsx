@@ -130,15 +130,15 @@ function MarketCard(props) {
   return (
     <motion.button
       whileHover={{
-        scale: [null, 1.01, 1.03],
+        scale: [null, 1.03, 1.06],
         transition: {
-          duration: 0.5,
+          duration: 0.25,
           times: [0, 0.6, 1],
           ease: ["easeInOut", "easeOut"],
         },
       }}
       transition={{
-        duration: 0.3,
+        duration: 0.2,
         ease: "easeOut",
       }}
       onClick={onClick}
