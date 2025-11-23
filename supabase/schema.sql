@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS public.contracts (
   status TEXT CHECK (status IN ('upcoming', 'live', 'finished', 'cancelled') OR status IS NULL),
   live BOOLEAN NOT NULL DEFAULT false,
   featured BOOLEAN NOT NULL DEFAULT false,
+  trending BOOLEAN NOT NULL DEFAULT false,
   created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,
   created_by TEXT DEFAULT 'admin',
   -- Legacy fields for backward compatibility
