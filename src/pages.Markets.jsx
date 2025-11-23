@@ -251,24 +251,17 @@ export default function MarketsPage({ markets=[], limit, category }){
   
   let filteredMarkets = safeMarkets;
   
-  // On homepage, only show live contracts (same filter as /live page)
+  // On homepage, show all contracts (not just live ones)
+  // The category section will filter appropriately
   if (isHomepage) {
-    const beforeFilter = safeMarkets.length;
+    // Only exclude resolved contracts, show all others
     filteredMarkets = safeMarkets.filter(m => {
       if (!m || !m.id) return false;
-      if (m.resolution) return false; // Exclude resolved
-      // Only show if explicitly marked as live
-      if (m.live !== true) return false;
-      // Optional: also check expiration date if present
-      if (m.expirationDate) {
-        const expiration = new Date(m.expirationDate);
-        const now = new Date();
-        return expiration > now; // Only show if not expired
-      }
-      return true; // Include if marked as live
+      if (m.resolution) return false; // Exclude resolved contracts
+      return true; // Show all non-resolved contracts
     });
-    console.log("🔵 MarketsPage: Homepage - filtered from", beforeFilter, "to", filteredMarkets.length, "live contracts");
-    console.log("🔵 MarketsPage: Live contracts by category:", 
+    console.log("🔵 MarketsPage: Homepage - showing", filteredMarkets.length, "contracts (excluding resolved)");
+    console.log("🔵 MarketsPage: Contracts by category:", 
       filteredMarkets.reduce((acc, m) => {
         const cat = m.category || "Unknown";
         acc[cat] = (acc[cat] || 0) + 1;
@@ -595,8 +588,8 @@ export default function MarketsPage({ markets=[], limit, category }){
                   // Exclude resolved contracts
                   if (m.resolution) return false;
                   
-                  // Only show live contracts on homepage
-                  if (m.live !== true) return false;
+                  // Show all contracts (not just live ones) in category sections
+                  // This ensures contracts visible on Trending/New/All pages also appear on homepage
                   
                   // Check category match (case-insensitive)
                   const categoryMatch = m.category && m.category.toLowerCase() === category.name.toLowerCase();
