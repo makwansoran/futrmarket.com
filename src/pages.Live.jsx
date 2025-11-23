@@ -38,7 +38,7 @@ function MarketCard({ m }){
               src={imageUrl} 
               alt={m.question}
               className="rounded object-cover border border-gray-700"
-              style={{ width: '28px', height: '28px', display: 'block' }}
+              style={{ width: '20px', height: '20px', display: 'block' }}
               onError={(e) => {
                 console.error("❌ Image failed to load:", imageUrl, "for contract:", m.id);
                 e.target.style.display = 'none';
@@ -49,7 +49,7 @@ function MarketCard({ m }){
             />
           </div>
         ) : (
-          <div className="flex-shrink-0 rounded bg-gray-800 border border-gray-700" style={{ width: '28px', height: '28px' }}></div>
+          <div className="flex-shrink-0 rounded bg-gray-800 border border-gray-700" style={{ width: '20px', height: '20px' }}></div>
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
