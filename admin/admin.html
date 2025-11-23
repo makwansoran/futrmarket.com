@@ -169,10 +169,13 @@
         <div class="mt4 meta">Link this contract to a subject (e.g., Epstein, Trump, Bitcoin). Subjects appear in navigation.</div>
       </div>
 
-      <div class="mt16">
-        <label>Image (optional)</label>
-        <input id="contractImg" type="file" accept="image/*">
-        <div id="contractPreview" class="mt8"></div>
+      <div class="mt16" style="border: 2px dashed #4b5563; padding: 16px; border-radius: 8px; background: #1f2937;">
+        <label style="font-weight: bold; color: #60a5fa; display: block; margin-bottom: 8px;">📷 Contract Profile Picture</label>
+        <div class="meta" style="margin-bottom: 12px; color: #9ca3af;">Upload an image that will appear as a small square profile picture in the upper left corner of each contract card (like Polymarket/Kalshi)</div>
+        <input id="contractImg" type="file" accept="image/*" style="width: 100%; padding: 8px; background: #111827; border: 1px solid #374151; border-radius: 4px; color: white;">
+        <div id="contractPreview" class="mt8" style="display: flex; align-items: center; gap: 12px;">
+          <div class="meta" style="color: #6b7280;">Preview will appear here</div>
+        </div>
       </div>
 
       <div class="mt16"><button id="createContract">Create Contract</button></div>
@@ -790,9 +793,28 @@
     contractPreview.innerHTML = "";
     if (contractImg.files && contractImg.files[0]) {
       var url = URL.createObjectURL(contractImg.files[0]);
+      var container = document.createElement("div");
+      container.style.display = "flex";
+      container.style.alignItems = "center";
+      container.style.gap = "12px";
+      
+      var previewLabel = document.createElement("div");
+      previewLabel.className = "meta";
+      previewLabel.style.color = "#60a5fa";
+      previewLabel.textContent = "Preview (will appear as square profile picture):";
+      container.appendChild(previewLabel);
+      
       var el = document.createElement("img");
-      el.src = url; el.className = "thumb";
-      contractPreview.appendChild(el);
+      el.src = url;
+      el.style.width = "64px";
+      el.style.height = "64px";
+      el.style.borderRadius = "8px";
+      el.style.objectFit = "cover";
+      el.style.border = "2px solid #4b5563";
+      el.style.display = "block";
+      container.appendChild(el);
+      
+      contractPreview.appendChild(container);
     }
   };
 
@@ -915,6 +937,14 @@
           
           if(r.status===401){
             alert("Unauthorized. Check your admin token. Make sure it matches the ADMIN_TOKEN on your server.\n\nCurrent API URL: " + getApiUrl());
+          }else if(r.status===409 || errorJson.duplicate){
+            // Duplicate contract detected
+            var duplicateMsg = "⚠️ DUPLICATE CONTRACT DETECTED\n\n" + (errorJson.error || "A contract with this question already exists.");
+            if(errorJson.existingContractId){
+              duplicateMsg += "\n\nExisting Contract ID: " + errorJson.existingContractId;
+            }
+            duplicateMsg += "\n\nNo new contract was created. Please use a different question or edit the existing contract.";
+            alert(duplicateMsg);
           }else if(r.status===0 || r.status===404){
             alert("Connection failed. The server at " + getApiUrl() + " is not reachable.\n\nMake sure:\n1. The API URL is correct\n2. The server is running\n3. CORS is configured properly");
           }else{

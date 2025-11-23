@@ -829,17 +829,38 @@ export default function MarketDetailPage(){
 
       {/* Header Section */}
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-3">
-          <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium">
-            {m.category || "General"}
-          </span>
-          {m.resolution && (
-            <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm font-medium">
-              Resolved: {m.resolution.toUpperCase()}
-            </span>
+        <div className="flex items-start gap-4 mb-4">
+          {/* Small square profile picture at start, like Polymarket */}
+          {(m.imageUrl || m.image_url) && (
+            <div className="flex-shrink-0">
+              <img 
+                src={m.imageUrl || m.image_url} 
+                alt={m.question}
+                className="w-16 h-16 md:w-20 md:h-20 rounded object-cover border-2 border-gray-700"
+                onError={(e) => {
+                  console.error("❌ Image failed to load:", m.imageUrl || m.image_url, "for contract:", m.id);
+                  e.target.style.display = 'none';
+                }}
+                onLoad={() => {
+                  console.log("✅ Image loaded successfully:", m.imageUrl || m.image_url, "for contract:", m.id);
+                }}
+              />
+            </div>
           )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium">
+                {m.category || "General"}
+              </span>
+              {m.resolution && (
+                <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm font-medium">
+                  Resolved: {m.resolution.toUpperCase()}
+                </span>
+              )}
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-3 leading-tight">{m.question}</h1>
+          </div>
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold mb-3 leading-tight">{m.question}</h1>
         {m.description && (
           <p className="text-gray-400 text-base mb-4 max-w-3xl">{m.description}</p>
         )}

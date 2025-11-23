@@ -1,12 +1,56 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Clock, Radio } from "lucide-react";
+import { getApiUrl } from "/src/api.js";
+
+// Helper to convert relative URLs to absolute
+const getImageUrl = (url) => {
+  if (!url) return null;
+  // If it's already an absolute URL (http/https), return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  // If it's a Supabase Storage URL, return as is
+  if (url.includes('supabase.co') || url.includes('supabase')) {
+    return url;
+  }
+  // If it's a relative path, make it absolute
+  if (url.startsWith('/')) {
+    const apiBase = getApiUrl('');
+    return apiBase + url;
+  }
+  return url;
+};
 
 // Small Market Card (for grid)
 function MarketCard({ m }){
+  // Get image URL (handle both imageUrl and image_url)
+  const rawImageUrl = m.imageUrl || m.image_url;
+  const imageUrl = rawImageUrl ? getImageUrl(rawImageUrl) : null;
+  
   return (
-    <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition block h-full">
-      <div className="flex items-start gap-3">
+    <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition block h-full min-h-[140px]">
+      <div className="flex items-start gap-4">
+        {/* Square profile picture at start, like Polymarket */}
+        {imageUrl ? (
+          <div className="flex-shrink-0">
+            <img 
+              src={imageUrl} 
+              alt={m.question}
+              className="w-14 h-14 rounded object-cover border-2 border-gray-700"
+              style={{ width: '56px', height: '56px', display: 'block' }}
+              onError={(e) => {
+                console.error("❌ Image failed to load:", imageUrl, "for contract:", m.id);
+                e.target.style.display = 'none';
+              }}
+              onLoad={() => {
+                console.log("✅ Image loaded successfully:", imageUrl, "for contract:", m.id);
+              }}
+            />
+          </div>
+        ) : (
+          <div className="flex-shrink-0 w-14 h-14 rounded bg-gray-800 border-2 border-gray-700" style={{ width: '56px', height: '56px' }}></div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs">{m.category || "General"}</span>

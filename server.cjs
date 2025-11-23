@@ -1689,8 +1689,21 @@ app.get("/api/contracts", async (req, res) => {
           const yesPrice = c.yes_price || c.yesPrice || marketPrice;
           const noPrice = c.no_price || c.noPrice || (1 - marketPrice);
           
+          const imageUrl = c.image_url || c.imageUrl || null;
+          if (imageUrl) {
+            console.log(`[CONTRACTS] 🖼️ Contract ${index + 1} has image:`, {
+              id: c.id,
+              question: c.question,
+              imageUrl: imageUrl,
+              image_url: c.image_url,
+              imageUrl_field: c.imageUrl
+            });
+          }
+          
+          // Build processed object - use spread but ensure imageUrl is set AFTER to override image_url
           const processed = {
-            ...c,
+            ...c, // Include all fields from database
+            // Override with camelCase versions and calculated fields
             id: c.id, // Ensure ID is included
             marketPrice: marketPrice, // Ensure marketPrice is always set
             yesPrice: yesPrice,
@@ -1704,10 +1717,15 @@ app.get("/api/contracts", async (req, res) => {
             question: c.question || "",
             category: c.category || "General",
             status: c.status || "upcoming",
-            resolution: c.resolution || null
+            resolution: c.resolution || null,
+            imageUrl: imageUrl, // CRITICAL: Map image_url to imageUrl (camelCase) - must come AFTER spread
+            description: c.description || null,
+            expirationDate: c.expiration_date || c.expirationDate || null,
+            competitionId: c.competition_id || c.competitionId || null,
+            subjectId: c.subject_id || c.subjectId || null
           };
           
-          console.log(`[CONTRACTS] ✅ Processed contract ${index + 1}: ${processed.id} - ${processed.question}`);
+          console.log(`[CONTRACTS] ✅ Processed contract ${index + 1}: ${processed.id} - ${processed.question}${imageUrl ? ' (has image)' : ''}`);
           return processed;
         } catch (mapError) {
           console.error(`[CONTRACTS] ❌ Error processing contract ${index} (${c?.id}):`, mapError);

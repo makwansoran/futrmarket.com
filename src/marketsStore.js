@@ -27,6 +27,19 @@ export async function fetchMarkets() {
       if (j.ok && Array.isArray(j.data)) {
         console.log("🔵 Found", j.data.length, "contracts from API");
         
+        // Log first contract to see structure
+        if (j.data.length > 0) {
+          console.log("🔵 Sample contract from API:", {
+            id: j.data[0].id,
+            question: j.data[0].question,
+            imageUrl: j.data[0].imageUrl,
+            image_url: j.data[0].image_url,
+            hasImageUrl: !!j.data[0].imageUrl,
+            hasImage_url: !!j.data[0].image_url,
+            allKeys: Object.keys(j.data[0])
+          });
+        }
+        
         // Check for duplicates in API response
         const apiIds = j.data.map(c => c?.id).filter(Boolean);
         const uniqueApiIds = new Set(apiIds);
@@ -52,26 +65,45 @@ export async function fetchMarkets() {
             }
             return true;
           })
-          .map(c => ({
-            id: String(c.id), // Ensure ID is always a string
-            question: c.question || "",
-            category: c.category || "General",
-            yesPrice: c.yesPrice || 0.5,
-            noPrice: c.noPrice || 0.5,
-            volume: c.volume || "$0",
-            traders: c.traders || 0,
-            ends: c.expirationDate ? new Date(c.expirationDate).toLocaleDateString() : null,
-            image: c.imageUrl,
-            imageUrl: c.imageUrl,
-            description: c.description,
-            resolution: c.resolution,
-            createdAt: c.createdAt,
-            featured: c.featured || false,
-            expirationDate: c.expirationDate,
-            status: c.status || null,
-            competitionId: c.competitionId || null, // Include competitionId for filtering
-            subjectId: c.subjectId || null // Include subjectId for filtering
-          }));
+          .map(c => {
+            // Check all possible image field names - be very explicit
+            const imageUrl = c.imageUrl || c.image_url || c.image || null;
+            
+            // Log contracts with images for debugging
+            if (imageUrl) {
+              console.log("🖼️✅ Contract HAS image:", {
+                id: c.id,
+                question: c.question?.substring(0, 40),
+                imageUrl_fromAPI: c.imageUrl,
+                image_url_fromAPI: c.image_url,
+                image_fromAPI: c.image,
+                finalImageUrl: imageUrl,
+                allImageKeys: Object.keys(c).filter(k => k.toLowerCase().includes('image'))
+              });
+            }
+            
+            return {
+              id: String(c.id), // Ensure ID is always a string
+              question: c.question || "",
+              category: c.category || "General",
+              yesPrice: c.yesPrice || 0.5,
+              noPrice: c.noPrice || 0.5,
+              volume: c.volume || "$0",
+              traders: c.traders || 0,
+              ends: c.expirationDate ? new Date(c.expirationDate).toLocaleDateString() : null,
+              image: imageUrl,
+              imageUrl: imageUrl, // CRITICAL: Set imageUrl explicitly
+              image_url: imageUrl, // Also include as image_url for compatibility
+              description: c.description,
+              resolution: c.resolution,
+              createdAt: c.createdAt,
+              featured: c.featured || false,
+              expirationDate: c.expirationDate,
+              status: c.status || null,
+              competitionId: c.competitionId || null, // Include competitionId for filtering
+              subjectId: c.subjectId || null // Include subjectId for filtering
+            };
+          });
         
         // Deduplicate by ID AND question - keep only the first occurrence of each contract
         // This prevents duplicates even if they have different IDs but same question

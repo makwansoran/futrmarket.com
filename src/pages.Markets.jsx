@@ -4,6 +4,34 @@ import { Clock, TrendingUp } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import FeatureCarousel from "./components/FeatureCarousel.jsx";
 
+// Helper to convert relative URLs to absolute
+const getImageUrl = (url) => {
+  if (!url) return null;
+  
+  // If it's already an absolute URL (http/https), return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  // If it's a Supabase Storage URL, return as is
+  if (url.includes('supabase.co') || url.includes('supabase')) {
+    return url;
+  }
+  // If it's a relative path starting with /uploads, use it directly (server serves it)
+  if (url.startsWith('/uploads/')) {
+    return url;
+  }
+  // If it's a relative path, make it absolute
+  if (url.startsWith('/')) {
+    const apiBase = getApiUrl('');
+    return apiBase + url;
+  }
+  // If it doesn't start with /, assume it's a filename and prepend /uploads/
+  if (!url.includes('/')) {
+    return '/uploads/' + url;
+  }
+  return url;
+};
+
 // Small Market Card (for grid)
 function MarketCard({ m }){
   const getStatusBadge = () => {
@@ -30,32 +58,82 @@ function MarketCard({ m }){
     return null;
   }
   
+  // Get image URL - check image_url FIRST since that's what API returns
+  const rawImageUrl = m.image_url || m.imageUrl || m.image;
+  const imageUrl = rawImageUrl ? getImageUrl(rawImageUrl) : null;
+  
   return (
-    <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-4 hover:border-[var(--border-secondary)] transition block h-full relative">
+    <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl overflow-hidden hover:border-[var(--border-secondary)] transition block h-full relative min-h-[140px]">
       {getStatusBadge()}
-      <div className="flex items-start gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-1">
-            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs">{m.category || "General"}</span>
-            {m.ends && (
-              <span className="text-gray-500 text-xs flex items-center gap-1"><Clock size={12}/>{m.ends}</span>
+      <div className="p-5">
+        <div className="flex items-start gap-4">
+          {/* Square profile picture at start - FORCE VISIBLE */}
+          <div 
+            className="flex-shrink-0"
+            style={{ 
+              width: '56px', 
+              height: '56px', 
+              minWidth: '56px', 
+              minHeight: '56px',
+              display: 'flex !important',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: imageUrl ? 'transparent' : '#4b5563',
+              border: imageUrl ? 'none' : '3px solid #6b7280',
+              borderRadius: '8px',
+              flexShrink: 0,
+              position: 'relative',
+              overflow: 'hidden',
+              visibility: 'visible !important',
+              opacity: '1 !important'
+            }}
+          >
+            {imageUrl ? (
+              <img 
+                src={imageUrl} 
+                alt={m.question}
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  display: 'block',
+                  objectFit: 'cover',
+                  borderRadius: '6px'
+                }}
+                onError={(e) => {
+                  console.error("❌ Image failed to load:", imageUrl);
+                  e.target.style.display = 'none';
+                }}
+                onLoad={() => {
+                  console.log("✅ Image loaded:", imageUrl);
+                }}
+              />
+            ) : (
+              <span style={{ color: '#d1d5db', fontSize: '24px', fontWeight: 'bold', userSelect: 'none', lineHeight: '1' }}>?</span>
             )}
           </div>
-          <div className="text-white font-semibold text-sm mt-2 line-clamp-2">{m.question}</div>
-          <div className="flex gap-2 mt-3">
-            <div className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2">
-              <div className="text-green-400 text-xs">YES</div>
-              <div className="text-lg font-bold text-white">{Math.round((m.yesPrice||0.5)*100)}¢</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs">{m.category || "General"}</span>
+              {m.ends && (
+                <span className="text-gray-500 text-xs flex items-center gap-1"><Clock size={12}/>{m.ends}</span>
+              )}
             </div>
-            <div className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2">
-              <div className="text-red-400 text-xs">NO</div>
-              <div className="text-lg font-bold text-white">{Math.round((m.noPrice||0.5)*100)}¢</div>
-            </div>
+            <div className="text-white font-semibold text-sm md:text-base mt-2 line-clamp-2 leading-snug">{m.question}</div>
           </div>
-          <div className="text-xs text-gray-400 mt-2 flex justify-between">
-            <span>{m.volume || "$0"} volume</span>
-            <span>{m.traders || 0} traders</span>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <div className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2.5">
+            <div className="text-green-400 text-xs font-medium">YES</div>
+            <div className="text-lg font-bold text-white">{Math.round((m.yesPrice||0.5)*100)}¢</div>
           </div>
+          <div className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2.5">
+            <div className="text-red-400 text-xs font-medium">NO</div>
+            <div className="text-lg font-bold text-white">{Math.round((m.noPrice||0.5)*100)}¢</div>
+          </div>
+        </div>
+        <div className="text-xs text-gray-400 mt-3 flex justify-between">
+          <span>{m.volume || "$0"} volume</span>
+          <span>{m.traders || 0} traders</span>
         </div>
       </div>
     </Link>
