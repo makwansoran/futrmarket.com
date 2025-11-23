@@ -1146,7 +1146,7 @@ export default function MarketDetailPage(){
             {/* Amount Input */}
             <div className="mb-4">
               <label className="block text-sm text-gray-400 mb-2">
-                {orderType === "buy" ? "Amount (USD)" : "Shares to Sell"}
+                {orderType === "buy" ? "Amount USD" : "Shares to Sell"}
               </label>
               <input
                 type="number"
@@ -1154,7 +1154,7 @@ export default function MarketDetailPage(){
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder={orderType === "buy" ? "0.00" : "0"}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               {orderType === "sell" && maxSell > 0 && (
                 <div className="text-xs text-gray-500 mt-1.5">
