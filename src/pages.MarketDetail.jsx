@@ -3,7 +3,8 @@ import { getApiUrl } from "/src/api.js";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Thumb from "./ui.Thumb.jsx";
 import { useUser } from "./contexts/UserContext.jsx";
-import { Clock, TrendingUp, TrendingDown, Heart, MessageCircle, Trash2 } from "lucide-react";
+import { Clock, TrendingUp, TrendingDown, Heart, MessageCircle, Trash2, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Price Chart Component
 function PriceChart({ data }) {
@@ -923,33 +924,149 @@ export default function MarketDetailPage(){
             </div>
             <PriceChart data={priceHistory} />
           </div>
-          {/* Probability Display - Compact */}
+          {/* Probability Display - Buttons with Orderbook Dropdowns */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div className="grid grid-cols-2 gap-4">
-              {/* YES Price */}
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-                <div className="text-xs text-green-400 font-medium mb-1">YES</div>
-                <div className="text-3xl font-bold text-white mb-2">{yesPrice}¢</div>
-                <div className="w-full bg-gray-800 rounded-full h-1.5 mb-1">
-                  <div 
-                    className="bg-green-500 h-1.5 rounded-full transition-all" 
-                    style={{width: `${yesPrice}%`}} 
-                  />
-                </div>
-                <div className="text-xs text-gray-400">{yesPrice}% probability</div>
+              {/* YES Price Button */}
+              <div className="relative">
+                <motion.button
+                  onClick={() => setOpenOrderbook(openOrderbook === 'yes' ? null : 'yes')}
+                  className="w-full bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-left hover:bg-green-500/20 transition-colors relative"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs text-green-400 font-medium">YES</div>
+                    <ChevronDown 
+                      className={`w-4 h-4 text-green-400 transition-transform ${openOrderbook === 'yes' ? 'rotate-180' : ''}`}
+                    />
+                  </div>
+                  <div className="text-3xl font-bold text-white mb-2">{yesPrice}¢</div>
+                  <div className="w-full bg-gray-800 rounded-full h-1.5 mb-1">
+                    <div 
+                      className="bg-green-500 h-1.5 rounded-full transition-all" 
+                      style={{width: `${yesPrice}%`}} 
+                    />
+                  </div>
+                  <div className="text-xs text-gray-400">{yesPrice}% probability</div>
+                </motion.button>
+                
+                {/* YES Orderbook Dropdown */}
+                <AnimatePresence>
+                  {openOrderbook === 'yes' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0, y: -10 }}
+                      animate={{ opacity: 1, height: 'auto', y: 0 }}
+                      exit={{ opacity: 0, height: 0, y: -10 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden z-10 shadow-xl"
+                    >
+                      <div className="p-3 bg-green-500/10 border-b border-gray-700">
+                        <div className="text-sm font-semibold text-green-400">YES Order Book</div>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {/* Sell Orders (Asks) */}
+                        <div className="p-3 space-y-1 border-b border-gray-700">
+                          <div className="text-xs text-gray-500 mb-2 font-medium">Sell Orders</div>
+                          {orderBook.yes.sell.map((order, i) => (
+                            <div key={i} className="flex justify-between text-sm py-1">
+                              <span className="text-red-400 font-medium">{Math.round(order.price * 100)}¢</span>
+                              <span className="text-gray-300">{order.shares}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Current Price */}
+                        <div className="p-3 bg-gray-800/50 border-y border-gray-700">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-semibold text-white">Current</span>
+                            <span className="text-lg font-bold text-green-400">{yesPrice}¢</span>
+                          </div>
+                        </div>
+                        {/* Buy Orders (Bids) */}
+                        <div className="p-3 space-y-1">
+                          <div className="text-xs text-gray-500 mb-2 font-medium">Buy Orders</div>
+                          {orderBook.yes.buy.map((order, i) => (
+                            <div key={i} className="flex justify-between text-sm py-1">
+                              <span className="text-green-400 font-medium">{Math.round(order.price * 100)}¢</span>
+                              <span className="text-gray-300">{order.shares}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {/* NO Price */}
-              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-                <div className="text-xs text-red-400 font-medium mb-1">NO</div>
-                <div className="text-3xl font-bold text-white mb-2">{noPrice}¢</div>
-                <div className="w-full bg-gray-800 rounded-full h-1.5 mb-1">
-                  <div 
-                    className="bg-red-500 h-1.5 rounded-full transition-all" 
-                    style={{width: `${noPrice}%`}} 
-                  />
-                </div>
-                <div className="text-xs text-gray-400">{noPrice}% probability</div>
+              {/* NO Price Button */}
+              <div className="relative">
+                <motion.button
+                  onClick={() => setOpenOrderbook(openOrderbook === 'no' ? null : 'no')}
+                  className="w-full bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-left hover:bg-red-500/20 transition-colors relative"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs text-red-400 font-medium">NO</div>
+                    <ChevronDown 
+                      className={`w-4 h-4 text-red-400 transition-transform ${openOrderbook === 'no' ? 'rotate-180' : ''}`}
+                    />
+                  </div>
+                  <div className="text-3xl font-bold text-white mb-2">{noPrice}¢</div>
+                  <div className="w-full bg-gray-800 rounded-full h-1.5 mb-1">
+                    <div 
+                      className="bg-red-500 h-1.5 rounded-full transition-all" 
+                      style={{width: `${noPrice}%`}} 
+                    />
+                  </div>
+                  <div className="text-xs text-gray-400">{noPrice}% probability</div>
+                </motion.button>
+                
+                {/* NO Orderbook Dropdown */}
+                <AnimatePresence>
+                  {openOrderbook === 'no' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0, y: -10 }}
+                      animate={{ opacity: 1, height: 'auto', y: 0 }}
+                      exit={{ opacity: 0, height: 0, y: -10 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden z-10 shadow-xl"
+                    >
+                      <div className="p-3 bg-red-500/10 border-b border-gray-700">
+                        <div className="text-sm font-semibold text-red-400">NO Order Book</div>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {/* Sell Orders (Asks) */}
+                        <div className="p-3 space-y-1 border-b border-gray-700">
+                          <div className="text-xs text-gray-500 mb-2 font-medium">Sell Orders</div>
+                          {orderBook.no.sell.map((order, i) => (
+                            <div key={i} className="flex justify-between text-sm py-1">
+                              <span className="text-red-400 font-medium">{Math.round(order.price * 100)}¢</span>
+                              <span className="text-gray-300">{order.shares}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Current Price */}
+                        <div className="p-3 bg-gray-800/50 border-y border-gray-700">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-semibold text-white">Current</span>
+                            <span className="text-lg font-bold text-red-400">{noPrice}¢</span>
+                          </div>
+                        </div>
+                        {/* Buy Orders (Bids) */}
+                        <div className="p-3 space-y-1">
+                          <div className="text-xs text-gray-500 mb-2 font-medium">Buy Orders</div>
+                          {orderBook.no.buy.map((order, i) => (
+                            <div key={i} className="flex justify-between text-sm py-1">
+                              <span className="text-green-400 font-medium">{Math.round(order.price * 100)}¢</span>
+                              <span className="text-gray-300">{order.shares}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>
