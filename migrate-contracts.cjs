@@ -1,8 +1,10 @@
 // Script to migrate contracts from local JSON files to Supabase
+// IMPORTANT: This script now uses createContract() to ensure duplicate checking is enforced
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const { supabase, isSupabaseEnabled } = require("./lib/supabase.cjs");
+const { createContract } = require("./lib/db.cjs");
 
 const DATA = path.join(process.cwd(), "data");
 const CONTRACTS_FILE = path.join(DATA, "contracts.json");
@@ -86,18 +88,21 @@ async function migrateContracts() {
         no_shares: contract.noShares || contract.no_shares || 0
       };
 
-      const { data, error } = await supabase
-        .from("contracts")
-        .insert(contractData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error(`❌ Error migrating contract ${id}:`, error.message);
-        errors++;
-      } else {
+      // Use createContract() function to ensure duplicate checking is enforced
+      // This prevents duplicate contracts from being created during migration
+      try {
+        const data = await createContract(contractData);
         console.log(`✅ Migrated: ${contract.question || id}`);
         migrated++;
+      } catch (createError) {
+        // Handle duplicate contract errors gracefully
+        if (createError.code === 'DUPLICATE_CONTRACT') {
+          console.log(`⏭️  Skipping duplicate: ${contract.question || id} (ID: ${createError.existingContractId || 'unknown'})`);
+          skipped++;
+        } else {
+          console.error(`❌ Error migrating contract ${id}:`, createError.message);
+          errors++;
+        }
       }
     } catch (e) {
       console.error(`❌ Error processing contract ${id}:`, e.message);

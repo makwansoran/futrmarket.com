@@ -246,7 +246,28 @@ export default function MarketsPage({ markets=[], limit, category }){
   // Ensure markets is always an array
   const safeMarkets = Array.isArray(markets) ? markets : [];
   
+  // Check if we're on the homepage
+  const isHomepage = limit === true || location.pathname === "/";
+  
   let filteredMarkets = safeMarkets;
+  
+  // On homepage, only show live contracts (same filter as /live page)
+  if (isHomepage) {
+    filteredMarkets = safeMarkets.filter(m => {
+      if (!m || !m.id) return false;
+      if (m.resolution) return false; // Exclude resolved
+      // Only show if explicitly marked as live
+      if (m.live !== true) return false;
+      // Optional: also check expiration date if present
+      if (m.expirationDate) {
+        const expiration = new Date(m.expirationDate);
+        const now = new Date();
+        return expiration > now; // Only show if not expired
+      }
+      return true; // Include if marked as live
+    });
+    console.log("🔵 MarketsPage: Homepage - filtered to", filteredMarkets.length, "live contracts");
+  }
   
   // Filter by subject if we're on a subject page
   if (isSubjectPage && subjectsLoaded) {
@@ -438,7 +459,6 @@ export default function MarketsPage({ markets=[], limit, category }){
   const allMarkets = list.filter(m => m && m.id);
   
   // Debug logging for features
-  const isHomepage = limit === true || location.pathname === "/";
   console.log("🔵 MarketsPage render - limit:", limit, "pathname:", location.pathname, "isHomepage:", isHomepage, "features.length:", features.length);
   
   return (
@@ -511,9 +531,16 @@ export default function MarketsPage({ markets=[], limit, category }){
             { name: "Financials", slug: "financials" },
             { name: "Tech & Science", slug: "tech-science" }
           ].map((category) => {
-            // Filter contracts by category (case-insensitive)
+            // Filter contracts by category (case-insensitive) and only show live contracts on homepage
             const categoryContracts = safeMarkets
-              .filter(m => m && m.category && m.category.toLowerCase() === category.name.toLowerCase())
+              .filter(m => {
+                if (!m || !m.id) return false;
+                if (m.resolution) return false; // Exclude resolved
+                // Only show live contracts on homepage
+                if (m.live !== true) return false;
+                // Check category match
+                return m.category && m.category.toLowerCase() === category.name.toLowerCase();
+              })
               .slice(0, 4); // Only show 4 contracts per category
             
             if (categoryContracts.length === 0) return null;

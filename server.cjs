@@ -1538,6 +1538,21 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
       console.error("[CONTRACTS] Error details:", createError.details);
       console.error("[CONTRACTS] Error stack:", createError.stack);
       
+      // Handle duplicate contract error
+      // This prevents duplicate contracts from being created
+      // The database unique constraint (idx_contracts_question_unique) is the final safeguard
+      if (createError.code === 'DUPLICATE_CONTRACT') {
+        const errorMessage = createError.message || "A contract with this question already exists";
+        console.warn("[CONTRACTS] Duplicate contract prevented:", errorMessage);
+        console.warn("[CONTRACTS] Existing contract ID:", createError.existingContractId);
+        return res.status(409).json({ 
+          ok: false, 
+          error: errorMessage,
+          duplicate: true,
+          existingContractId: createError.existingContractId || null
+        });
+      }
+      
       // Provide helpful error message if subject_id column is missing
       if (createError.message && createError.message.includes("subject_id") && createError.message.includes("schema cache")) {
         const helpfulMessage = "The 'subject_id' column doesn't exist in the contracts table. " +
@@ -1598,8 +1613,18 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
       } else {
         errorMessage = `Foreign key constraint violation: ${error.message}`;
       }
-    } else if (error.code === '23505' || error.message?.includes('unique')) {
-      errorMessage = `Duplicate contract: ${error.message}`;
+    } else if (error.code === '23505' || error.code === 'DUPLICATE_CONTRACT' || error.message?.includes('unique') || error.message?.includes('Duplicate contract')) {
+      errorMessage = error.message || `Duplicate contract: ${error.message}`;
+      // Extract existing contract ID if available
+      const existingContractId = error.existingContractId || null;
+      console.warn("[CONTRACTS] Duplicate contract detected (server error handler):", errorMessage, "Existing ID:", existingContractId);
+      // Return 409 Conflict status for duplicates
+      return res.status(409).json({ 
+        ok: false, 
+        error: errorMessage, 
+        duplicate: true,
+        existingContractId: existingContractId
+      });
     } else if (error.code === '23502' || error.message?.includes('not-null')) {
       errorMessage = `Required field missing: ${error.message}`;
     }
