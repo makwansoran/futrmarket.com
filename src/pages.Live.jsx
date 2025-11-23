@@ -65,19 +65,25 @@ function MarketCard({ m }){
             <motion.div 
               className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[40px]"
               whileHover={{ scale: 1.02 }}
+              initial="rest"
+              animate="rest"
             >
               <motion.div
                 className="absolute inset-0 flex items-center justify-center"
-                initial={{ opacity: 1 }}
-                whileHover={{ opacity: 0 }}
+                variants={{
+                  rest: { opacity: 1, y: 0 },
+                  hover: { opacity: 0, y: -10 }
+                }}
                 transition={{ duration: 0.2 }}
               >
                 <span className="text-green-400 text-sm font-semibold">YES</span>
               </motion.div>
               <motion.div
                 className="absolute inset-0 flex items-center justify-center bg-green-500/20"
-                initial={{ opacity: 0, y: 10 }}
-                whileHover={{ opacity: 1, y: 0 }}
+                variants={{
+                  rest: { opacity: 0, y: 10 },
+                  hover: { opacity: 1, y: 0 }
+                }}
                 transition={{ duration: 0.2 }}
               >
                 <span className="text-green-400 text-lg font-bold">
@@ -88,19 +94,25 @@ function MarketCard({ m }){
             <motion.div 
               className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[40px]"
               whileHover={{ scale: 1.02 }}
+              initial="rest"
+              animate="rest"
             >
               <motion.div
                 className="absolute inset-0 flex items-center justify-center"
-                initial={{ opacity: 1 }}
-                whileHover={{ opacity: 0 }}
+                variants={{
+                  rest: { opacity: 1, y: 0 },
+                  hover: { opacity: 0, y: -10 }
+                }}
                 transition={{ duration: 0.2 }}
               >
                 <span className="text-red-400 text-sm font-semibold">NO</span>
               </motion.div>
               <motion.div
                 className="absolute inset-0 flex items-center justify-center bg-red-500/20"
-                initial={{ opacity: 0, y: 10 }}
-                whileHover={{ opacity: 1, y: 0 }}
+                variants={{
+                  rest: { opacity: 0, y: 10 },
+                  hover: { opacity: 1, y: 0 }
+                }}
                 transition={{ duration: 0.2 }}
               >
                 <span className="text-red-400 text-lg font-bold">
@@ -193,19 +205,25 @@ export default function LivePage({ markets = [] }){
                     <motion.div 
                       className="bg-green-500/10 border-2 border-green-500/50 rounded-lg p-4 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[60px]"
                       whileHover={{ scale: 1.02 }}
+                      initial="rest"
+                      animate="rest"
                     >
                       <motion.div
                         className="absolute inset-0 flex items-center justify-center"
-                        initial={{ opacity: 1 }}
-                        whileHover={{ opacity: 0 }}
+                        variants={{
+                          rest: { opacity: 1, y: 0 },
+                          hover: { opacity: 0, y: -10 }
+                        }}
                         transition={{ duration: 0.2 }}
                       >
                         <span className="text-green-400 font-semibold text-lg">YES</span>
                       </motion.div>
                       <motion.div
                         className="absolute inset-0 flex items-center justify-center bg-green-500/20"
-                        initial={{ opacity: 0, y: 10 }}
-                        whileHover={{ opacity: 1, y: 0 }}
+                        variants={{
+                          rest: { opacity: 0, y: 10 },
+                          hover: { opacity: 1, y: 0 }
+                        }}
                         transition={{ duration: 0.2 }}
                       >
                         <span className="text-green-400 text-2xl font-bold">
@@ -216,19 +234,25 @@ export default function LivePage({ markets = [] }){
                     <motion.div 
                       className="bg-red-500/10 border-2 border-red-500/50 rounded-lg p-4 cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[60px]"
                       whileHover={{ scale: 1.02 }}
+                      initial="rest"
+                      animate="rest"
                     >
                       <motion.div
                         className="absolute inset-0 flex items-center justify-center"
-                        initial={{ opacity: 1 }}
-                        whileHover={{ opacity: 0 }}
+                        variants={{
+                          rest: { opacity: 1, y: 0 },
+                          hover: { opacity: 0, y: -10 }
+                        }}
                         transition={{ duration: 0.2 }}
                       >
                         <span className="text-red-400 font-semibold text-lg">NO</span>
                       </motion.div>
                       <motion.div
                         className="absolute inset-0 flex items-center justify-center bg-red-500/20"
-                        initial={{ opacity: 0, y: 10 }}
-                        whileHover={{ opacity: 1, y: 0 }}
+                        variants={{
+                          rest: { opacity: 0, y: 10 },
+                          hover: { opacity: 1, y: 0 }
+                        }}
                         transition={{ duration: 0.2 }}
                       >
                         <span className="text-red-400 text-2xl font-bold">
