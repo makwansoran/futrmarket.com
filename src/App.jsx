@@ -62,7 +62,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex flex-col">
       {/* Show error banner if API URL is placeholder */}
       {isPlaceholder && (
         <div className="bg-red-600 text-white px-4 py-3 text-center text-sm font-medium">
@@ -108,8 +108,8 @@ function AppContent() {
           <Route
             path="*"
             element={
-              <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center p-6">
-                <div className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
+              <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-xl p-8 text-center">
                   <h1 className="text-3xl font-bold mb-4">404</h1>
                   <p className="text-gray-400 mb-6">Page not found</p>
                   <button

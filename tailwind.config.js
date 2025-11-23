@@ -19,6 +19,52 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Use CSS variables for easy theming
+        background: {
+          primary: 'var(--bg-primary)',
+          secondary: 'var(--bg-secondary)',
+          tertiary: 'var(--bg-tertiary)',
+          quaternary: 'var(--bg-quaternary)',
+          footer: 'var(--bg-footer)',
+        },
+        navbar: {
+          header: 'var(--bg-header)',
+          default: 'var(--bg-navbar)',
+          competitions: 'var(--bg-competitions-nav)',
+        },
+        modal: {
+          backdrop: 'var(--bg-modal-backdrop)',
+          content: 'var(--bg-modal-content)',
+        },
+        input: {
+          default: 'var(--bg-input)',
+          secondary: 'var(--bg-input-secondary)',
+        },
+        card: {
+          default: 'var(--bg-card)',
+          hover: 'var(--bg-card-hover)',
+        },
+        text: {
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          tertiary: 'var(--text-tertiary)',
+          muted: 'var(--text-muted)',
+          white: 'var(--text-white)',
+        },
+        border: {
+          default: 'var(--border-default)',
+          secondary: 'var(--border-secondary)',
+          light: 'var(--border-light)',
+        },
+        accent: {
+          blue: 'var(--accent-blue)',
+          'blue-hover': 'var(--accent-blue-hover)',
+          'blue-text': 'var(--accent-blue-text)',
+          green: 'var(--accent-green)',
+          'green-text': 'var(--accent-green-text)',
+          red: 'var(--accent-red)',
+          'red-text': 'var(--accent-red-text)',
+        },
         brand: {
           blue: '#3b82f6'
         }

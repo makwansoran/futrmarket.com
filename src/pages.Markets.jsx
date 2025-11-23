@@ -31,7 +31,7 @@ function MarketCard({ m }){
   }
   
   return (
-    <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition block h-full relative">
+    <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-4 hover:border-[var(--border-secondary)] transition block h-full relative">
       {getStatusBadge()}
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
@@ -691,7 +691,7 @@ export default function MarketsPage({ markets=[], limit, category }){
                 href={feature.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="block bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition"
+                className="block bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-4 hover:border-[var(--border-secondary)] transition"
               >
                 {feature.imageUrl && (
                   <img 
@@ -704,7 +704,7 @@ export default function MarketsPage({ markets=[], limit, category }){
                 <div className="text-white text-xs">{feature.description}</div>
               </a>
             ) : (
-              <div key={feature.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div key={feature.id} className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-4">
                 {feature.imageUrl && (
                   <img 
                     src={feature.imageUrl} 

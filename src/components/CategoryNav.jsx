@@ -27,7 +27,7 @@ export default function CategoryNav() {
   };
 
   return (
-    <nav id="category-nav" className="sticky z-40 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ zIndex: 40, top: '56px', position: 'sticky' }}>
+    <nav id="category-nav" className="sticky z-40 border-b border-[var(--border-light)] backdrop-blur" style={{ zIndex: 40, top: '56px', position: 'sticky', backgroundColor: 'var(--bg-navbar)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-center gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitScrollbar: 'none' }}>
           {CATEGORIES.map((cat) => {

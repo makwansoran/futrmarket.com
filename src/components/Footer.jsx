@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
-    <footer className="bg-black text-gray-300 mt-auto">
+    <footer className="bg-[var(--bg-footer)] text-[var(--text-secondary)] mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex flex-row justify-between items-start gap-12 mb-4">
           {/* Company Column */}

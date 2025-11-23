@@ -1,3 +1,6 @@
+/* Import global theme colors - must be first */
+@import './config/theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,6 +9,8 @@
 @layer base {
   body {
     font-family: 'Montserrat', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
   }
 }
 

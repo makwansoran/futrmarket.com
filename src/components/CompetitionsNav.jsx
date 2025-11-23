@@ -94,7 +94,7 @@ export default function CompetitionsNav() {
   if (loading) {
     console.log("🔵 CompetitionsNav: Showing loading state");
     return (
-      <nav id="competitions-nav" className="sticky z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ display: 'block', visibility: 'visible', top: '100px', position: 'sticky' }}>
+      <nav id="competitions-nav" className="sticky z-10 border-b border-[var(--border-light)] backdrop-blur" style={{ display: 'block', visibility: 'visible', top: '100px', position: 'sticky', backgroundColor: 'var(--bg-competitions-nav)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center justify-center gap-2">
             <div className="text-gray-400 text-sm">Loading competitions...</div>
@@ -134,7 +134,7 @@ export default function CompetitionsNav() {
   // The "All Sports" button should always be visible
   return (
     <nav 
-      className="sticky z-10 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" 
+      className="sticky z-10 border-b border-[var(--border-light)] backdrop-blur" 
       style={{ 
         display: 'block !important', 
         visibility: 'visible !important', 
@@ -142,7 +142,7 @@ export default function CompetitionsNav() {
         position: 'sticky',
         top: '100px',
         zIndex: 35,
-        backgroundColor: 'rgba(3, 7, 18, 0.95)',
+        backgroundColor: 'var(--bg-competitions-nav)',
         width: '100%',
         opacity: 1
       }}

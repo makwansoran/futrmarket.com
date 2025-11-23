@@ -1,0 +1,60 @@
+/**
+ * Global Theme CSS Variables
+ * 
+ * These CSS variables can be used throughout the website
+ * Change the values here to update colors globally
+ */
+
+:root {
+  /* Main Background Colors */
+  --bg-primary: rgb(255, 255, 255);        /* gray-950 */
+  --bg-secondary: rgb(255, 255, 255);     /* gray-900 */
+  --bg-tertiary: rgb(255, 255, 255);     /* gray-800 */
+  --bg-quaternary: rgb(255, 255, 255);   /* gray-700 */
+  --bg-footer: rgb(0, 0, 0);          /* black */
+  
+  /* Navbar Backgrounds (with transparency) */
+  --bg-header: rgba(3, 7, 18, 0.7);   /* gray-950/70 */
+  --bg-navbar: rgba(3, 7, 18, 0.7);   /* gray-950/70 */
+  --bg-competitions-nav: rgba(3, 7, 18, 0.95); /* Competitions nav specific */
+  
+  /* Modal Backgrounds */
+  --bg-modal-backdrop: rgba(0, 0, 0, 0.7);  /* black/70 */
+  --bg-modal-content: rgb(17, 24, 39);      /* gray-900 */
+  
+  /* Input Backgrounds */
+  --bg-input: rgba(17, 24, 39, 0.9);  /* gray-900/90 */
+  --bg-input-secondary: rgb(31, 41, 55); /* gray-800 */
+  
+  /* Card Backgrounds */
+  --bg-card: rgb(17, 24, 39);         /* gray-900 */
+  --bg-card-hover: rgb(31, 41, 55);  /* gray-800 */
+  
+  /* Text Colors */
+  --text-primary: rgb(243, 244, 246);   /* gray-100 */
+  --text-secondary: rgb(209, 213, 219);  /* gray-300 */
+  --text-tertiary: rgb(156, 163, 175);   /* gray-400 */
+  --text-muted: rgb(107, 114, 128);     /* gray-500 */
+  --text-white: rgb(255, 255, 255);     /* white */
+  
+  /* Border Colors */
+  --border-default: rgb(31, 41, 55);     /* gray-800 */
+  --border-secondary: rgb(55, 65, 81);   /* gray-700 */
+  --border-light: rgba(255, 255, 255, 0.1); /* white/10 */
+  
+  /* Accent Colors */
+  --accent-blue: rgb(37, 99, 235);      /* blue-600 */
+  --accent-blue-hover: rgb(29, 78, 216); /* blue-700 */
+  --accent-blue-text: rgb(96, 165, 250); /* blue-400 */
+  --accent-green: rgb(22, 163, 74);      /* green-600 */
+  --accent-green-text: rgb(74, 222, 128); /* green-400 */
+  --accent-red: rgb(220, 38, 38);       /* red-600 */
+  --accent-red-text: rgb(248, 113, 113); /* red-400 */
+}
+
+/* Apply primary background to body */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+

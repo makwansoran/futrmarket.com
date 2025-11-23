@@ -136,7 +136,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50">
+    <header className="sticky top-0 z-50 border-b border-[var(--border-light)] backdrop-blur" style={{ backgroundColor: 'var(--bg-header)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
         {/* LEFT: logo + brand */}
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition flex-shrink-0">
