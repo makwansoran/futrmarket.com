@@ -457,7 +457,25 @@ export default function MarketsPage({ markets=[], limit, category }){
   }
   
   // All contracts are now standard sized - no featured contracts
-  const allMarkets = list.filter(m => m && m.id);
+  // On homepage, exclude contracts that are already shown in category sections
+  let allMarkets = list.filter(m => m && m.id);
+  
+  if (isHomepage) {
+    // Get all contract IDs that are displayed in category sections
+    const categoryContractIds = new Set();
+    // This will be populated by the category section logic below
+    // For now, we'll filter out any duplicates by ID
+    const seenIds = new Set();
+    allMarkets = allMarkets.filter(m => {
+      const id = String(m.id || "").trim().toLowerCase();
+      if (seenIds.has(id)) {
+        console.warn("🔴 [HOMEPAGE] Removing duplicate from allMarkets:", m.id);
+        return false;
+      }
+      seenIds.add(id);
+      return true;
+    });
+  }
   
   // Debug logging for features
   console.log("🔵 MarketsPage render - limit:", limit, "pathname:", location.pathname, "isHomepage:", isHomepage, "features.length:", features.length);
@@ -619,18 +637,42 @@ export default function MarketsPage({ markets=[], limit, category }){
             <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore Markets by Category</h2>
             {categorySections.map(({ category, contracts }) => {
               // Final safety check - remove any duplicates that somehow got through
+              // Use ID as the primary key since that's guaranteed unique
               const finalContracts = [];
-              const finalCheck = new Set();
+              const finalCheckById = new Set();
+              const finalCheckByQuestion = new Set();
               
               for (const contract of contracts) {
-                const checkKey = String(contract.question || contract.id || "").trim().toLowerCase().replace(/\s+/g, ' ');
-                if (!finalCheck.has(checkKey)) {
-                  finalCheck.add(checkKey);
-                  finalContracts.push(contract);
-                } else {
-                  console.error("🔴 [CATEGORIES] FINAL CHECK: Removed duplicate:", contract.question, "ID:", contract.id);
+                const contractId = String(contract.id || "").trim().toLowerCase();
+                const checkQuestion = String(contract.question || "").trim().toLowerCase().replace(/\s+/g, ' ');
+                
+                // Check by ID first (most reliable)
+                if (finalCheckById.has(contractId)) {
+                  console.error("🔴 [CATEGORIES] FINAL CHECK: Removed duplicate by ID:", contract.id);
+                  continue;
                 }
+                
+                // Check by question as backup
+                if (checkQuestion && finalCheckByQuestion.has(checkQuestion)) {
+                  console.error("🔴 [CATEGORIES] FINAL CHECK: Removed duplicate by question:", contract.question, "ID:", contract.id);
+                  continue;
+                }
+                
+                finalCheckById.add(contractId);
+                if (checkQuestion) finalCheckByQuestion.add(checkQuestion);
+                finalContracts.push(contract);
               }
+              
+              // ONE MORE CHECK: If we still have duplicates, use filter with indexOf
+              const trulyUnique = finalContracts.filter((contract, index, self) => {
+                const contractId = String(contract.id || "").trim().toLowerCase();
+                const firstIndex = self.findIndex(c => String(c.id || "").trim().toLowerCase() === contractId);
+                if (firstIndex !== index) {
+                  console.error("🔴 [CATEGORIES] ULTIMATE CHECK: Found duplicate at index", index, "contract ID:", contract.id);
+                  return false;
+                }
+                return true;
+              });
               
               return (
                 <div key={category.slug} className="mb-12">
@@ -644,9 +686,9 @@ export default function MarketsPage({ markets=[], limit, category }){
                     </Link>
                   </div>
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {finalContracts.map((m, idx) => {
-                      // Use question as key (most unique identifier) with index as fallback
-                      const uniqueKey = `${category.slug}-${String(m.question || m.id || idx).trim()}-${idx}`;
+                    {trulyUnique.map((m, idx) => {
+                      // Use ID as key - guaranteed unique
+                      const uniqueKey = `${category.slug}-${m.id}-${idx}`;
                       return <MarketCard key={uniqueKey} m={m} />;
                     })}
                   </div>
