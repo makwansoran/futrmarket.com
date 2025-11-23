@@ -62,12 +62,10 @@ function MarketCard({ m }){
           <div className="text-white font-semibold text-sm mt-2 line-clamp-2">{m.question}</div>
           <div className="flex gap-2 mt-3">
             <div className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2">
-              <div className="text-green-400 text-xs">YES</div>
-              <div className="text-lg font-bold text-white">{Math.round((m.yesPrice||0.5)*100)}¢</div>
+              <div className="text-green-400 text-sm font-semibold">YES</div>
             </div>
             <div className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2">
-              <div className="text-red-400 text-xs">NO</div>
-              <div className="text-lg font-bold text-white">{Math.round((m.noPrice||0.5)*100)}¢</div>
+              <div className="text-red-400 text-sm font-semibold">NO</div>
             </div>
           </div>
           <div className="text-xs text-gray-400 mt-2 flex justify-between">
@@ -152,15 +150,13 @@ export default function LivePage({ markets = [] }){
                   {/* Price Buttons */}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="bg-green-500/10 border-2 border-green-500/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-green-400 font-semibold text-sm">YES</span>
-                        <span className="text-2xl font-bold text-white">{Math.round((featuredMarket.yesPrice||0.5)*100)}¢</span>
+                      <div className="flex items-center justify-center">
+                        <span className="text-green-400 font-semibold text-lg">YES</span>
                       </div>
                     </div>
                     <div className="bg-red-500/10 border-2 border-red-500/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-red-400 font-semibold text-sm">NO</span>
-                        <span className="text-2xl font-bold text-white">{Math.round((featuredMarket.noPrice||0.5)*100)}¢</span>
+                      <div className="flex items-center justify-center">
+                        <span className="text-red-400 font-semibold text-lg">NO</span>
                       </div>
                     </div>
                   </div>

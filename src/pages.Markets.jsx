@@ -121,12 +121,10 @@ function MarketCard({ m }){
         </div>
         <div className="flex gap-2 mt-4">
           <div className="flex-1 bg-green-500/10 border border-green-500/30 rounded-md p-2.5">
-            <div className="text-green-400 text-xs font-medium">YES</div>
-            <div className="text-lg font-bold text-white">{Math.round((m.yesPrice||0.5)*100)}¢</div>
+            <div className="text-green-400 text-sm font-semibold">YES</div>
           </div>
           <div className="flex-1 bg-red-500/10 border border-red-500/30 rounded-md p-2.5">
-            <div className="text-red-400 text-xs font-medium">NO</div>
-            <div className="text-lg font-bold text-white">{Math.round((m.noPrice||0.5)*100)}¢</div>
+            <div className="text-red-400 text-sm font-semibold">NO</div>
           </div>
         </div>
         <div className="text-xs text-gray-400 mt-3 flex justify-between">

@@ -148,10 +148,10 @@ function MarketCard(props) {
           </div>
           <div className="mt-2 flex items-center gap-2">
             <div className="px-2 py-1 rounded-md bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-semibold">
-              YES {Math.round(market.yesPrice * 100)}¢
+              YES
             </div>
             <div className="px-2 py-1 rounded-md bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold">
-              NO {Math.round(market.noPrice * 100)}¢
+              NO
             </div>
             <div className="ml-auto text-[11px] text-gray-500 hidden sm:block">
               {market.volume} • {market.traders} traders

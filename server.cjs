@@ -1307,13 +1307,49 @@ function calculateBuyCost(contract, amountUSD) {
   };
 }
 
-// Upload image endpoint
-app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ ok: false, error: "No file uploaded" });
-  }
-  
+// Upload image endpoint - handle multer errors
+app.post("/api/upload", requireAdmin, (req, res, next) => {
+  upload.single("image")(req, res, (err) => {
+    if (err) {
+      console.error("[UPLOAD] Multer error:", err);
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ ok: false, error: "File too large. Maximum size is 5MB." });
+      }
+      if (err.message === "Invalid file type") {
+        return res.status(400).json({ ok: false, error: "Invalid file type. Only images (JPEG, PNG, WebP, GIF) are allowed." });
+      }
+      return res.status(500).json({ ok: false, error: `Upload error: ${err.message}` });
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
+    // Check if file was uploaded
+    if (!req.file) {
+      console.log("[UPLOAD] No file in request");
+      return res.status(400).json({ ok: false, error: "No file uploaded" });
+    }
+    
+    console.log("[UPLOAD] File received:", {
+      filename: req.file.filename,
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      path: req.file.path
+    });
+    
+    // Ensure uploads directory exists and is writable
+    if (!fs.existsSync(UPLOAD_DIR)) {
+      console.log("[UPLOAD] Uploads directory doesn't exist, creating:", UPLOAD_DIR);
+      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    }
+    
+    // Verify file exists and is readable
+    if (!fs.existsSync(req.file.path)) {
+      console.error("[UPLOAD] File path doesn't exist:", req.file.path);
+      return res.status(500).json({ ok: false, error: "Uploaded file not found on server" });
+    }
+    
     // Check if Supabase is enabled
     const supabaseEnabled = isSupabaseEnabled();
     console.log("[UPLOAD] Supabase enabled:", supabaseEnabled);
@@ -1323,7 +1359,17 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
     
     // If Supabase is enabled, upload to Supabase Storage for persistence
     if (supabaseEnabled && supabase) {
-      const fileBuffer = fs.readFileSync(req.file.path);
+      let fileBuffer;
+      try {
+        fileBuffer = fs.readFileSync(req.file.path);
+      } catch (readError) {
+        console.error("[UPLOAD] Error reading file:", readError);
+        return res.status(500).json({ 
+          ok: false, 
+          error: `Failed to read uploaded file: ${readError.message}` 
+        });
+      }
+      
       const fileName = req.file.filename;
       const filePath = `uploads/${fileName}`;
       
@@ -1339,89 +1385,103 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
         supabaseUrl: process.env.SUPABASE_URL ? "Set" : "Not set"
       });
       
-      // First, check if bucket exists and create it if it doesn't
-      console.log(`[UPLOAD] Listing buckets to check if '${bucketName}' exists...`);
-      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-      
-      if (listError) {
-        console.error("[UPLOAD] Error listing buckets:", listError);
-        return res.status(500).json({ 
-          ok: false, 
-          error: `Failed to access Supabase Storage: ${listError.message}` 
-        });
-      }
-      
-      console.log("[UPLOAD] Available buckets:", buckets?.map(b => b.name) || []);
-      
-      const bucketExists = buckets?.some(b => b.name === bucketName);
-      if (!bucketExists) {
-        console.log(`[UPLOAD] Bucket '${bucketName}' not found, attempting to create it...`);
-        const { data: newBucket, error: createError } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-          fileSizeLimit: 5242880, // 5MB
-          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-        });
+      let supabaseUploadSuccess = false;
+      try {
+        // First, check if bucket exists and create it if it doesn't
+        console.log(`[UPLOAD] Listing buckets to check if '${bucketName}' exists...`);
+        const { data: buckets, error: listError } = await supabase.storage.listBuckets();
         
-        if (createError) {
-          console.error("[UPLOAD] Failed to create bucket:", createError);
-          return res.status(500).json({ 
-            ok: false, 
-            error: `Failed to create storage bucket: ${createError.message}. Please create '${bucketName}' bucket manually in Supabase Dashboard.` 
+        if (listError) {
+          console.error("[UPLOAD] Error listing buckets:", listError);
+          console.warn("[UPLOAD] Falling back to local storage due to bucket list error");
+          throw new Error(`Bucket list error: ${listError.message}`);
+        }
+        
+        console.log("[UPLOAD] Available buckets:", buckets?.map(b => b.name) || []);
+        
+        const bucketExists = buckets?.some(b => b.name === bucketName);
+        let bucketReady = bucketExists;
+        
+        if (!bucketExists) {
+          console.log(`[UPLOAD] Bucket '${bucketName}' not found, attempting to create it...`);
+          const { data: newBucket, error: createError } = await supabase.storage.createBucket(bucketName, {
+            public: true,
+            fileSizeLimit: 5242880, // 5MB
+            allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
           });
+          
+          if (createError) {
+            console.error("[UPLOAD] Failed to create bucket:", createError);
+            console.warn("[UPLOAD] Falling back to local storage due to bucket creation error");
+            throw new Error(`Bucket creation error: ${createError.message}`);
+          } else {
+            console.log(`[UPLOAD] Bucket '${bucketName}' created successfully`);
+            bucketReady = true;
+          }
+        } else {
+          console.log(`[UPLOAD] Bucket '${bucketName}' exists, proceeding with upload...`);
         }
-        console.log(`[UPLOAD] Bucket '${bucketName}' created successfully`);
-      } else {
-        console.log(`[UPLOAD] Bucket '${bucketName}' exists, proceeding with upload...`);
+        
+        // Only try to upload if bucket is ready
+        if (bucketReady) {
+          const { data, error } = await supabase.storage
+            .from(bucketName)
+            .upload(filePath, fileBuffer, {
+              contentType: req.file.mimetype,
+              upsert: true // Overwrite if exists
+            });
+          
+          if (error) {
+            console.error("[UPLOAD] Supabase Storage error:", error);
+            console.error("[UPLOAD] Error details:", JSON.stringify(error, null, 2));
+            console.error("[UPLOAD] Error message:", error.message);
+            console.error("[UPLOAD] Error statusCode:", error.statusCode);
+            console.warn("[UPLOAD] Falling back to local storage due to Supabase upload error");
+            throw new Error(`Supabase upload error: ${error.message}`);
+          } else {
+            // Upload was successful, return the Supabase URL
+            console.log("[UPLOAD] Upload successful, data:", data);
+            
+            // Get public URL from Supabase Storage
+            const { data: urlData } = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(filePath);
+            
+            const publicUrl = urlData.publicUrl;
+            console.log("[UPLOAD] File uploaded to Supabase Storage:", {
+              filename: fileName,
+              path: filePath,
+              url: publicUrl,
+              urlData: urlData,
+              bucket: bucketName
+            });
+            
+            // Clean up local file
+            try {
+              fs.unlinkSync(req.file.path);
+            } catch (unlinkError) {
+              console.warn("[UPLOAD] Could not delete local file:", unlinkError);
+            }
+            
+            supabaseUploadSuccess = true;
+            return res.json({ ok: true, url: publicUrl, filename: fileName });
+          }
+        }
+      } catch (supabaseError) {
+        console.error("[UPLOAD] Supabase operation error:", supabaseError);
+        console.warn("[UPLOAD] Falling back to local storage due to Supabase error:", supabaseError.message);
+        // Continue to local storage fallback below - don't return, let it fall through
       }
       
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, fileBuffer, {
-          contentType: req.file.mimetype,
-          upsert: true // Overwrite if exists
-        });
-      
-      if (error) {
-        console.error("[UPLOAD] Supabase Storage error:", error);
-        console.error("[UPLOAD] Error details:", JSON.stringify(error, null, 2));
-        console.error("[UPLOAD] Error message:", error.message);
-        console.error("[UPLOAD] Error statusCode:", error.statusCode);
-        
-        // If bucket creation or upload fails, fall back to local storage
-        console.warn("[UPLOAD] Falling back to local storage due to Supabase error");
-        // Continue to local storage fallback below
-      } else {
-        // Upload was successful, return the Supabase URL
-        console.log("[UPLOAD] Upload successful, data:", data);
-        
-        // Get public URL from Supabase Storage
-        const { data: urlData } = supabase.storage
-          .from(bucketName)
-          .getPublicUrl(filePath);
-        
-        const publicUrl = urlData.publicUrl;
-        console.log("[UPLOAD] File uploaded to Supabase Storage:", {
-          filename: fileName,
-          path: filePath,
-          url: publicUrl,
-          urlData: urlData,
-          bucket: bucketName
-        });
-        
-        // Clean up local file
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (unlinkError) {
-          console.warn("[UPLOAD] Could not delete local file:", unlinkError);
-        }
-        
-        return res.json({ ok: true, url: publicUrl, filename: fileName });
+      // If we get here, Supabase upload failed, use local storage
+      if (!supabaseUploadSuccess) {
+        console.log("[UPLOAD] Using local storage fallback after Supabase failure");
       }
     } else {
       console.log("[UPLOAD] Supabase not enabled, using local storage");
     }
     
-    // Fallback to local storage (for development)
+    // Fallback to local storage (for development or when Supabase fails)
     const url = "/uploads/" + req.file.filename;
     console.log("[UPLOAD] File uploaded to local storage:", {
       filename: req.file.filename,
@@ -1433,7 +1493,28 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
     return res.json({ ok: true, url, filename: req.file.filename });
   } catch (error) {
     console.error("[UPLOAD] Upload error:", error);
-    return res.status(500).json({ ok: false, error: error.message || "Upload failed" });
+    console.error("[UPLOAD] Error stack:", error.stack);
+    console.error("[UPLOAD] Error details:", {
+      message: error.message,
+      code: error.code,
+      name: error.name,
+      path: req.file?.path
+    });
+    
+    // Clean up file if it exists
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkErr) {
+        console.warn("[UPLOAD] Could not clean up file:", unlinkErr);
+      }
+    }
+    
+    return res.status(500).json({ 
+      ok: false, 
+      error: error.message || "Upload failed",
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
