@@ -927,7 +927,7 @@ export default function MarketDetailPage(){
           </div>
           
           {/* Market Context Button */}
-          <div className="p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <motion.button
               className="w-full text-left text-gray-300 hover:text-white font-medium transition-colors"
               whileHover={{ scale: 1.01 }}
