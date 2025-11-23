@@ -591,37 +591,28 @@ export default function MarketsPage({ markets=[], limit, category }){
         
         // Build category sections
         const categorySections = [];
+        const globalDisplayedIds = new Set(); // Track ALL displayed contract IDs globally
         
         for (const category of allowedCategories) {
           const categoryContracts = [];
-          const categorySeen = new Set(); // Track what we've added to THIS category
           
           for (const m of deduplicatedMarkets) {
             // Check if this contract matches the category
             const categoryMatch = m.category && m.category.toLowerCase() === category.name.toLowerCase();
             if (!categoryMatch) continue;
             
-            // Normalize for comparison
-            const normalizedQuestion = String(m.question || "").trim().toLowerCase().replace(/\s+/g, ' ');
-            const normalizedId = String(m.id).trim().toLowerCase();
-            const uniqueKey = normalizedQuestion || normalizedId; // Use question as primary key
+            // Use ID as the absolute key - if we've seen this ID, skip it
+            const contractId = String(m.id || "").trim().toLowerCase();
             
-            // CRITICAL: Check if we've already displayed this contract in ANY category
-            if (displayedContracts.has(uniqueKey)) {
-              console.error("🔴 [CATEGORIES] Contract already displayed in another category:", m.question, "ID:", m.id);
-              continue;
-            }
-            
-            // Check if we've already added this to THIS category (shouldn't happen, but safety check)
-            if (categorySeen.has(uniqueKey)) {
-              console.error("🔴 [CATEGORIES] Duplicate in same category:", m.question, "ID:", m.id);
+            // CRITICAL: If this ID has been displayed ANYWHERE, skip it
+            if (globalDisplayedIds.has(contractId)) {
+              console.error("🔴 [CATEGORIES] Contract ID already displayed:", m.id, m.question);
               continue;
             }
             
             // Add to category
             categoryContracts.push(m);
-            categorySeen.add(uniqueKey);
-            displayedContracts.set(uniqueKey, m); // Mark as displayed globally
+            globalDisplayedIds.add(contractId); // Mark this ID as displayed
             
             // Stop at 4 contracts per category
             if (categoryContracts.length >= 4) break;
@@ -636,43 +627,23 @@ export default function MarketsPage({ markets=[], limit, category }){
           <div className="mb-12 mt-8">
             <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore Markets by Category</h2>
             {categorySections.map(({ category, contracts }) => {
-              // Final safety check - remove any duplicates that somehow got through
-              // Use ID as the primary key since that's guaranteed unique
-              const finalContracts = [];
-              const finalCheckById = new Set();
-              const finalCheckByQuestion = new Set();
+              // ABSOLUTE FINAL CHECK: Use Set to ensure no duplicates by ID
+              const finalContractsMap = new Map(); // key: contract ID, value: contract
               
               for (const contract of contracts) {
                 const contractId = String(contract.id || "").trim().toLowerCase();
-                const checkQuestion = String(contract.question || "").trim().toLowerCase().replace(/\s+/g, ' ');
-                
-                // Check by ID first (most reliable)
-                if (finalCheckById.has(contractId)) {
-                  console.error("🔴 [CATEGORIES] FINAL CHECK: Removed duplicate by ID:", contract.id);
-                  continue;
+                // Only add if we haven't seen this ID
+                if (!finalContractsMap.has(contractId)) {
+                  finalContractsMap.set(contractId, contract);
+                } else {
+                  console.error("🔴 [CATEGORIES] FINAL CHECK: Duplicate ID found:", contract.id, contract.question);
                 }
-                
-                // Check by question as backup
-                if (checkQuestion && finalCheckByQuestion.has(checkQuestion)) {
-                  console.error("🔴 [CATEGORIES] FINAL CHECK: Removed duplicate by question:", contract.question, "ID:", contract.id);
-                  continue;
-                }
-                
-                finalCheckById.add(contractId);
-                if (checkQuestion) finalCheckByQuestion.add(checkQuestion);
-                finalContracts.push(contract);
               }
               
-              // ONE MORE CHECK: If we still have duplicates, use filter with indexOf
-              const trulyUnique = finalContracts.filter((contract, index, self) => {
-                const contractId = String(contract.id || "").trim().toLowerCase();
-                const firstIndex = self.findIndex(c => String(c.id || "").trim().toLowerCase() === contractId);
-                if (firstIndex !== index) {
-                  console.error("🔴 [CATEGORIES] ULTIMATE CHECK: Found duplicate at index", index, "contract ID:", contract.id);
-                  return false;
-                }
-                return true;
-              });
+              // Convert Map values to array - this guarantees no duplicates
+              const finalContracts = Array.from(finalContractsMap.values());
+              
+              console.log(`🔵 [CATEGORIES] ${category.name}: ${contracts.length} contracts -> ${finalContracts.length} unique after final check`);
               
               return (
                 <div key={category.slug} className="mb-12">
@@ -686,10 +657,9 @@ export default function MarketsPage({ markets=[], limit, category }){
                     </Link>
                   </div>
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {trulyUnique.map((m, idx) => {
-                      // Use ID as key - guaranteed unique
-                      const uniqueKey = `${category.slug}-${m.id}-${idx}`;
-                      return <MarketCard key={uniqueKey} m={m} />;
+                    {finalContracts.map((m) => {
+                      // Use contract ID as key - this is the absolute unique identifier
+                      return <MarketCard key={`${category.slug}-${m.id}`} m={m} />;
                     })}
                   </div>
                 </div>
