@@ -1792,6 +1792,7 @@ app.get("/api/contracts", async (req, res) => {
             traders: traders,
             volume: `$${Number(volume).toFixed(2)}`,
             featured: c.featured === true || c.featured === "true" || c.featured === 1, // Handle boolean conversion
+            trending: c.trending === true || c.trending === "true" || c.trending === 1, // Handle boolean conversion
             live: c.live === true || c.live === "true" || c.live === 1, // Explicitly include live field (default to false if not set)
             createdAt: createdAt,
             // Ensure all common fields are present
@@ -1823,6 +1824,7 @@ app.get("/api/contracts", async (req, res) => {
             volume: "$0",
             traders: 0,
             featured: false,
+            trending: false,
             live: false,
             createdAt: c?.created_at || c?.createdAt || Date.now(),
             status: c?.status || "upcoming",
@@ -2321,6 +2323,14 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
         updates.expiration_date = null;
       }
     }
+    if (req.body.trending !== undefined) {
+      // Explicitly handle true/false
+      if (req.body.trending === true || req.body.trending === "true" || req.body.trending === 1) {
+        updates.trending = true;
+      } else {
+        updates.trending = false;
+      }
+    }
     
     // Update contract in database
     const updatedContract = await updateContract(contractId, updates);
@@ -2345,6 +2355,7 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       createdAt: updatedContract.created_at || updatedContract.createdAt || Date.now(),
       createdBy: updatedContract.created_by || updatedContract.createdBy || "admin",
       featured: updatedContract.featured === true,
+      trending: updatedContract.trending === true,
       yesPrice: updatedContract.yes_price || updatedContract.yesPrice || 0.5,
       noPrice: updatedContract.no_price || updatedContract.noPrice || 0.5,
       yesShares: updatedContract.yes_shares || updatedContract.yesShares || 0,

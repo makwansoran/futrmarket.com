@@ -847,6 +847,12 @@
       console.log("🔵 Regular contract button clicked:", { contractId: c.id, currentLive: isLive, newLiveValue: newLiveValue, typeof: typeof newLiveValue });
       toggleLive(c.id, newLiveValue);
     };
+    var trendingBtn=document.createElement("button"); 
+    trendingBtn.textContent=c.trending?"Trending":"Make Trending";
+    trendingBtn.style.marginRight="4px";
+    trendingBtn.style.backgroundColor=c.trending?"#f59e0b":"#6b7280";
+    trendingBtn.style.color="white";
+    trendingBtn.onclick=function(){toggleTrending(c.id, !c.trending)};
     var editBtn=document.createElement("button"); editBtn.textContent="Edit"; editBtn.style.marginRight="4px";
     editBtn.disabled=!!c.resolution;
     editBtn.onclick=function(){editContract(c)};
@@ -855,7 +861,7 @@
     resolveBtn.onclick=function(){resolveContract(c.id)};
     var del=document.createElement("button"); del.className="danger"; del.textContent="Delete";
     del.onclick=function(){removeContract(c.id)};
-    R.appendChild(code); R.appendChild(liveBtn); R.appendChild(editBtn); R.appendChild(resolveBtn); R.appendChild(del);
+    R.appendChild(code); R.appendChild(liveBtn); R.appendChild(trendingBtn); R.appendChild(editBtn); R.appendChild(resolveBtn); R.appendChild(del);
 
     w.appendChild(L); w.appendChild(R); return w;
   }
@@ -1093,6 +1099,33 @@
       contractQ.value=""; contractDesc.value=""; contractExp.value=""; contractImg.value=""; contractPreview.innerHTML="";
       loadContracts();
       alert("Contract updated!");
+    }catch(e){ alert(e.message || "Could not update contract"); }
+  }
+
+  async function toggleTrending(id, trending){
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      var r=await fetch(apiEndpoint("/api/contracts/"+encodeURIComponent(id)),{ 
+        method:"PATCH", 
+        headers: { "Content-Type":"application/json","x-admin-token":token }, 
+        body: JSON.stringify({ trending: trending }) 
+      });
+      if(!r.ok){
+        var j=await r.json().catch(()=>({}));
+        if(r.status===401){
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        }else{
+          alert("Update failed: "+(j.error||r.status));
+        }
+        return;
+      }
+      var j=await r.json(); if(!j.ok){alert("Update failed: "+(j.error||"unknown"));return}
+      loadContracts();
     }catch(e){ alert(e.message || "Could not update contract"); }
   }
 

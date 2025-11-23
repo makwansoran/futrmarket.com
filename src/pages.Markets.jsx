@@ -442,8 +442,10 @@ export default function MarketsPage({ markets=[], limit, category }){
     );
     console.log("🔵 MarketsPage: Filtered by category", categoryName, "to", filteredMarkets.length, "markets");
   } else if (urlCategory === "trending") {
+    // Only show contracts explicitly marked as trending
+    filteredMarkets = safeMarkets.filter(m => m && m.trending === true);
     // Sort by volume or traders for trending
-    filteredMarkets = [...safeMarkets].sort((a, b) => {
+    filteredMarkets = [...filteredMarkets].sort((a, b) => {
       const aVol = parseFloat((a.volume || "$0").replace("$", "").replace(",", "")) || 0;
       const bVol = parseFloat((b.volume || "$0").replace("$", "").replace(",", "")) || 0;
       return bVol - aVol;
@@ -635,9 +637,65 @@ export default function MarketsPage({ markets=[], limit, category }){
   // Debug logging for features
   console.log("🔵 MarketsPage render - limit:", limit, "pathname:", location.pathname, "isHomepage:", isHomepage, "features.length:", features.length);
   
+  // Get trending contracts
+  const trendingContracts = safeMarkets.filter(m => m && m.trending === true && !m.resolution);
+  
+  // Group trending contracts by category
+  const trendingByCategory = {};
+  trendingContracts.forEach(m => {
+    const cat = m.category || "General";
+    if (!trendingByCategory[cat]) {
+      trendingByCategory[cat] = [];
+    }
+    trendingByCategory[cat].push(m);
+  });
+  
+  const hasTrending = trendingContracts.length > 0;
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {!limit && urlCategory !== "sports" && <h2 className="text-2xl font-bold text-white mb-6">{getTitle()}</h2>}
+      
+      {/* Trending Markets by Category Section - Only show if there are trending contracts */}
+      {hasTrending && isHomepage && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-5 h-5 text-orange-400" />
+            <h2 className="text-xl font-bold text-white">Explore Markets by Category</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(trendingByCategory).map(([category, contracts]) => {
+              const categorySlug = Object.entries(CATEGORY_MAP).find(([slug, name]) => name === category)?.[0] || category.toLowerCase().replace(/\s+/g, '-');
+              return (
+                <div key={category} className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-4">
+                  <Link 
+                    to={`/markets/${categorySlug}`}
+                    className="text-blue-400 font-semibold text-sm hover:text-blue-300 mb-3 block"
+                  >
+                    {category} →
+                  </Link>
+                  <div className="space-y-2">
+                    {contracts.slice(0, 3).map(m => (
+                      <Link
+                        key={m.id}
+                        to={`/market/${encodeURIComponent(m.id)}`}
+                        className="block text-white text-sm hover:text-blue-400 line-clamp-2"
+                      >
+                        {m.question}
+                      </Link>
+                    ))}
+                    {contracts.length > 3 && (
+                      <div className="text-gray-400 text-xs">
+                        +{contracts.length - 3} more
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       
       {/* Feature Carousel - Large Kalshi-style cards with slideshow */}
       {isHomepage && features.length > 0 && (
