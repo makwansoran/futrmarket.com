@@ -2381,13 +2381,23 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
     // Update contract in database
     let updatedContract;
     try {
-      console.log("[PATCH /api/contracts/:id] Calling updateContract...");
+      console.log("[PATCH /api/contracts/:id] Calling updateContract with updates:", JSON.stringify(updates, null, 2));
       updatedContract = await updateContract(contractId, updates);
       console.log("[PATCH /api/contracts/:id] Update successful:", updatedContract?.id);
       if (!updatedContract) {
         return res.status(404).json({ ok: false, error: "Contract not found" });
       }
     } catch (updateError) {
+      // Log the full error for debugging
+      const fullError = {
+        message: updateError?.message,
+        code: updateError?.code,
+        details: updateError?.details,
+        hint: updateError?.hint,
+        name: updateError?.name,
+        stack: updateError?.stack
+      };
+      console.error("[PATCH /api/contracts/:id] Full error object:", JSON.stringify(fullError, null, 2));
       console.error("[PATCH /api/contracts/:id] Error updating contract in database:", updateError);
       console.error("[PATCH /api/contracts/:id] Update error details:", {
         message: updateError.message,
@@ -2445,10 +2455,23 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       // Return the error message from the database layer if it's clear
       const finalErrorMsg = errorMsg || "Unknown error occurred while updating contract";
       console.error("[PATCH /api/contracts/:id] Returning error to client:", finalErrorMsg);
-      return res.status(500).json({ 
+      
+      // Include more details in development
+      const errorResponse = { 
         ok: false, 
         error: finalErrorMsg
-      });
+      };
+      
+      // Add debug info if it's a database error
+      if (updateError.code || updateError.details) {
+        errorResponse.debug = {
+          code: updateError.code,
+          details: updateError.details,
+          hint: updateError.hint
+        };
+      }
+      
+      return res.status(500).json(errorResponse);
     }
     
     // Map database response to API format

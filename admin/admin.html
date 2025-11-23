@@ -1121,11 +1121,16 @@
           alert("Unauthorized. Check your admin token (default: 'changeme')");
         }else{
           var errorMsg = j.error || r.status || "Unknown error";
+          var debugInfo = j.debug ? "\n\nDebug info: " + JSON.stringify(j.debug, null, 2) : "";
+          
+          // Log full error to console for debugging
+          console.error("Update failed - Full error response:", j);
+          
           // If error contains SQL instructions, show them clearly
           if(errorMsg.includes("ALTER TABLE") || errorMsg.includes("column does not exist") || errorMsg.includes("Database schema error")){
-            alert("DATABASE SCHEMA ERROR:\n\n" + errorMsg + "\n\nPlease run the SQL command shown above in your Supabase SQL Editor.");
+            alert("DATABASE SCHEMA ERROR:\n\n" + errorMsg + debugInfo + "\n\nPlease run the SQL command shown above in your Supabase SQL Editor.");
           }else{
-            alert("Update failed: " + errorMsg);
+            alert("Update failed: " + errorMsg + debugInfo);
           }
         }
         return;
