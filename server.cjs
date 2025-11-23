@@ -2350,37 +2350,41 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
         message: updateError.message,
         code: updateError.code,
         details: updateError.details,
-        hint: updateError.hint
+        hint: updateError.hint,
+        stack: updateError.stack
       });
       
       // Check if it's a column error (trending column might not exist)
-      const errorMsg = updateError.message || "";
-      const errorCode = updateError.code || "";
+      const errorMsg = String(updateError.message || "");
+      const errorCode = String(updateError.code || "");
+      const errorDetails = String(updateError.details || "");
       
-      if ((errorMsg.includes("column") || errorMsg.includes("Cannot coerce")) && updates.trending !== undefined) {
+      // Check if this is related to the trending column
+      if (updates.trending !== undefined && (
+        errorMsg.includes("column") || 
+        errorMsg.includes("Cannot coerce") ||
+        errorMsg.toLowerCase().includes("trending") ||
+        errorCode === "PGRST116" ||
+        errorDetails.includes("trending")
+      )) {
         return res.status(500).json({ 
           ok: false, 
-          error: "Database schema error: 'trending' column does not exist in the contracts table. Please add it with: ALTER TABLE contracts ADD COLUMN trending BOOLEAN DEFAULT false;" 
+          error: "Database schema error: The 'trending' column does not exist in your contracts table.\n\nTo fix this, run this SQL in your Supabase SQL Editor:\n\nALTER TABLE contracts ADD COLUMN IF NOT EXISTS trending BOOLEAN DEFAULT false;" 
         });
       }
       
       // Check for "Cannot coerce" error which often means 0 rows or column issue
       if (errorMsg.includes("Cannot coerce") || errorCode === "PGRST116") {
-        if (updates.trending !== undefined) {
-          return res.status(500).json({ 
-            ok: false, 
-            error: "Database error: The 'trending' column may not exist. Please add it to your contracts table: ALTER TABLE contracts ADD COLUMN trending BOOLEAN DEFAULT false;" 
-          });
-        }
         return res.status(404).json({ 
           ok: false, 
           error: "Contract not found or update failed" 
         });
       }
       
+      // Return the error message from the database layer if it's clear
       return res.status(500).json({ 
         ok: false, 
-        error: `Failed to update contract: ${errorMsg || "Unknown error"}` 
+        error: errorMsg || "Unknown error occurred while updating contract" 
       });
     }
     
