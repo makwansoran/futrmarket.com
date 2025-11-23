@@ -579,6 +579,7 @@ export default function MarketDetailPage(){
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState("");
   const [userPosition, setUserPosition] = React.useState(null);
+  const [openOrderbook, setOpenOrderbook] = React.useState(null); // 'yes', 'no', or null
 
   // Load contract and user position
   React.useEffect(() => {
