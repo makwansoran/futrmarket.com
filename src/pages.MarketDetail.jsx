@@ -927,7 +927,7 @@ export default function MarketDetailPage(){
           </div>
           {/* Probability Display - Buttons with Orderbook Dropdowns */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-4">
               {/* YES Price Button */}
               <div className="relative">
                 <motion.button
