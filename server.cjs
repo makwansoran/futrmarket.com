@@ -1738,15 +1738,20 @@ app.get("/api/contracts", async (req, res) => {
       });
     
     // Deduplicate by ID AND question (keep first occurrence - should be newest due to sort)
-    // Use case-insensitive comparison for both ID and question to catch all duplicates
+    // Use case-insensitive comparison with normalized whitespace to catch all duplicates
     const deduplicated = [];
     const seenIds = new Set();
     const seenQuestions = new Map(); // Track questions to detect duplicates
     
+    // Helper function to normalize question (remove extra whitespace, lowercase, trim)
+    const normalizeQuestion = (q) => {
+      return String(q || "").trim().toLowerCase().replace(/\s+/g, ' '); // Normalize all whitespace to single spaces
+    };
+    
     for (const contract of list) {
       const id = String(contract.id || "").trim();
       const normalizedId = id.toLowerCase(); // Normalize ID for case-insensitive comparison
-      const question = String(contract.question || "").trim().toLowerCase();
+      const normalizedQuestion = normalizeQuestion(contract.question);
       
       // Skip if we've already seen this ID (case-insensitive)
       if (!id || seenIds.has(normalizedId)) {
@@ -1754,16 +1759,16 @@ app.get("/api/contracts", async (req, res) => {
         continue;
       }
       
-      // Check for duplicate questions (case-insensitive, normalized)
-      if (question && seenQuestions.has(question)) {
-        const existingId = seenQuestions.get(question);
+      // Check for duplicate questions (case-insensitive, normalized whitespace)
+      if (normalizedQuestion && seenQuestions.has(normalizedQuestion)) {
+        const existingId = seenQuestions.get(normalizedQuestion);
         console.warn(`[CONTRACTS] ⚠️ Skipping duplicate question: "${contract.question}" (ID: ${id}, existing ID: ${existingId})`);
         continue;
       }
       
       seenIds.add(normalizedId); // Store normalized ID
-      if (question) {
-        seenQuestions.set(question, id);
+      if (normalizedQuestion) {
+        seenQuestions.set(normalizedQuestion, id);
       }
       deduplicated.push(contract);
     }
