@@ -31,14 +31,14 @@ function MarketCard({ m }){
   return (
     <Link to={`/market/${encodeURIComponent(m.id)}`} className="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition block h-full min-h-[140px]">
       <div className="flex items-start gap-4">
-        {/* Square profile picture at start, like Polymarket */}
+        {/* Square profile picture at start, like Polymarket - extra small */}
         {imageUrl ? (
           <div className="flex-shrink-0">
             <img 
               src={imageUrl} 
               alt={m.question}
-              className="w-14 h-14 rounded object-cover border-2 border-gray-700"
-              style={{ width: '56px', height: '56px', display: 'block' }}
+              className="rounded object-cover border border-gray-700"
+              style={{ width: '28px', height: '28px', display: 'block' }}
               onError={(e) => {
                 console.error("❌ Image failed to load:", imageUrl, "for contract:", m.id);
                 e.target.style.display = 'none';
@@ -49,7 +49,7 @@ function MarketCard({ m }){
             />
           </div>
         ) : (
-          <div className="flex-shrink-0 w-14 h-14 rounded bg-gray-800 border-2 border-gray-700" style={{ width: '56px', height: '56px' }}></div>
+          <div className="flex-shrink-0 rounded bg-gray-800 border border-gray-700" style={{ width: '28px', height: '28px' }}></div>
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">

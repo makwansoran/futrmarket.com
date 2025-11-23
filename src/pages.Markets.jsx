@@ -67,25 +67,23 @@ function MarketCard({ m }){
       {getStatusBadge()}
       <div className="p-5">
         <div className="flex items-start gap-4">
-          {/* Square profile picture at start - FORCE VISIBLE */}
+          {/* Square profile picture at start - extra small */}
           <div 
             className="flex-shrink-0"
             style={{ 
-              width: '56px', 
-              height: '56px', 
-              minWidth: '56px', 
-              minHeight: '56px',
-              display: 'flex !important',
+              width: '28px', 
+              height: '28px', 
+              minWidth: '28px', 
+              minHeight: '28px',
+              display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: imageUrl ? 'transparent' : '#4b5563',
-              border: imageUrl ? 'none' : '3px solid #6b7280',
-              borderRadius: '8px',
+              border: imageUrl ? 'none' : '1.5px solid #6b7280',
+              borderRadius: '4px',
               flexShrink: 0,
               position: 'relative',
-              overflow: 'hidden',
-              visibility: 'visible !important',
-              opacity: '1 !important'
+              overflow: 'hidden'
             }}
           >
             {imageUrl ? (
@@ -97,7 +95,7 @@ function MarketCard({ m }){
                   height: '100%', 
                   display: 'block',
                   objectFit: 'cover',
-                  borderRadius: '6px'
+                  borderRadius: '2px'
                 }}
                 onError={(e) => {
                   console.error("❌ Image failed to load:", imageUrl);
@@ -108,7 +106,7 @@ function MarketCard({ m }){
                 }}
               />
             ) : (
-              <span style={{ color: '#d1d5db', fontSize: '24px', fontWeight: 'bold', userSelect: 'none', lineHeight: '1' }}>?</span>
+              <span style={{ color: '#d1d5db', fontSize: '10px', fontWeight: 'bold', userSelect: 'none', lineHeight: '1' }}>?</span>
             )}
           </div>
           <div className="flex-1 min-w-0">
