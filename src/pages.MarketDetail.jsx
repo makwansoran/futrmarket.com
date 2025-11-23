@@ -970,7 +970,7 @@ export default function MarketDetailPage(){
                       <div className="p-3 bg-green-500/10 border-b border-gray-700">
                         <div className="text-sm font-semibold text-green-400">YES Order Book</div>
                       </div>
-                      <div className="max-h-64 overflow-y-auto">
+                      <div>
                         {/* Sell Orders (Asks) */}
                         <div className="p-3 space-y-1 border-b border-gray-700">
                           <div className="text-xs text-gray-500 mb-2 font-medium">Sell Orders</div>
@@ -1046,7 +1046,7 @@ export default function MarketDetailPage(){
                       <div className="p-3 bg-red-500/10 border-b border-gray-700">
                         <div className="text-sm font-semibold text-red-400">NO Order Book</div>
                       </div>
-                      <div className="max-h-64 overflow-y-auto">
+                      <div>
                         {/* Sell Orders (Asks) */}
                         <div className="p-3 space-y-1 border-b border-gray-700">
                           <div className="text-xs text-gray-500 mb-2 font-medium">Sell Orders</div>
