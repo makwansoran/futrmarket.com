@@ -2520,16 +2520,32 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
     res.json({ ok: true, data: mappedContract });
   } catch (error) {
     console.error("[PATCH /api/contracts/:id] Outer catch - Error updating contract:", error);
-    console.error("[PATCH /api/contracts/:id] Outer catch - Error message:", error.message);
-    console.error("[PATCH /api/contracts/:id] Outer catch - Error code:", error.code);
-    console.error("[PATCH /api/contracts/:id] Outer catch - Error details:", error.details);
-    console.error("[PATCH /api/contracts/:id] Outer catch - Error stack:", error.stack);
-    console.error("[PATCH /api/contracts/:id] Outer catch - Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    console.error("[PATCH /api/contracts/:id] Outer catch - Error message:", error?.message);
+    console.error("[PATCH /api/contracts/:id] Outer catch - Error code:", error?.code);
+    console.error("[PATCH /api/contracts/:id] Outer catch - Error details:", error?.details);
+    console.error("[PATCH /api/contracts/:id] Outer catch - Error stack:", error?.stack);
+    console.error("[PATCH /api/contracts/:id] Outer catch - Error name:", error?.name);
+    console.error("[PATCH /api/contracts/:id] Outer catch - Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error || {}), 2));
     
-    const errorMsg = error.message || "Failed to update contract";
+    // Ensure we always return a proper error message
+    let errorMsg = "Failed to update contract";
+    if (error?.message) {
+      errorMsg = String(error.message);
+    } else if (typeof error === 'string') {
+      errorMsg = error;
+    } else if (error) {
+      errorMsg = JSON.stringify(error);
+    }
+    
+    // Check if it's related to trending
+    if (errorMsg.includes("Cannot coerce") || errorMsg.includes("trending") || errorMsg.includes("column")) {
+      errorMsg = "Database error: " + errorMsg + "\n\nIf you're updating the trending field, make sure the 'trending' column exists in your contracts table.";
+    }
+    
     res.status(500).json({ 
       ok: false, 
-      error: errorMsg
+      error: errorMsg,
+      debug: error?.code ? { code: error.code, details: error.details } : undefined
     });
   }
 });
