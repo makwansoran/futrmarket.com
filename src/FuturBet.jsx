@@ -175,13 +175,14 @@ function MarketCard(props) {
                 }}
                 transition={{ duration: 0.2 }}
               >
-                <span className="text-green-400 text-xs font-bold">
+                <span className="text-xs font-bold" style={{ color: 'rgb(20, 120, 50)' }}>
                   {Math.round(market.yesPrice * 100)}¢
                 </span>
               </motion.span>
             </motion.div>
             <motion.div 
-              className="px-2 py-1 rounded-md bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[28px] min-w-[40px]"
+              className="px-2 py-1 rounded-md border text-xs font-semibold cursor-pointer relative overflow-hidden flex items-center justify-center min-h-[28px] min-w-[40px]"
+              style={{ backgroundColor: 'rgba(207, 54, 79, 0.1)', borderColor: 'rgba(207, 54, 79, 0.3)' }}
               whileHover="hover"
               initial="rest"
               animate="rest"
@@ -198,17 +199,18 @@ function MarketCard(props) {
                 }}
                 transition={{ duration: 0.2 }}
               >
-                NO
+                <span style={{ color: 'rgb(207, 54, 79)' }}>NO</span>
               </motion.span>
               <motion.span
-                className="absolute inset-0 flex items-center justify-center bg-red-500/20"
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ backgroundColor: 'rgba(207, 54, 79, 0.2)' }}
                 variants={{
                   rest: { opacity: 0, y: 5 },
                   hover: { opacity: 1, y: 0 }
                 }}
                 transition={{ duration: 0.2 }}
               >
-                <span className="text-red-400 text-xs font-bold">
+                <span className="text-xs font-bold" style={{ color: 'rgb(150, 30, 50)' }}>
                   {Math.round(market.noPrice * 100)}¢
                 </span>
               </motion.span>
