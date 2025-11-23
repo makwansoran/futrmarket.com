@@ -532,126 +532,105 @@ export default function MarketsPage({ markets=[], limit, category }){
           { name: "Tech & Science", slug: "tech-science" }
         ];
         
-        // MULTIPLE LAYERS OF DUPLICATE PREVENTION
-        // Layer 1: Track seen contract IDs to prevent duplicates across categories
-        const seenContractIds = new Set();
-        // Layer 2: Track seen contract questions (normalized) as additional safeguard
-        const seenQuestions = new Set();
-        // Layer 3: Track all displayed contract IDs for final validation
-        const allDisplayedIds = [];
+        // COMPLETELY REWRITTEN DUPLICATE PREVENTION
+        // Use a Map to track what we've displayed - key is normalized question, value is contract
+        const displayedContracts = new Map(); // key: normalized question, value: contract object
         
-        // First, pre-filter and deduplicate the filteredMarkets array (already filtered for live contracts)
-        // This ensures we're working with a clean dataset
-        const uniqueMarkets = [];
-        const marketIds = new Set();
-        const marketQuestions = new Set();
+        // First pass: Build a completely deduplicated list
+        // We'll use question as the primary key since that's what users see
+        const deduplicatedMarkets = [];
+        const seenByQuestion = new Map();
+        const seenById = new Set();
         
-        // Use filteredMarkets (already filtered for live contracts on homepage) instead of safeMarkets
         for (const m of filteredMarkets) {
           if (!m || !m.id) continue;
+          if (m.resolution) continue; // Skip resolved
           
-          // Normalize ID and question for comparison
           const normalizedId = String(m.id).trim().toLowerCase();
-          const normalizedQuestion = String(m.question || "").trim().toLowerCase();
+          const normalizedQuestion = String(m.question || "").trim().toLowerCase().replace(/\s+/g, ' '); // Normalize whitespace
           
-          // Skip if we've already seen this ID or question
-          if (marketIds.has(normalizedId)) {
-            console.warn("🔵 [CATEGORIES] Duplicate ID detected in safeMarkets:", m.id);
-            continue;
-          }
-          if (normalizedQuestion && marketQuestions.has(normalizedQuestion)) {
-            console.warn("🔵 [CATEGORIES] Duplicate question detected in safeMarkets:", m.question);
+          // Skip if we've seen this ID
+          if (seenById.has(normalizedId)) {
+            console.warn("🔴 [CATEGORIES] Skipping duplicate ID:", m.id);
             continue;
           }
           
-          marketIds.add(normalizedId);
-          if (normalizedQuestion) marketQuestions.add(normalizedQuestion);
-          uniqueMarkets.push(m);
+          // Skip if we've seen this question (even with different ID)
+          if (normalizedQuestion && seenByQuestion.has(normalizedQuestion)) {
+            const existing = seenByQuestion.get(normalizedQuestion);
+            console.warn("🔴 [CATEGORIES] Skipping duplicate question:", m.question, "Existing ID:", existing.id, "New ID:", m.id);
+            continue;
+          }
+          
+          seenById.add(normalizedId);
+          if (normalizedQuestion) {
+            seenByQuestion.set(normalizedQuestion, m);
+          }
+          deduplicatedMarkets.push(m);
         }
         
-        console.log("🔵 [CATEGORIES] Pre-filtered markets:", uniqueMarkets.length, "unique contracts from", filteredMarkets.length, "live contracts");
+        console.log("🔵 [CATEGORIES] Deduplicated from", filteredMarkets.length, "to", deduplicatedMarkets.length, "unique contracts");
+        
+        // Build category sections
+        const categorySections = [];
+        
+        for (const category of allowedCategories) {
+          const categoryContracts = [];
+          const categorySeen = new Set(); // Track what we've added to THIS category
+          
+          for (const m of deduplicatedMarkets) {
+            // Check if this contract matches the category
+            const categoryMatch = m.category && m.category.toLowerCase() === category.name.toLowerCase();
+            if (!categoryMatch) continue;
+            
+            // Normalize for comparison
+            const normalizedQuestion = String(m.question || "").trim().toLowerCase().replace(/\s+/g, ' ');
+            const normalizedId = String(m.id).trim().toLowerCase();
+            const uniqueKey = normalizedQuestion || normalizedId; // Use question as primary key
+            
+            // CRITICAL: Check if we've already displayed this contract in ANY category
+            if (displayedContracts.has(uniqueKey)) {
+              console.error("🔴 [CATEGORIES] Contract already displayed in another category:", m.question, "ID:", m.id);
+              continue;
+            }
+            
+            // Check if we've already added this to THIS category (shouldn't happen, but safety check)
+            if (categorySeen.has(uniqueKey)) {
+              console.error("🔴 [CATEGORIES] Duplicate in same category:", m.question, "ID:", m.id);
+              continue;
+            }
+            
+            // Add to category
+            categoryContracts.push(m);
+            categorySeen.add(uniqueKey);
+            displayedContracts.set(uniqueKey, m); // Mark as displayed globally
+            
+            // Stop at 4 contracts per category
+            if (categoryContracts.length >= 4) break;
+          }
+          
+          if (categoryContracts.length > 0) {
+            categorySections.push({ category, contracts: categoryContracts });
+          }
+        }
         
         return (
           <div className="mb-12 mt-8">
             <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore Markets by Category</h2>
-            {allowedCategories.map((category) => {
-              // Filter contracts by category (case-insensitive) and only show live contracts on homepage
-              // Also exclude contracts that have already been shown in other categories
-              const categoryContracts = uniqueMarkets
-                .filter(m => {
-                  if (!m || !m.id) return false;
-                  
-                  // Normalize for comparison
-                  const contractId = String(m.id).trim();
-                  const normalizedId = contractId.toLowerCase();
-                  
-                  // Exclude resolved contracts
-                  if (m.resolution) return false;
-                  
-                  // Show all contracts (not just live ones) in category sections
-                  // This ensures contracts visible on Trending/New/All pages also appear on homepage
-                  
-                  // Check category match (case-insensitive)
-                  const categoryMatch = m.category && m.category.toLowerCase() === category.name.toLowerCase();
-                  if (!categoryMatch) return false;
-                  
-                  // LAYER 1: Prevent duplicates by ID - skip if already seen
-                  if (seenContractIds.has(normalizedId)) {
-                    console.warn("🔵 [CATEGORIES] Duplicate ID prevented in", category.name + ":", contractId);
-                    return false;
-                  }
-                  
-                  // LAYER 2: Prevent duplicates by question (normalized)
-                  const normalizedQuestion = String(m.question || "").trim().toLowerCase();
-                  if (normalizedQuestion && seenQuestions.has(normalizedQuestion)) {
-                    console.warn("🔵 [CATEGORIES] Duplicate question prevented in", category.name + ":", m.question);
-                    return false;
-                  }
-                  
-                  return true;
-                })
-                .slice(0, 4) // Only show 4 contracts per category
-                .map(m => {
-                  // Mark this contract as seen (both ID and question)
-                  const normalizedId = String(m.id).trim().toLowerCase();
-                  const normalizedQuestion = String(m.question || "").trim().toLowerCase();
-                  
-                  seenContractIds.add(normalizedId);
-                  if (normalizedQuestion) seenQuestions.add(normalizedQuestion);
-                  allDisplayedIds.push(m.id);
-                  
-                  return m;
-                });
-              
-              // LAYER 3: Final validation - ensure no duplicates in the final array
-              // Use BOTH ID and question to catch duplicates with different IDs but same question
+            {categorySections.map(({ category, contracts }) => {
+              // Final safety check - remove any duplicates that somehow got through
               const finalContracts = [];
-              const finalIds = new Set();
-              const finalQuestions = new Set();
-              for (const contract of categoryContracts) {
-                const contractId = String(contract.id).trim().toLowerCase();
-                const contractQuestion = String(contract.question || "").trim().toLowerCase();
-                
-                // Check for duplicate ID
-                if (finalIds.has(contractId)) {
-                  console.error("🔴 [CATEGORIES] CRITICAL: Duplicate ID detected in final array for", category.name + ":", contract.id);
-                  continue;
+              const finalCheck = new Set();
+              
+              for (const contract of contracts) {
+                const checkKey = String(contract.question || contract.id || "").trim().toLowerCase().replace(/\s+/g, ' ');
+                if (!finalCheck.has(checkKey)) {
+                  finalCheck.add(checkKey);
+                  finalContracts.push(contract);
+                } else {
+                  console.error("🔴 [CATEGORIES] FINAL CHECK: Removed duplicate:", contract.question, "ID:", contract.id);
                 }
-                
-                // Check for duplicate question (even if different ID)
-                if (contractQuestion && finalQuestions.has(contractQuestion)) {
-                  console.error("🔴 [CATEGORIES] CRITICAL: Duplicate question detected in final array for", category.name + ":", contract.question, "ID:", contract.id);
-                  continue;
-                }
-                
-                finalIds.add(contractId);
-                if (contractQuestion) finalQuestions.add(contractQuestion);
-                finalContracts.push(contract);
               }
-              
-              if (finalContracts.length === 0) return null;
-              
-              console.log("🔵 [CATEGORIES] Displaying", finalContracts.length, "contracts for", category.name);
               
               return (
                 <div key={category.slug} className="mb-12">
@@ -666,22 +645,8 @@ export default function MarketsPage({ markets=[], limit, category }){
                   </div>
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {finalContracts.map((m, idx) => {
-                      // Use a unique key that combines category, ID, and index to prevent React duplicates
-                      const uniqueKey = `${category.slug}-${m.id}-${idx}`;
-                      // Final safety check - log if we somehow have duplicates
-                      if (idx > 0) {
-                        const prevContract = finalContracts[idx - 1];
-                        if (prevContract && (
-                          String(prevContract.id).toLowerCase() === String(m.id).toLowerCase() ||
-                          String(prevContract.question || "").trim().toLowerCase() === String(m.question || "").trim().toLowerCase()
-                        )) {
-                          console.error("🔴 [CATEGORIES] FINAL CHECK: Duplicate found in render!", {
-                            prev: { id: prevContract.id, question: prevContract.question },
-                            current: { id: m.id, question: m.question }
-                          });
-                          return null; // Don't render duplicate
-                        }
-                      }
+                      // Use question as key (most unique identifier) with index as fallback
+                      const uniqueKey = `${category.slug}-${String(m.question || m.id || idx).trim()}-${idx}`;
                       return <MarketCard key={uniqueKey} m={m} />;
                     })}
                   </div>
