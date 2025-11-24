@@ -83,37 +83,78 @@ function AccountMenu({ userEmail, onLogout }) {
             className="fixed inset-0 z-20" 
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-44 rounded-md border border-white/10 bg-gray-900/95 shadow-xl z-[60]">
+          <div 
+            className="absolute right-0 mt-2 w-44 rounded-md border border-white/10 bg-gray-900/95 backdrop-blur-sm shadow-xl z-[60] transition-all duration-200 ease-out"
+            style={{
+              animation: 'dropdownFadeIn 0.2s ease-out',
+              transformOrigin: 'top right'
+            }}
+          >
             <Link 
               to="/account" 
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm hover:bg-white/5"
+              className="block px-3 py-2 text-sm hover:bg-white/5 transition"
+              style={{
+                animation: `menuItemSlideIn 0.2s ease-out 0s both`
+              }}
             >
               Account
             </Link>
             <Link 
               to="/settings" 
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm hover:bg-white/5"
+              className="block px-3 py-2 text-sm hover:bg-white/5 transition"
+              style={{
+                animation: `menuItemSlideIn 0.2s ease-out 0.05s both`
+              }}
             >
               Settings
             </Link>
             <Link 
               to="/leaderboard" 
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm hover:bg-white/5"
+              className="block px-3 py-2 text-sm hover:bg-white/5 transition"
+              style={{
+                animation: `menuItemSlideIn 0.2s ease-out 0.1s both`
+              }}
             >
               Leaderboard
             </Link>
             <button
               onClick={() => { setOpen(false); onLogout?.(); }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-white/5"
+              className="w-full text-left px-3 py-2 text-sm hover:bg-white/5 transition"
+              style={{
+                animation: `menuItemSlideIn 0.2s ease-out 0.15s both`
+              }}
             >
               Log out
             </button>
           </div>
         </>
       )}
+      <style>{`
+        @keyframes dropdownFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        @keyframes menuItemSlideIn {
+          from {
+            opacity: 0;
+            transform: translateX(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
