@@ -229,13 +229,13 @@ export default function CashButton({
       {open && (
         <>
           <div 
-            className="fixed inset-0 z-[100]" 
+            className="fixed inset-0 z-[100] bg-transparent" 
             onClick={() => setOpen(false)}
           />
           <div 
-            className="absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900/95 backdrop-blur-sm shadow-xl z-[101] transition-all duration-200 ease-out"
+            className="absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900 backdrop-blur-sm shadow-xl z-[101]"
             style={{
-              animation: 'dropdownFadeIn 0.2s ease-out',
+              animation: 'dropdownFadeIn 0.2s ease-out forwards',
               transformOrigin: 'top right'
             }}
             onClick={(e) => e.stopPropagation()}
@@ -250,9 +250,9 @@ export default function CashButton({
             <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
               {/* Balance Amount */}
               <div 
-                className="text-center py-2 transition"
+                className="text-center py-2"
                 style={{
-                  animation: `menuItemSlideIn 0.2s ease-out 0s both`
+                  animation: `menuItemSlideIn 0.2s ease-out 0s forwards`
                 }}
               >
                 <div className="text-gray-400 text-xs mb-1">
@@ -269,9 +269,9 @@ export default function CashButton({
               {/* Blockchain Wallet Info */}
               {useBlockchain && walletTokenBalance && (
                 <div 
-                  className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2 transition"
+                  className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2"
                   style={{
-                    animation: `menuItemSlideIn 0.2s ease-out 0.05s both`
+                    animation: `menuItemSlideIn 0.2s ease-out 0.05s forwards`
                   }}
                 >
                   <div className="flex justify-between text-xs">
@@ -290,9 +290,9 @@ export default function CashButton({
               <div className="space-y-2">
                 <button
                   onClick={handleDeposit}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium"
                   style={{
-                    animation: `menuItemSlideIn 0.2s ease-out ${useBlockchain ? '0.05s' : '0.1s'} both`
+                    animation: `menuItemSlideIn 0.2s ease-out ${useBlockchain ? '0.05s' : '0.1s'} forwards`
                   }}
                 >
                   <ArrowUpRight size={16} />
@@ -312,9 +312,9 @@ export default function CashButton({
                         setWithdrawOpen(true); // Then open withdraw modal
                       }, 200);
                     }}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm font-medium transition cursor-pointer"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm font-medium cursor-pointer"
                     style={{
-                      animation: `menuItemSlideIn 0.2s ease-out 0.15s both`
+                      animation: `menuItemSlideIn 0.2s ease-out 0.15s forwards`
                     }}
                   >
                     <ArrowDownLeft size={16} />
@@ -325,9 +325,9 @@ export default function CashButton({
 
               {/* Info */}
               <div 
-                className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2 transition"
+                className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2"
                 style={{
-                  animation: `menuItemSlideIn 0.2s ease-out ${!useBlockchain ? '0.2s' : '0.1s'} both`
+                  animation: `menuItemSlideIn 0.2s ease-out ${!useBlockchain ? '0.2s' : '0.1s'} forwards`
                 }}
               >
                 <div className="flex justify-between text-xs">

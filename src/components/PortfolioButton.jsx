@@ -33,13 +33,13 @@ export default function PortfolioButton({ portfolio, cash }) {
       {open && (
         <>
           <div 
-            className="fixed inset-0 z-[100]" 
+            className="fixed inset-0 z-[100] bg-transparent" 
             onClick={() => setOpen(false)}
           />
           <div 
-            className="absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900/95 backdrop-blur-sm shadow-xl z-[101] transition-all duration-200 ease-out"
+            className="absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900 backdrop-blur-sm shadow-xl z-[101]"
             style={{
-              animation: 'dropdownFadeIn 0.2s ease-out',
+              animation: 'dropdownFadeIn 0.2s ease-out forwards',
               transformOrigin: 'top right'
             }}
             onClick={(e) => e.stopPropagation()}
@@ -65,9 +65,9 @@ export default function PortfolioButton({ portfolio, cash }) {
               {/* Breakdown */}
               <div className="space-y-2">
                 <div 
-                  className="bg-gray-800 border border-gray-700 rounded-lg p-3 transition"
+                  className="bg-gray-800 border border-gray-700 rounded-lg p-3"
                   style={{
-                    animation: `menuItemSlideIn 0.2s ease-out 0s both`
+                    animation: `menuItemSlideIn 0.2s ease-out 0s forwards`
                   }}
                 >
                   <div className="flex justify-between items-center mb-1">
@@ -78,9 +78,9 @@ export default function PortfolioButton({ portfolio, cash }) {
                 </div>
 
                 <div 
-                  className="bg-gray-800 border border-gray-700 rounded-lg p-3 transition"
+                  className="bg-gray-800 border border-gray-700 rounded-lg p-3"
                   style={{
-                    animation: `menuItemSlideIn 0.2s ease-out 0.05s both`
+                    animation: `menuItemSlideIn 0.2s ease-out 0.05s forwards`
                   }}
                 >
                   <div className="flex justify-between items-center mb-1">
@@ -97,9 +97,9 @@ export default function PortfolioButton({ portfolio, cash }) {
                   setOpen(false);
                   navigate("/positions");
                 }}
-                className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium flex items-center justify-center gap-2 transition"
+                className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium flex items-center justify-center gap-2"
                 style={{
-                  animation: `menuItemSlideIn 0.2s ease-out 0.1s both`
+                  animation: `menuItemSlideIn 0.2s ease-out 0.1s forwards`
                 }}
               >
                 <BarChart3 size={16} />
@@ -108,9 +108,9 @@ export default function PortfolioButton({ portfolio, cash }) {
 
               {/* Info */}
               <div 
-                className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-2 transition"
+                className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-2"
                 style={{
-                  animation: `menuItemSlideIn 0.2s ease-out 0.15s both`
+                  animation: `menuItemSlideIn 0.2s ease-out 0.15s forwards`
                 }}
               >
                 <p className="text-xs text-blue-300">

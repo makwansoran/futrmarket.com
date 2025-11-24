@@ -83,22 +83,23 @@ function AccountMenu({ userEmail, onLogout }) {
       {open && (
         <>
           <div 
-            className="fixed inset-0 z-[100]" 
+            className="fixed inset-0 z-[100] bg-transparent" 
             onClick={() => setOpen(false)}
           />
           <div 
-            className="absolute right-0 mt-2 w-44 rounded-md border border-white/10 bg-gray-900/95 backdrop-blur-sm shadow-xl z-[101] transition-all duration-200 ease-out"
+            className="absolute right-0 top-full mt-2 w-44 rounded-md border border-white/10 bg-gray-900 backdrop-blur-sm shadow-xl z-[101]"
             style={{
-              animation: 'dropdownFadeIn 0.2s ease-out',
+              animation: 'dropdownFadeIn 0.2s ease-out forwards',
               transformOrigin: 'top right'
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             <Link 
               to="/account" 
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm hover:bg-white/5 transition"
+              className="block px-3 py-2 text-sm hover:bg-white/5"
               style={{
-                animation: `menuItemSlideIn 0.2s ease-out 0s both`
+                animation: `menuItemSlideIn 0.2s ease-out 0s forwards`
               }}
             >
               Account
@@ -106,9 +107,9 @@ function AccountMenu({ userEmail, onLogout }) {
             <Link 
               to="/settings" 
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm hover:bg-white/5 transition"
+              className="block px-3 py-2 text-sm hover:bg-white/5"
               style={{
-                animation: `menuItemSlideIn 0.2s ease-out 0.05s both`
+                animation: `menuItemSlideIn 0.2s ease-out 0.05s forwards`
               }}
             >
               Settings
@@ -116,18 +117,18 @@ function AccountMenu({ userEmail, onLogout }) {
             <Link 
               to="/leaderboard" 
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm hover:bg-white/5 transition"
+              className="block px-3 py-2 text-sm hover:bg-white/5"
               style={{
-                animation: `menuItemSlideIn 0.2s ease-out 0.1s both`
+                animation: `menuItemSlideIn 0.2s ease-out 0.1s forwards`
               }}
             >
               Leaderboard
             </Link>
             <button
               onClick={() => { setOpen(false); onLogout?.(); }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-white/5 transition"
+              className="w-full text-left px-3 py-2 text-sm hover:bg-white/5"
               style={{
-                animation: `menuItemSlideIn 0.2s ease-out 0.15s both`
+                animation: `menuItemSlideIn 0.2s ease-out 0.15s forwards`
               }}
             >
               Log out
