@@ -21,8 +21,13 @@ export default function PortfolioButton({ portfolio, cash }) {
     <div className="relative">
       <button
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
-          setOpen(v => !v);
+          console.log('Portfolio button clicked, current open:', open);
+          setOpen(v => {
+            console.log('Toggling portfolio dropdown to:', !v);
+            return !v;
+          });
         }}
         className="flex flex-col items-end text-xs hover:opacity-80 transition cursor-pointer"
       >
@@ -40,7 +45,9 @@ export default function PortfolioButton({ portfolio, cash }) {
             className="absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900 backdrop-blur-sm shadow-xl z-[101]"
             style={{
               animation: 'dropdownFadeIn 0.2s ease-out forwards',
-              transformOrigin: 'top right'
+              transformOrigin: 'top right',
+              opacity: 1,
+              visibility: 'visible'
             }}
             onClick={(e) => e.stopPropagation()}
           >
