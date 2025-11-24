@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, ChevronDown, User, X, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
-import DepositButton from "./components/DepositButton.jsx";
+import NotificationButton from "./components/NotificationButton.jsx";
 import PortfolioButton from "./components/PortfolioButton.jsx";
 import CashButton from "./components/CashButton.jsx";
 
@@ -197,7 +197,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
                 userEmail={userEmail}
                 onBalanceUpdate={onBalanceUpdate}
               />
-              <DepositButton userEmail={userEmail} onBalanceUpdate={onBalanceUpdate} />
+              <NotificationButton userEmail={userEmail} />
               <AccountMenu userEmail={userEmail} onLogout={onLogout} />
             </>
           ) : (
