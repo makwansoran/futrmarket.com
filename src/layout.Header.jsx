@@ -83,11 +83,11 @@ function AccountMenu({ userEmail, onLogout }) {
       {open && (
         <>
           <div 
-            className="fixed inset-0 z-20" 
+            className="fixed inset-0 z-[100]" 
             onClick={() => setOpen(false)}
           />
           <div 
-            className="absolute right-0 mt-2 w-44 rounded-md border border-white/10 bg-gray-900/95 backdrop-blur-sm shadow-xl z-[60] transition-all duration-200 ease-out"
+            className="absolute right-0 mt-2 w-44 rounded-md border border-white/10 bg-gray-900/95 backdrop-blur-sm shadow-xl z-[101] transition-all duration-200 ease-out"
             style={{
               animation: 'dropdownFadeIn 0.2s ease-out',
               transformOrigin: 'top right'
