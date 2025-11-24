@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, X } from "lucide-react";
+import { Bell } from "lucide-react";
 
 export default function NotificationButton({ userEmail }) {
   const [open, setOpen] = React.useState(false);
@@ -19,23 +19,12 @@ export default function NotificationButton({ userEmail }) {
     }
   }, [open, userEmail]);
 
-  React.useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
-
   if (!userEmail) return null;
 
   return (
-    <>
+    <div className="relative">
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen(v => !v)}
         className="relative px-3 py-2 rounded-lg text-sm font-medium border border-gray-700 hover:bg-gray-800 transition"
         title="Notifications"
       >
@@ -48,44 +37,80 @@ export default function NotificationButton({ userEmail }) {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)}></div>
-
-          <div className="relative w-full max-w-md mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden flex flex-col" style={{ height: 'auto', maxHeight: '80vh', transform: 'translateY(45%)' }}>
+        <>
+          <div 
+            className="fixed inset-0 z-20" 
+            onClick={() => setOpen(false)}
+          />
+          <div 
+            className="absolute right-0 mt-2 w-80 rounded-md border border-white/10 bg-gray-900/95 backdrop-blur-sm shadow-xl z-[60] transition-all duration-200 ease-out"
+            style={{
+              animation: 'dropdownFadeIn 0.2s ease-out',
+              transformOrigin: 'top right'
+            }}
+          >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
-              <h3 className="text-lg font-semibold text-white">Notifications</h3>
-              <button
-                onClick={() => setOpen(false)}
-                className="text-gray-400 hover:text-white transition"
-              >
-                <X size={18} />
-              </button>
+            <div className="flex items-center justify-between p-3 border-b border-white/10 flex-shrink-0">
+              <h3 className="text-sm font-semibold text-white">Notifications</h3>
+              {unreadCount > 0 && (
+                <span className="text-xs text-gray-400">{unreadCount} unread</span>
+              )}
             </div>
 
             {/* Notifications List */}
-            <div className="p-4 space-y-3 overflow-y-auto flex-1">
+            <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="text-center py-8 text-gray-400 text-sm">
                   No notifications yet
                 </div>
               ) : (
-                notifications.map((notification, index) => (
-                  <div key={index} className="bg-gray-800 border border-gray-700 rounded-lg p-3">
-                    <div className="text-white text-sm">{notification.message || "Notification"}</div>
-                    {notification.timestamp && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        {new Date(notification.timestamp).toLocaleString()}
-                      </div>
-                    )}
-                  </div>
-                ))
+                <div className="p-2">
+                  {notifications.map((notification, index) => (
+                    <div 
+                      key={index} 
+                      className="p-3 rounded-md hover:bg-white/5 transition cursor-pointer border-b border-white/5 last:border-b-0"
+                      style={{
+                        animation: `notificationSlideIn 0.2s ease-out ${index * 0.05}s both`
+                      }}
+                    >
+                      <div className="text-white text-sm">{notification.message || "Notification"}</div>
+                      {notification.timestamp && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {new Date(notification.timestamp).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
-        </div>
+        </>
       )}
-    </>
+      <style>{`
+        @keyframes dropdownFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        @keyframes notificationSlideIn {
+          from {
+            opacity: 0;
+            transform: translateX(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
+    </div>
   );
 }
 
