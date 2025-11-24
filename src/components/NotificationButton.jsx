@@ -46,11 +46,12 @@ export default function NotificationButton({ userEmail }) {
             onClick={() => setOpen(false)}
           />
           <div 
-            className="absolute right-0 mt-2 w-80 rounded-md border border-white/10 bg-gray-900/95 backdrop-blur-sm shadow-xl z-[60] transition-all duration-200 ease-out"
+            className="absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900/95 backdrop-blur-sm shadow-xl z-[60] transition-all duration-200 ease-out"
             style={{
               animation: 'dropdownFadeIn 0.2s ease-out',
               transformOrigin: 'top right'
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-3 border-b border-white/10 flex-shrink-0">
