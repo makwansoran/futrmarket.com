@@ -24,7 +24,10 @@ export default function NotificationButton({ userEmail }) {
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(v => !v);
+        }}
         className="relative px-3 py-2 rounded-lg text-sm font-medium border border-gray-700 hover:bg-gray-800 transition"
         title="Notifications"
       >

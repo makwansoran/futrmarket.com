@@ -208,7 +208,7 @@ export default function CashButton({
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen(v => !v)}
         className="flex flex-col items-end text-xs hover:opacity-80 transition cursor-pointer"
       >
         <div className="text-gray-400 flex items-center gap-1">

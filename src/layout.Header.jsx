@@ -57,7 +57,10 @@ function AccountMenu({ userEmail, onLogout }) {
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(v => !v);
+        }}
         className="px-3 py-2 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-sm flex items-center gap-2"
       >
         {profilePicture ? (
