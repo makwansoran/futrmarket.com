@@ -188,6 +188,20 @@ function PriceChart({ data }) {
           stroke={isLight ? "#d1d5db" : "#4b5563"}
           strokeWidth="1"
         />
+
+        {/* FutrMarket Logo - Lower Right Corner */}
+        <text
+          x={chartWidth - padding.right - 5}
+          y={chartHeight - padding.bottom + 15}
+          fill={isLight ? "#2563eb" : "#ffffff"}
+          fontSize="10"
+          fontWeight="bold"
+          textAnchor="end"
+          fontFamily="system-ui, -apple-system, sans-serif"
+          opacity="0.7"
+        >
+          FutrMarket
+        </text>
       </svg>
     </div>
   );
