@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, ChevronDown, User, X, ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { Search, ChevronDown, User, X, ChevronLeft, ChevronRight, Info, Trophy, Code } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import NotificationButton from "./components/NotificationButton.jsx";
 import PortfolioButton from "./components/PortfolioButton.jsx";
@@ -114,7 +114,7 @@ function AccountMenu({ userEmail, onLogout }) {
             <Link 
               to="/account" 
               onClick={() => setOpen(false)}
-              className={`block px-3 py-2 text-sm transition ${
+              className={`flex items-center gap-2 px-3 py-2 text-sm transition ${
                 isLight 
                   ? 'text-black hover:bg-gray-50' 
                   : 'text-white hover:bg-white/5'
@@ -123,12 +123,13 @@ function AccountMenu({ userEmail, onLogout }) {
                 animation: `menuItemSlideIn 0.2s ease-out 0s forwards`
               }}
             >
+              <User className="w-4 h-4" />
               Account
             </Link>
             <Link 
               to="/leaderboard" 
               onClick={() => setOpen(false)}
-              className={`block px-3 py-2 text-sm transition ${
+              className={`flex items-center gap-2 px-3 py-2 text-sm transition ${
                 isLight 
                   ? 'text-black hover:bg-gray-50' 
                   : 'text-white hover:bg-white/5'
@@ -137,6 +138,7 @@ function AccountMenu({ userEmail, onLogout }) {
                 animation: `menuItemSlideIn 0.2s ease-out 0.05s forwards`
               }}
             >
+              <Trophy className="w-4 h-4" />
               Leaderboard
             </Link>
             <div
@@ -157,7 +159,7 @@ function AccountMenu({ userEmail, onLogout }) {
             <Link 
               to="/api" 
               onClick={() => setOpen(false)}
-              className={`block px-3 py-2 text-sm transition ${
+              className={`flex items-center gap-2 px-3 py-2 text-sm transition ${
                 isLight 
                   ? 'text-black hover:bg-gray-50' 
                   : 'text-white hover:bg-white/5'
@@ -166,6 +168,7 @@ function AccountMenu({ userEmail, onLogout }) {
                 animation: `menuItemSlideIn 0.2s ease-out 0.15s forwards`
               }}
             >
+              <Code className="w-4 h-4" />
               API
             </Link>
             
