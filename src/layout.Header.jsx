@@ -232,7 +232,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
           {!userEmail && <HowItWorksButton />}
         </div>
 
-        {/* RIGHT: balances + deposit + account OR sign up/login buttons */}
+        {/* RIGHT: balances + notifications + account OR sign up/login buttons */}
         <div className="min-w-[280px] flex items-center justify-end gap-3">
           {userEmail ? (
             <>
