@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function PortfolioButton({ portfolio, cash }) {
   const [open, setOpen] = React.useState(false);
+  const [isClosing, setIsClosing] = React.useState(false);
   const navigate = useNavigate();
   
   // Ensure values are numbers and default to 0
@@ -16,19 +17,26 @@ export default function PortfolioButton({ portfolio, cash }) {
   // Mock change for now (you can add real change tracking later)
   const change = 0;
   const changePercent = 0;
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setOpen(false);
+      setIsClosing(false);
+    }, 200); // Match animation duration
+  };
+
+  const handleOpen = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(true);
+    setIsClosing(false);
+  };
   
   return (
     <div className="relative">
       <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('Portfolio button clicked, current open:', open);
-          setOpen(v => {
-            console.log('Toggling portfolio dropdown to:', !v);
-            return !v;
-          });
-        }}
+        onClick={handleOpen}
         className="flex flex-col items-end text-xs hover:opacity-80 transition cursor-pointer"
       >
         <div className="text-gray-400">Portfolio</div>
@@ -38,17 +46,19 @@ export default function PortfolioButton({ portfolio, cash }) {
       {open && (
         <>
           <div 
-            className="fixed inset-0 z-[100] bg-transparent" 
-            onClick={() => setOpen(false)}
+            className={`fixed inset-0 z-[100] transition-opacity duration-200 ${
+              isClosing ? 'opacity-0' : 'opacity-100'
+            }`}
+            style={{
+              background: isClosing ? 'transparent' : 'rgba(0, 0, 0, 0.3)',
+              backdropFilter: isClosing ? 'none' : 'blur(2px)'
+            }}
+            onClick={handleClose}
           />
           <div 
-            className="absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900 backdrop-blur-sm shadow-xl z-[101]"
-            style={{
-              animation: 'dropdownFadeIn 0.2s ease-out forwards',
-              transformOrigin: 'top right',
-              opacity: 1,
-              visibility: 'visible'
-            }}
+            className={`absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900 backdrop-blur-sm shadow-xl z-[101] ${
+              isClosing ? 'modal-close' : 'modal-open'
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -74,7 +84,7 @@ export default function PortfolioButton({ portfolio, cash }) {
                 <div 
                   className="bg-gray-800 border border-gray-700 rounded-lg p-3"
                   style={{
-                    animation: `menuItemSlideIn 0.2s ease-out 0s forwards`
+                    animation: isClosing ? 'none' : `menuItemSlideIn 0.2s ease-out 0s forwards`
                   }}
                 >
                   <div className="flex justify-between items-center mb-1">
@@ -87,7 +97,7 @@ export default function PortfolioButton({ portfolio, cash }) {
                 <div 
                   className="bg-gray-800 border border-gray-700 rounded-lg p-3"
                   style={{
-                    animation: `menuItemSlideIn 0.2s ease-out 0.05s forwards`
+                    animation: isClosing ? 'none' : `menuItemSlideIn 0.2s ease-out 0.05s forwards`
                   }}
                 >
                   <div className="flex justify-between items-center mb-1">
@@ -101,12 +111,12 @@ export default function PortfolioButton({ portfolio, cash }) {
               {/* Positions Button */}
               <button
                 onClick={() => {
-                  setOpen(false);
-                  navigate("/positions");
+                  handleClose();
+                  setTimeout(() => navigate("/positions"), 100);
                 }}
                 className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium flex items-center justify-center gap-2"
                 style={{
-                  animation: `menuItemSlideIn 0.2s ease-out 0.1s forwards`
+                  animation: isClosing ? 'none' : `menuItemSlideIn 0.2s ease-out 0.1s forwards`
                 }}
               >
                 <BarChart3 size={16} />
@@ -117,7 +127,7 @@ export default function PortfolioButton({ portfolio, cash }) {
               <div 
                 className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-2"
                 style={{
-                  animation: `menuItemSlideIn 0.2s ease-out 0.15s forwards`
+                  animation: isClosing ? 'none' : `menuItemSlideIn 0.2s ease-out 0.15s forwards`
                 }}
               >
                 <p className="text-xs text-blue-300">
@@ -129,15 +139,36 @@ export default function PortfolioButton({ portfolio, cash }) {
         </>
       )}
       <style>{`
-        @keyframes dropdownFadeIn {
+        @keyframes modalOpen {
           from {
             opacity: 0;
-            transform: translateY(-8px) scale(0.95);
+            transform: translateY(-12px) scale(0.92);
           }
           to {
             opacity: 1;
             transform: translateY(0) scale(1);
           }
+        }
+        
+        @keyframes modalClose {
+          from {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+          to {
+            opacity: 0;
+            transform: translateY(-12px) scale(0.92);
+          }
+        }
+        
+        .modal-open {
+          animation: modalOpen 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          transform-origin: top right;
+        }
+        
+        .modal-close {
+          animation: modalClose 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+          transform-origin: top right;
         }
         
         @keyframes menuItemSlideIn {
