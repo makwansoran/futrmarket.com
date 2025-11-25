@@ -1067,7 +1067,11 @@ export default function MarketDetailPage(){
         {/* Right Column: Trading Panel */}
         <div className="lg:col-span-1">
           <div className={`rounded-xl p-6 sticky top-20 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
-            <h2 className={`text-lg font-semibold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Place Order</h2>
+            {/* Buy/Sell Text Labels */}
+            <div className="flex gap-4 mb-4">
+              <span className={`text-sm font-medium ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>Buy</span>
+              <span className={`text-sm font-medium ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>Sell</span>
+            </div>
             
             {error && (
               <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
@@ -1075,35 +1079,11 @@ export default function MarketDetailPage(){
               </div>
             )}
 
-            {/* Buy/Sell Toggle */}
-            <div className={`flex gap-2 mb-4 rounded-lg p-1 ${isLight ? 'bg-gray-100' : 'bg-gray-800'}`}>
-              <button
-                onClick={() => setOrderType("buy")}
-                className={`flex-1 py-2.5 rounded-md font-semibold text-sm transition ${
-                  orderType === "buy"
-                    ? "bg-blue-600 text-white"
-                    : isLight ? "text-gray-600 hover:text-black" : "text-gray-400 hover:text-white"
-                }`}
-              >
-                Buy
-              </button>
-              <button
-                onClick={() => setOrderType("sell")}
-                className={`flex-1 py-2.5 rounded-md font-semibold text-sm transition ${
-                  orderType === "sell"
-                    ? "bg-orange-600 text-white"
-                    : isLight ? "text-gray-600 hover:text-black" : "text-gray-400 hover:text-white"
-                }`}
-              >
-                Sell
-              </button>
-            </div>
-
-            {/* YES/NO Toggle */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            {/* YES/NO Toggle with Underline Indicator */}
+            <div className="relative grid grid-cols-2 gap-2 mb-4">
               <button
                 onClick={() => setSide("yes")}
-                className={`py-3 rounded-lg font-semibold transition ${
+                className={`py-3 rounded-lg font-semibold transition relative ${
                   side === "yes"
                     ? "bg-green-600 text-white"
                     : isLight ? "bg-gray-200 text-gray-600 hover:text-black" : "bg-gray-800 text-gray-400 hover:text-white"
@@ -1113,7 +1093,7 @@ export default function MarketDetailPage(){
               </button>
               <button
                 onClick={() => setSide("no")}
-                className={`py-3 rounded-lg font-semibold transition ${
+                className={`py-3 rounded-lg font-semibold transition relative ${
                   side === "no"
                     ? "bg-red-600 text-white"
                     : isLight ? "bg-gray-200 text-gray-600 hover:text-black" : "bg-gray-800 text-gray-400 hover:text-white"
@@ -1121,6 +1101,17 @@ export default function MarketDetailPage(){
               >
                 NO
               </button>
+              {/* Underline indicator */}
+              <div 
+                className={`absolute bottom-0 h-0.5 transition-all duration-300 ${
+                  side === "yes" ? "bg-green-600" : "bg-red-600"
+                }`}
+                style={{
+                  left: side === "yes" ? "0" : "50%",
+                  width: "calc(50% - 0.25rem)",
+                  transform: side === "yes" ? "translateX(0)" : "translateX(0.25rem)"
+                }}
+              />
             </div>
 
             {/* Amount Input */}
