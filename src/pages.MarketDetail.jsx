@@ -899,7 +899,7 @@ export default function MarketDetailPage(){
             {userPosition.noShares > 0 && (
               <div>
                 <span className="text-gray-400">NO: </span>
-                <span className="text-red-400 font-semibold">{userPosition.noShares.toFixed(2)} shares</span>
+                <span className="text-red-600 font-semibold">{userPosition.noShares.toFixed(2)} shares</span>
                 <span className="text-gray-500 ml-2">(${(userPosition.noShares * (m.noPrice||0.5)).toFixed(2)})</span>
               </div>
             )}
@@ -948,7 +948,7 @@ export default function MarketDetailPage(){
                 onClick={() => setOpenOrderbook(openOrderbook ? null : 'combined')}
                 className="w-full rounded-lg p-4 text-left relative overflow-hidden transition-colors"
                 style={{
-                  background: `linear-gradient(to right, rgba(34, 197, 94, 0.15) ${yesPrice}%, rgba(239, 68, 68, 0.15) ${yesPrice}%)`
+                  background: `linear-gradient(to right, rgba(34, 197, 94, 0.15) ${yesPrice}%, rgba(220, 38, 38, 0.2) ${yesPrice}%)`
                 }}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
@@ -970,7 +970,7 @@ export default function MarketDetailPage(){
                   <div className="flex items-center gap-4">
                     <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>{noPrice}%</div>
                     <div className={`text-3xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>{noPrice}¢</div>
-                    <div className="text-xs text-red-400 font-medium">NO</div>
+                    <div className="text-xs text-red-600 font-medium">NO</div>
                   </div>
                 </div>
                 
@@ -1035,7 +1035,7 @@ export default function MarketDetailPage(){
                     
                     {/* NO Order Book Section */}
                     <div className={`p-3 bg-red-500/10 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
-                      <div className="text-sm font-semibold text-red-400">NO Order Book</div>
+                      <div className="text-sm font-semibold text-red-600">NO Order Book</div>
                     </div>
                     <div>
                       {/* Sell Orders (Asks) */}
@@ -1052,7 +1052,7 @@ export default function MarketDetailPage(){
                       <div className={`p-3 border-y ${isLight ? 'bg-gray-50 border-gray-200' : 'bg-gray-800/50 border-gray-700'}`}>
                         <div className="flex justify-between items-center">
                           <span className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Current</span>
-                          <span className="text-lg font-bold text-red-400">{noPrice}¢</span>
+                          <span className="text-lg font-bold text-red-600">{noPrice}¢</span>
                         </div>
                       </div>
                       {/* Buy Orders (Bids) */}
