@@ -34,10 +34,18 @@ export function ThemeProvider({ children }) {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
-  const isLight = theme === 'light';
+  // Always ensure isLight is a boolean
+  const isLightValue = Boolean(theme === 'light');
+  
+  // Create context value with all required properties
+  const contextValue = {
+    theme: theme || 'dark',
+    toggleTheme: toggleTheme,
+    isLight: isLightValue
+  };
   
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isLight: Boolean(isLight) }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );
