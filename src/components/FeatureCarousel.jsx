@@ -296,7 +296,7 @@ function FeatureCardContent({ feature, subject }) {
   console.log("🔵 FeatureCardContent: Final imageUrl:", imageUrl);
 
   return (
-    <div className={`bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border-2 border-gray-700 rounded-2xl overflow-hidden hover:border-gray-600 transition-all ${isLight ? '' : 'shadow-2xl'} cursor-pointer`}>
+    <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border-2 border-gray-700 rounded-2xl overflow-hidden hover:border-gray-600 transition-all cursor-pointer">
       <div className="relative">
         {imageUrl ? (
           <div className="relative h-[300px] md:h-[350px] lg:h-[400px] overflow-hidden">
@@ -323,11 +323,11 @@ function FeatureCardContent({ feature, subject }) {
         
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 lg:p-16">
           <div className="max-w-4xl">
-            <h2 className={`text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 leading-tight text-white ${isLight ? '' : 'drop-shadow-lg'}`}>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 leading-tight text-white">
               {feature.title}
             </h2>
             {feature.description && (
-              <p className={`text-base md:text-lg lg:text-xl text-white leading-relaxed ${isLight ? '' : 'drop-shadow-md'}`}>
+              <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed">
                 {feature.description}
               </p>
             )}
