@@ -358,12 +358,6 @@ function HowItWorksButton() {
 
       {open && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          {/* Backdrop - click to close */}
-          <div 
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-modal-backdrop" 
-            onClick={() => setOpen(false)}
-          ></div>
-
           {/* Modal Content - stop propagation to prevent closing when clicking inside */}
           <div 
             className={`relative w-full max-w-md mx-4 rounded-xl shadow-2xl overflow-hidden animate-modal-content z-[101] border-2 ${
