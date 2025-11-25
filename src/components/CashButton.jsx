@@ -583,7 +583,7 @@ export default function CashButton({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

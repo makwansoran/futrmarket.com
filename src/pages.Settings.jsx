@@ -1,6 +1,6 @@
 import React from 'react';
-import ThemeToggle from '../components/ThemeToggle.jsx';
-import { useTheme } from '../contexts/ThemeContext.jsx';
+import ThemeToggle from './components/ThemeToggle.jsx';
+import { useTheme } from './contexts/ThemeContext.jsx';
 
 export default function SettingsPage(){
   const { theme } = useTheme();
