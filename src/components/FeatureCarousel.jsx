@@ -228,7 +228,7 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
   // Priority: Subject link > External URL > No link
   // If feature has a subject, always link to the subject page
   const content = subject ? (
-    <Link to={`/subjects/${subject.slug}`} className="block" style={{ boxShadow: 'none' }}>
+    <Link to={`/subjects/${subject.slug}`} className="block" style={{ boxShadow: 'none', filter: 'none' }}>
       <FeatureCardContent feature={feature} subject={subject} />
     </Link>
   ) : feature.url ? (
@@ -237,7 +237,7 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
       target="_blank"
       rel="noopener noreferrer"
       className="block"
-      style={{ boxShadow: 'none' }}
+      style={{ boxShadow: 'none', filter: 'none' }}
     >
       <FeatureCardContent feature={feature} subject={subject} />
     </a>
@@ -253,7 +253,7 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
       animate="center"
       exit="exit"
       className="w-full relative"
-      style={{ boxShadow: 'none' }}
+      style={{ boxShadow: 'none', filter: 'none' }}
     >
       {content}
     </motion.div>
@@ -298,7 +298,7 @@ function FeatureCardContent({ feature, subject }) {
   console.log("🔵 FeatureCardContent: Final imageUrl:", imageUrl);
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border-2 border-gray-700 rounded-2xl overflow-hidden hover:border-gray-600 transition-all cursor-pointer" style={{ boxShadow: 'none' }}>
+    <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border-2 border-gray-700 rounded-2xl overflow-hidden hover:border-gray-600 transition-all cursor-pointer" style={{ boxShadow: 'none', filter: 'none', textShadow: 'none' }}>
       <div className="relative">
         {imageUrl ? (
           <div className="relative h-[300px] md:h-[350px] lg:h-[400px] overflow-hidden">
@@ -325,11 +325,11 @@ function FeatureCardContent({ feature, subject }) {
         
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 lg:p-16">
           <div className="max-w-4xl">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 leading-tight text-white">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 leading-tight text-white" style={{ textShadow: 'none', filter: 'none' }}>
               {feature.title}
             </h2>
             {feature.description && (
-              <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed">
+              <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed" style={{ textShadow: 'none', filter: 'none' }}>
                 {feature.description}
               </p>
             )}
