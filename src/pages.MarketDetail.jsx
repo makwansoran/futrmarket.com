@@ -169,25 +169,6 @@ function PriceChart({ data }) {
           </text>
         ))}
 
-        {/* Y-axis line */}
-        <line
-          x1={padding.left}
-          y1={padding.top}
-          x2={padding.left}
-          y2={padding.top + innerHeight}
-          stroke={isLight ? "#d1d5db" : "#4b5563"}
-          strokeWidth="1"
-        />
-
-        {/* X-axis line */}
-        <line
-          x1={padding.left}
-          y1={padding.top + innerHeight}
-          x2={padding.left + innerWidth}
-          y2={padding.top + innerHeight}
-          stroke={isLight ? "#d1d5db" : "#4b5563"}
-          strokeWidth="1"
-        />
 
         {/* FutrMarket Logo - Lower Right Corner */}
         <text
