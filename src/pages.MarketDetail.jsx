@@ -829,10 +829,6 @@ export default function MarketDetailPage(){
 
   return (
     <main className={`max-w-7xl mx-auto px-4 sm:px-6 py-6 ${isLight ? 'text-black' : 'text-white'}`}>
-      {/* Back button */}
-      <Link to="/markets" className={`inline-flex items-center text-sm text-gray-400 mb-4 ${isLight ? 'hover:text-black' : 'hover:text-white'}`}>
-        ← Back to Markets
-      </Link>
 
       {/* Header Section */}
       <div className="mb-6">
