@@ -406,7 +406,7 @@ export default function LoginPage({ onLogin }){
               type="button"
               onClick={handleBack}
               disabled={loading}
-              className="w-full text-sm text-gray-400 hover:text-gray-300 disabled:opacity-50"
+              className={`w-full text-sm disabled:opacity-50 ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}
             >
               ← Back
             </button>
