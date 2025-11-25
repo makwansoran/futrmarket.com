@@ -44,11 +44,17 @@ export function ThemeProvider({ children }) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
+    // Return a safe default instead of throwing to prevent crashes
+    return {
+      theme: 'dark',
+      toggleTheme: () => {},
+      isLight: false
+    };
   }
+  const isLight = context.theme === 'light';
   return {
     ...context,
-    isLight: context.theme === 'light'
+    isLight: isLight
   };
 }
 
