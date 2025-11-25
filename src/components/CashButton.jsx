@@ -3,6 +3,7 @@ import { getApiUrl } from "/src/api.js";
 import { X, ArrowUpRight, ArrowDownLeft, Wallet, Copy, Check, AlertCircle } from "lucide-react";
 import { ethers } from "ethers";
 import { readBalance, getTokenBalance, formatTokenAmount } from "../lib/contractMarketplace.js";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
 export default function CashButton({ 
   cash, 
@@ -16,6 +17,8 @@ export default function CashButton({
   provider,
   useBlockchain = false
 }) {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const [open, setOpen] = React.useState(false);
   const [isClosing, setIsClosing] = React.useState(false);
   const [blockchainBalance, setBlockchainBalance] = React.useState("0");
@@ -253,7 +256,11 @@ export default function CashButton({
             onClick={handleClose}
           />
           <div 
-            className="absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900 backdrop-blur-sm shadow-xl z-[101]"
+            className={`absolute right-0 top-full mt-2 w-80 rounded-md backdrop-blur-sm shadow-xl z-[101] border-2 ${
+              isLight 
+                ? 'bg-white border-gray-300' 
+                : 'bg-gray-900 border-gray-700'
+            }`}
             style={{
               animation: isClosing 
                 ? 'dropdownFadeOut 0.2s ease-in forwards' 
@@ -263,8 +270,8 @@ export default function CashButton({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b border-white/10 flex-shrink-0">
-              <h3 className="text-sm font-semibold text-white">
+            <div className={`flex items-center justify-between p-3 border-b flex-shrink-0 ${isLight ? 'border-gray-200' : 'border-white/10'}`}>
+              <h3 className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>
                 {useBlockchain ? "Balance" : "Cash Balance"}
               </h3>
             </div>
@@ -277,7 +284,7 @@ export default function CashButton({
                   animation: `menuItemSlideIn 0.2s ease-out 0s forwards`
                 }}
               >
-                <div className="text-gray-400 text-xs mb-1">
+                <div className={`text-xs mb-1 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
                   {useBlockchain ? "Available Balance" : "Available Cash"}
                 </div>
                 <div className="text-2xl font-bold text-green-400">
@@ -291,18 +298,22 @@ export default function CashButton({
               {/* Blockchain Wallet Info */}
               {useBlockchain && walletTokenBalance && (
                 <div 
-                  className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2"
+                  className={`rounded-lg p-3 space-y-2 border ${
+                    isLight 
+                      ? 'bg-gray-50 border-gray-300' 
+                      : 'bg-gray-800 border-gray-700'
+                  }`}
                   style={{
                     animation: `menuItemSlideIn 0.2s ease-out 0.05s forwards`
                   }}
                 >
                   <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Wallet Balance</span>
+                    <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>Wallet Balance</span>
                     <span className="text-blue-400 font-medium">
                       {formatTokenAmount(walletTokenBalance)} tokens
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500 pt-2 border-t border-gray-700">
+                  <div className={`text-xs pt-2 border-t ${isLight ? 'text-gray-600 border-gray-300' : 'text-gray-500 border-gray-700'}`}>
                     Tokens in your wallet that can be deposited to the marketplace.
                   </div>
                 </div>
@@ -414,13 +425,17 @@ export default function CashButton({
         <div className="fixed inset-0 z-[110] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setWithdrawOpen(false)}></div>
 
-          <div className="relative w-full max-w-md mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden flex flex-col" style={{ height: 'auto', maxHeight: '100vh', transform: 'translateY(50%)' }}>
+          <div className={`relative w-full max-w-md mx-4 rounded-xl shadow-2xl overflow-hidden flex flex-col border-2 ${
+            isLight 
+              ? 'bg-white border-gray-300' 
+              : 'bg-gray-900 border-gray-700'
+          }`} style={{ height: 'auto', maxHeight: '100vh', transform: 'translateY(50%)' }}>
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
-              <h3 className="text-lg font-semibold text-white">Withdraw Funds</h3>
+            <div className={`flex items-center justify-between p-4 border-b flex-shrink-0 ${isLight ? 'border-gray-200' : 'border-gray-800'}`}>
+              <h3 className={`text-lg font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Withdraw Funds</h3>
               <button
                 onClick={() => setWithdrawOpen(false)}
-                className="text-gray-400 hover:text-white transition"
+                className={`transition ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-white'}`}
               >
                 <X size={18} />
               </button>
@@ -428,10 +443,14 @@ export default function CashButton({
 
             <div className="p-6 space-y-4 overflow-y-visible flex-1">
               {/* Your Custodial Wallet Info */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                <div className="text-xs text-gray-400 mb-2">Your Deposit Address</div>
+              <div className={`rounded-lg p-4 border ${
+                isLight 
+                  ? 'bg-gray-50 border-gray-300' 
+                  : 'bg-gray-800 border-gray-700'
+              }`}>
+                <div className={`text-xs mb-2 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Your Deposit Address</div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-white font-mono text-sm flex-1 break-all">{custodialAddress || "Loading..."}</span>
+                  <span className={`font-mono text-sm flex-1 break-all ${isLight ? 'text-black' : 'text-white'}`}>{custodialAddress || "Loading..."}</span>
                   {custodialAddress && (
                     <button
                       onClick={copyAddress}
@@ -442,7 +461,7 @@ export default function CashButton({
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className={`text-xs mt-2 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                   This is your custodial wallet address. Funds deposited here are credited to your account balance.
                 </p>
               </div>

@@ -2,9 +2,12 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight, Key } from "lucide-react";
 import { sendCode, verifyCode, saveUser, saveSession, checkEmailExists, checkUsername } from "./lib.session.js";
+import { useTheme } from "./contexts/ThemeContext.jsx";
 
 export default function SignupPage({ onLogin }){
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const [email, setEmail] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -131,13 +134,17 @@ export default function SignupPage({ onLogin }){
   }
 
   return (
-    <main className="max-w-md mx-auto px-6 py-10 text-white">
-      <h1 className="text-3xl font-bold mb-4">Create account</h1>
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
+      <h1 className={`text-3xl font-bold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Create account</h1>
+      <div className={`rounded-xl p-8 border-2 ${
+        isLight 
+          ? 'bg-white border-gray-300' 
+          : 'bg-gray-900 border-gray-800'
+      }`}>
         {!sent ? (
           <form onSubmit={handleSend}>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+              <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                 <User className="w-4 h-4" />
                 Username
               </label>
@@ -146,13 +153,17 @@ export default function SignupPage({ onLogin }){
                 value={username} 
                 onChange={e=>setUsername(e.target.value)} 
                 placeholder="Choose a username" 
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className={`w-full px-4 py-3 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                  isLight 
+                    ? 'bg-white border-gray-300 text-black' 
+                    : 'bg-gray-800 border-gray-700 text-white'
+                }`}
                 required
                 disabled={loading}
               />
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+              <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                 <Mail className="w-4 h-4" />
                 Email Address
               </label>
@@ -161,13 +172,17 @@ export default function SignupPage({ onLogin }){
                 value={email} 
                 onChange={e=>setEmail(e.target.value)} 
                 placeholder="you@example.com" 
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className={`w-full px-4 py-3 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                  isLight 
+                    ? 'bg-white border-gray-300 text-black' 
+                    : 'bg-gray-800 border-gray-700 text-white'
+                }`}
                 required
                 disabled={loading}
               />
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+              <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                 <Lock className="w-4 h-4" />
                 Password
               </label>
@@ -176,15 +191,19 @@ export default function SignupPage({ onLogin }){
                 value={password} 
                 onChange={e=>setPassword(e.target.value)} 
                 placeholder="Enter your password"
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className={`w-full px-4 py-3 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                  isLight 
+                    ? 'bg-white border-gray-300 text-black' 
+                    : 'bg-gray-800 border-gray-700 text-white'
+                }`}
                 required
                 disabled={loading}
                 minLength={6}
               />
-              <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters</p>
+              <p className={`text-xs mt-1 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Password must be at least 6 characters</p>
             </div>
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+              <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                 <Lock className="w-4 h-4" />
                 Confirm Password
               </label>
@@ -193,7 +212,11 @@ export default function SignupPage({ onLogin }){
                 value={confirmPassword} 
                 onChange={e=>setConfirmPassword(e.target.value)} 
                 placeholder="Confirm your password"
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className={`w-full px-4 py-3 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                  isLight 
+                    ? 'bg-white border-gray-300 text-black' 
+                    : 'bg-gray-800 border-gray-700 text-white'
+                }`}
                 required
                 disabled={loading}
                 minLength={6}
@@ -211,7 +234,7 @@ export default function SignupPage({ onLogin }){
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
             <div className="text-center">
-              <Link to="/login" className="text-sm text-gray-400 hover:text-gray-300">
+              <Link to="/login" className={`text-sm ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}>
                 Already have an account? Login
               </Link>
             </div>
@@ -219,13 +242,13 @@ export default function SignupPage({ onLogin }){
         ) : (
           <form onSubmit={handleVerify}>
             <div className="mb-4">
-              <p className="text-sm text-gray-400 mb-4">
-                We sent a 6-digit verification code to <span className="text-white font-medium">{email}</span>
+              <p className={`text-sm mb-4 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                We sent a 6-digit verification code to <span className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>{email}</span>
               </p>
               
               {/* Verification Code field */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                   <Key className="w-4 h-4" />
                   Verification Code
                 </label>
@@ -240,7 +263,7 @@ export default function SignupPage({ onLogin }){
                   disabled={loading}
                   autoFocus
                 />
-                <p className="text-xs text-gray-500 mt-2 text-center">Enter the 6-digit code from your email</p>
+                <p className={`text-xs mt-2 text-center ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Enter the 6-digit code from your email</p>
               </div>
               
             </div>
@@ -255,7 +278,7 @@ export default function SignupPage({ onLogin }){
               type="button"
               onClick={handleResend}
               disabled={loading}
-              className="w-full text-sm text-gray-400 hover:text-gray-300 disabled:opacity-50"
+              className={`w-full text-sm disabled:opacity-50 ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}
             >
               Didn't receive code? Resend
             </button>

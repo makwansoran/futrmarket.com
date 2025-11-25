@@ -1,7 +1,10 @@
 import React from "react";
 import { Bell } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
 export default function NotificationButton({ userEmail }) {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const [open, setOpen] = React.useState(false);
   const [notifications, setNotifications] = React.useState([]);
   const [unreadCount, setUnreadCount] = React.useState(0);
@@ -56,14 +59,14 @@ export default function NotificationButton({ userEmail }) {
           >
             {/* Header */}
             <div 
-              className="flex items-center justify-between p-3 border-b border-white/10 flex-shrink-0"
+              className={`flex items-center justify-between p-3 border-b flex-shrink-0 ${isLight ? 'border-gray-200' : 'border-white/10'}`}
               style={{
                 animation: 'menuItemSlideIn 0.2s ease-out 0s forwards'
               }}
             >
-              <h3 className="text-sm font-semibold text-white">Notifications</h3>
+              <h3 className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Notifications</h3>
               {unreadCount > 0 && (
-                <span className="text-xs text-gray-400">{unreadCount} unread</span>
+                <span className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>{unreadCount} unread</span>
               )}
             </div>
 

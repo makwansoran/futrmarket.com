@@ -4,6 +4,7 @@ import { Clock, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getApiUrl } from "/src/api.js";
 import FeatureCarousel from "./components/FeatureCarousel.jsx";
+import { useTheme } from "./contexts/ThemeContext.jsx";
 
 // Helper to convert relative URLs to absolute
 const getImageUrl = (url) => {
@@ -132,7 +133,7 @@ function MarketCard({ m }){
                 <span className="text-gray-500 text-xs flex items-center gap-1"><Clock size={12}/>{m.ends}</span>
               )}
             </div>
-            <div className="text-white font-semibold text-sm md:text-base mt-2 line-clamp-2 leading-snug">{m.question}</div>
+            <div className={`font-semibold text-sm md:text-base mt-2 line-clamp-2 leading-snug ${isLight ? 'text-black' : 'text-white'}`}>{m.question}</div>
           </div>
         </div>
         <div className="flex gap-2 mt-4">
@@ -280,6 +281,8 @@ const CATEGORY_MAP = {
 };
 
 export default function MarketsPage({ markets=[], limit, category }){
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const params = useParams();
   const location = useLocation();
   
@@ -552,7 +555,7 @@ export default function MarketsPage({ markets=[], limit, category }){
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-2 h-8 bg-red-500 rounded-full"></div>
-              <h2 className="text-2xl font-bold text-white">Live Matches</h2>
+              <h2 className={`text-2xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>Live Matches</h2>
               <div className="flex items-center gap-2 px-3 py-1 bg-red-500/20 rounded-full">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                 <span className="text-red-400 text-sm font-semibold">LIVE</span>
@@ -569,7 +572,7 @@ export default function MarketsPage({ markets=[], limit, category }){
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-2 h-8 bg-white rounded-full"></div>
-              <h2 className="text-2xl font-bold text-white">Upcoming Matches</h2>
+              <h2 className={`text-2xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>Upcoming Matches</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {upcomingMatches.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
@@ -582,7 +585,7 @@ export default function MarketsPage({ markets=[], limit, category }){
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-2 h-8 bg-gray-600 rounded-full"></div>
-              <h2 className="text-2xl font-bold text-white">Finished Matches</h2>
+              <h2 className={`text-2xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>Finished Matches</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {finishedMatches.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
@@ -595,7 +598,7 @@ export default function MarketsPage({ markets=[], limit, category }){
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-2 h-8 bg-gray-500 rounded-full"></div>
-              <h2 className="text-2xl font-bold text-white">Cancelled Matches</h2>
+              <h2 className={`text-2xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>Cancelled Matches</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {cancelledMatches.filter(m => m && m.id).map(m => <MarketCard key={m.id} m={m}/>)}
@@ -654,14 +657,14 @@ export default function MarketsPage({ markets=[], limit, category }){
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-      {!limit && urlCategory !== "sports" && <h2 className="text-2xl font-bold text-white mb-6">{getTitle()}</h2>}
+      {!limit && urlCategory !== "sports" && <h2 className={`text-2xl font-bold mb-6 ${isLight ? 'text-black' : 'text-white'}`}>{getTitle()}</h2>}
       
       {/* Trending Markets by Category Section - Only show if there are trending contracts */}
       {hasTrending && isHomepage && (
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-orange-400" />
-            <h2 className="text-xl font-bold text-white">Explore Markets by Category</h2>
+            <h2 className={`text-xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>Explore Markets by Category</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(trendingByCategory).map(([category, contracts]) => {
@@ -679,7 +682,7 @@ export default function MarketsPage({ markets=[], limit, category }){
                       <Link
                         key={m.id}
                         to={`/market/${encodeURIComponent(m.id)}`}
-                        className="block text-white text-sm hover:text-blue-400 line-clamp-2"
+                        className={`block text-sm hover:text-blue-400 line-clamp-2 ${isLight ? 'text-black' : 'text-white'}`}
                       >
                         {m.question}
                       </Link>
@@ -716,7 +719,7 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
             <div>
               <div className="text-blue-400 font-semibold text-sm mb-1">Grow your entire portfolio</div>
-              <div className="text-white text-xs">Trade on the election, Sports, Bitcoin, and more</div>
+              <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>Trade on the election, Sports, Bitcoin, and more</div>
             </div>
           </div>
 
@@ -729,7 +732,7 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
             <div>
               <div className="text-blue-400 font-semibold text-sm mb-1">Fund your account freely</div>
-              <div className="text-white text-xs">Bank transfer, debit card, crypto, or wire</div>
+              <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>Bank transfer, debit card, crypto, or wire</div>
             </div>
           </div>
 
@@ -742,7 +745,7 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
             <div>
               <div className="text-blue-400 font-semibold text-sm mb-1">End-to-end encrypted accounts</div>
-              <div className="text-white text-xs">Real-time fraud monitoring</div>
+              <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>Real-time fraud monitoring</div>
             </div>
           </div>
         </div>
@@ -850,7 +853,7 @@ export default function MarketsPage({ markets=[], limit, category }){
         
         return (
           <div className="mb-12 mt-8">
-            <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore Markets by Category</h2>
+            <h2 className={`text-2xl font-bold mb-8 text-center ${isLight ? 'text-black' : 'text-white'}`}>Explore Markets by Category</h2>
             {categorySections.map(({ category, contracts }) => {
               // ABSOLUTE FINAL CHECK: Use Set to ensure no duplicates by ID
               const finalContractsMap = new Map(); // key: contract ID, value: contract
@@ -873,7 +876,7 @@ export default function MarketsPage({ markets=[], limit, category }){
               return (
                 <div key={category.slug} className="mb-12">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-semibold text-white">{category.name}</h3>
+                    <h3 className={`text-xl font-semibold ${isLight ? 'text-black' : 'text-white'}`}>{category.name}</h3>
                     <Link 
                       to={`/markets/${category.slug}`}
                       className="text-blue-400 hover:text-blue-300 text-sm font-medium"
@@ -914,7 +917,7 @@ export default function MarketsPage({ markets=[], limit, category }){
                   />
                 )}
                 <div className="text-blue-400 font-semibold text-sm mb-1">{feature.title}</div>
-                <div className="text-white text-xs">{feature.description}</div>
+                <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>{feature.description}</div>
               </a>
             ) : (
               <div key={feature.id} className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-4">
@@ -926,7 +929,7 @@ export default function MarketsPage({ markets=[], limit, category }){
                   />
                 )}
                 <div className="text-blue-400 font-semibold text-sm mb-1">{feature.title}</div>
-                <div className="text-white text-xs">{feature.description}</div>
+                <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>{feature.description}</div>
               </div>
             );
             return content;
@@ -944,7 +947,7 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
             <div>
               <div className="text-blue-400 font-semibold text-sm mb-1">Grow your entire portfolio</div>
-              <div className="text-white text-xs">Trade on the election, Sports, Bitcoin, and more</div>
+              <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>Trade on the election, Sports, Bitcoin, and more</div>
             </div>
           </div>
 
@@ -957,7 +960,7 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
             <div>
               <div className="text-blue-400 font-semibold text-sm mb-1">Fund your account freely</div>
-              <div className="text-white text-xs">Bank transfer, debit card, crypto, or wire</div>
+              <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>Bank transfer, debit card, crypto, or wire</div>
             </div>
           </div>
         </div>

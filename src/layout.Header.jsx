@@ -6,6 +6,7 @@ import NotificationButton from "./components/NotificationButton.jsx";
 import PortfolioButton from "./components/PortfolioButton.jsx";
 import CashButton from "./components/CashButton.jsx";
 import ThemeToggle from "./components/ThemeToggle.jsx";
+import { useTheme } from "./contexts/ThemeContext.jsx";
 
 function AccountMenu({ userEmail, onLogout }) {
   const [open, setOpen] = React.useState(false);
@@ -167,7 +168,9 @@ function AccountMenu({ userEmail, onLogout }) {
 export default function Header({ userEmail, onLogout, cash, portfolio, onSearch, onBalanceUpdate }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
   const [q, setQ] = React.useState("");
+  const isLight = theme === 'light';
   
   const isActive = (path) => {
     if (path === "/markets") {
@@ -186,7 +189,10 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
         {/* LEFT: logo + brand */}
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition flex-shrink-0">
-          <span className="text-white font-bold tracking-tight text-2xl" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          <span 
+            className={`font-bold tracking-tight text-2xl ${isLight ? 'text-blue-600' : 'text-white'}`}
+            style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+          >
             FutrMarket
           </span>
         </Link>
@@ -204,7 +210,9 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
           <Link 
             to="/news" 
             className={`transition text-sm font-medium whitespace-nowrap ${
-              isActive("/news") ? "text-white" : "text-gray-300 hover:text-white"
+              isActive("/news") 
+                ? isLight ? "text-black" : "text-white"
+                : isLight ? "text-gray-600 hover:text-black" : "text-gray-300 hover:text-white"
             }`}
           >
             News
@@ -215,16 +223,22 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
         <div className="flex-1 flex justify-center items-center gap-3">
           <form onSubmit={submit} className="w-full max-w-xl">
             <div className="relative flex">
-              <span className="absolute left-3 top-2.5"><Search className="w-4 h-4 text-gray-500" /></span>
+              <span className={`absolute left-3 top-2.5 ${isLight ? 'text-gray-400' : 'text-gray-500'}`}>
+                <Search className="w-4 h-4" />
+              </span>
               <input
                 value={q}
                 onChange={(e)=>setQ(e.target.value)}
                 placeholder="Search markets…"
-                className="w-full bg-gray-900/90 text-gray-100 placeholder-gray-500 rounded-l-lg pl-9 pr-3 py-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className={`w-full rounded-l-lg pl-9 pr-3 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-600 ${
+                  isLight
+                    ? 'bg-white text-black placeholder-gray-400 border-gray-300'
+                    : 'bg-gray-900/90 text-gray-100 placeholder-gray-500 border-white/10'
+                }`}
               />
               <button
                 type="submit"
-                className="px-4 py-2 rounded-r-lg bg-blue-600 hover:bg-blue-500 text-white text-sm border border-l-0 border-white/10"
+                className="px-4 py-2 rounded-r-lg bg-blue-600 hover:bg-blue-500 text-white text-sm border border-l-0 border-white/10 transition-colors"
               >
                 Search
               </button>
@@ -261,6 +275,8 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
 
 // How It Works Modal Component
 function HowItWorksButton() {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const [open, setOpen] = React.useState(false);
   const [currentSlide, setCurrentSlide] = React.useState(0);
   const [isAnimating, setIsAnimating] = React.useState(false);
@@ -331,9 +347,11 @@ function HowItWorksButton() {
     <>
       <button
         onClick={handleButtonClick}
-        className={`flex items-center gap-1.5 px-3 py-2 text-sm text-gray-300 hover:text-white whitespace-nowrap ${
-          isAnimating ? 'animate-button-click' : ''
-        }`}
+        className={`flex items-center gap-1.5 px-3 py-2 text-sm whitespace-nowrap ${
+          isLight 
+            ? 'text-gray-700 hover:text-black' 
+            : 'text-gray-300 hover:text-white'
+        } ${isAnimating ? 'animate-button-click' : ''}`}
         style={{ transition: 'none' }}
       >
         <Info className={`w-4 h-4 text-blue-500 ${isAnimating ? 'animate-icon-pulse' : ''}`} />
@@ -350,16 +368,20 @@ function HowItWorksButton() {
 
           {/* Modal Content - stop propagation to prevent closing when clicking inside */}
           <div 
-            className="relative w-full max-w-md mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden animate-modal-content z-[101]" 
+            className={`relative w-full max-w-md mx-4 rounded-xl shadow-2xl overflow-hidden animate-modal-content z-[101] border-2 ${
+              isLight 
+                ? 'bg-white border-gray-300' 
+                : 'bg-gray-900 border-gray-700'
+            }`}
             style={{ transform: 'translateY(55%)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
-              <h3 className="text-lg font-semibold text-white">How it works</h3>
+            <div className={`flex items-center justify-between p-4 border-b ${isLight ? 'border-gray-200' : 'border-gray-800'}`}>
+              <h3 className={`text-lg font-semibold ${isLight ? 'text-black' : 'text-white'}`}>How it works</h3>
               <button
                 onClick={() => setOpen(false)}
-                className="text-gray-400 hover:text-white transition"
+                className={`transition ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-white'}`}
               >
                 <X size={18} />
               </button>
@@ -368,16 +390,16 @@ function HowItWorksButton() {
             {/* Slide Content */}
             <div className="p-8 min-h-[300px] flex flex-col items-center justify-center">
               <div className="text-6xl mb-6">{slides[currentSlide].icon}</div>
-              <h4 className="text-2xl font-bold text-white mb-4 text-center">
+              <h4 className={`text-2xl font-bold mb-4 text-center ${isLight ? 'text-black' : 'text-white'}`}>
                 {slides[currentSlide].title}
               </h4>
-              <p className="text-gray-300 text-center max-w-md leading-relaxed">
+              <p className={`text-center max-w-md leading-relaxed ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                 {slides[currentSlide].content}
               </p>
             </div>
 
             {/* Navigation */}
-            <div className="p-4 border-t border-gray-800 space-y-4">
+            <div className={`p-4 border-t space-y-4 ${isLight ? 'border-gray-200' : 'border-gray-800'}`}>
               {/* Slide Indicators */}
               <div className="flex items-center justify-center gap-2">
                 {slides.map((_, index) => (

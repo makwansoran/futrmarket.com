@@ -3,6 +3,7 @@ import { getApiUrl } from "/src/api.js";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Thumb from "./ui.Thumb.jsx";
 import { useUser } from "./contexts/UserContext.jsx";
+import { useTheme } from "./contexts/ThemeContext.jsx";
 import { Clock, TrendingUp, TrendingDown, Heart, MessageCircle, Trash2, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -268,7 +269,7 @@ function ContractNews({ contractId }) {
               </span>
               <span className="text-xs text-gray-500">{formatDate(item.createdAt)}</span>
             </div>
-            <h3 className="text-sm font-semibold text-white mb-2 group-hover:text-blue-400 transition line-clamp-2">
+            <h3 className={`text-sm font-semibold mb-2 group-hover:text-blue-400 transition line-clamp-2 ${isLight ? 'text-black' : 'text-white'}`}>
               {item.title}
             </h3>
             <p className="text-xs text-gray-400 line-clamp-2 mb-2">{item.summary}</p>
@@ -457,7 +458,7 @@ function Chat({ contractId, userEmail }) {
                 </div>
               )}
               <div>
-                <div className="text-sm font-medium text-white">
+                <div className={`text-sm font-medium ${isLight ? 'text-black' : 'text-white'}`}>
                   {displayName}
                 </div>
                 <div className="text-xs text-gray-500">{formatTime(comment.createdAt)}</div>
@@ -566,6 +567,8 @@ function Chat({ contractId, userEmail }) {
 }
 
 export default function MarketDetailPage(){
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const { id: rawId } = useParams();
   // Decode the ID from URL (React Router should handle this, but be safe)
   const id = rawId ? decodeURIComponent(rawId) : null;
@@ -744,7 +747,7 @@ export default function MarketDetailPage(){
 
   if (loading) {
     return (
-      <main className="max-w-4xl mx-auto px-6 py-10 text-white">
+      <main className={`max-w-4xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
         <div className="text-center">Loading...</div>
       </main>
     );
@@ -823,9 +826,9 @@ export default function MarketDetailPage(){
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 text-white">
+    <main className={`max-w-7xl mx-auto px-4 sm:px-6 py-6 ${isLight ? 'text-black' : 'text-white'}`}>
       {/* Back button */}
-      <Link to="/markets" className="inline-flex items-center text-sm text-gray-400 hover:text-white mb-4">
+      <Link to="/markets" className={`inline-flex items-center text-sm text-gray-400 mb-4 ${isLight ? 'hover:text-black' : 'hover:text-white'}`}>
         ← Back to Markets
       </Link>
 
@@ -874,7 +877,7 @@ export default function MarketDetailPage(){
             </div>
           )}
           <div className="flex items-center gap-4">
-            <span>Volume: <span className="text-white font-medium">{m.volume || "$0"}</span></span>
+            <span>Volume: <span className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>{m.volume || "$0"}</span></span>
             <span>•</span>
             <span>{m.traders || 0} traders</span>
           </div>
@@ -929,7 +932,7 @@ export default function MarketDetailPage(){
           {/* Market Context Button */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <motion.button
-              className="w-full text-left text-gray-300 hover:text-white font-medium transition-colors"
+              className={`w-full text-left text-gray-300 font-medium transition-colors ${isLight ? 'hover:text-black' : 'hover:text-white'}`}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
@@ -954,7 +957,7 @@ export default function MarketDetailPage(){
                       className={`w-4 h-4 text-green-400 transition-transform ${openOrderbook === 'yes' ? 'rotate-180' : ''}`}
                     />
                   </div>
-                  <div className="text-3xl font-bold text-white mb-2">{yesPrice}¢</div>
+                  <div className={`text-3xl font-bold mb-2 ${isLight ? 'text-black' : 'text-white'}`}>{yesPrice}¢</div>
                   <div className="w-full bg-gray-800 rounded-full h-1.5 mb-1">
                     <div 
                       className="bg-green-500 h-1.5 rounded-full transition-all" 
@@ -996,7 +999,7 @@ export default function MarketDetailPage(){
                         {/* Current Price */}
                         <div className="p-3 bg-gray-800/50 border-y border-gray-700">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm font-semibold text-white">Current</span>
+                            <span className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Current</span>
                             <span className="text-lg font-bold text-green-400">{yesPrice}¢</span>
                           </div>
                         </div>
@@ -1072,7 +1075,7 @@ export default function MarketDetailPage(){
                         {/* Current Price */}
                         <div className="p-3 bg-gray-800/50 border-y border-gray-700">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm font-semibold text-white">Current</span>
+                            <span className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Current</span>
                             <span className="text-lg font-bold text-red-400">{noPrice}¢</span>
                           </div>
                         </div>
@@ -1183,7 +1186,7 @@ export default function MarketDetailPage(){
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Price:</span>
-                      <span className="text-white font-medium">{Math.round(price * 100)}¢</span>
+                      <span className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>{Math.round(price * 100)}¢</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">You'll receive:</span>
@@ -1191,7 +1194,7 @@ export default function MarketDetailPage(){
                     </div>
                     <div className="flex justify-between pt-2 border-t border-gray-700">
                       <span className="text-gray-400">Total cost:</span>
-                      <span className="text-white font-semibold">${parseFloat(amount).toFixed(2)}</span>
+                      <span className={`font-semibold ${isLight ? 'text-black' : 'text-white'}`}>${parseFloat(amount).toFixed(2)}</span>
                     </div>
                   </div>
                 )}
@@ -1199,7 +1202,7 @@ export default function MarketDetailPage(){
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Price:</span>
-                      <span className="text-white font-medium">{Math.round(price * 100)}¢</span>
+                      <span className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>{Math.round(price * 100)}¢</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">You'll receive:</span>
@@ -1207,7 +1210,7 @@ export default function MarketDetailPage(){
                     </div>
                     <div className="flex justify-between pt-2 border-t border-gray-700">
                       <span className="text-gray-400">Shares selling:</span>
-                      <span className="text-white font-semibold">{parseFloat(amount).toFixed(2)}</span>
+                      <span className={`font-semibold ${isLight ? 'text-black' : 'text-white'}`}>{parseFloat(amount).toFixed(2)}</span>
                     </div>
                   </div>
                 )}
@@ -1327,31 +1330,31 @@ function ContractTabs({ contractId, userEmail }) {
       <div className="border-b border-gray-800 flex">
         <button
           onClick={() => setActiveTab("chat")}
-          className={`flex-1 px-6 py-4 text-sm font-medium transition ${
-            activeTab === "chat"
-              ? "text-white border-b-2 border-blue-500 bg-gray-800/50"
-              : "text-gray-400 hover:text-white"
-          }`}
+              className={`flex-1 px-6 py-4 text-sm font-medium transition ${
+                activeTab === "chat"
+                  ? `${isLight ? 'text-black' : 'text-white'} border-b-2 border-blue-500 bg-gray-800/50`
+                  : isLight ? "text-gray-600 hover:text-black" : "text-gray-400 hover:text-white"
+              }`}
         >
           Chat
         </button>
         <button
           onClick={() => setActiveTab("holders")}
-          className={`flex-1 px-6 py-4 text-sm font-medium transition ${
-            activeTab === "holders"
-              ? "text-white border-b-2 border-blue-500 bg-gray-800/50"
-              : "text-gray-400 hover:text-white"
-          }`}
+              className={`flex-1 px-6 py-4 text-sm font-medium transition ${
+                activeTab === "holders"
+                  ? `${isLight ? 'text-black' : 'text-white'} border-b-2 border-blue-500 bg-gray-800/50`
+                  : isLight ? "text-gray-600 hover:text-black" : "text-gray-400 hover:text-white"
+              }`}
         >
           Biggest Holder
         </button>
         <button
           onClick={() => setActiveTab("activity")}
-          className={`flex-1 px-6 py-4 text-sm font-medium transition ${
-            activeTab === "activity"
-              ? "text-white border-b-2 border-blue-500 bg-gray-800/50"
-              : "text-gray-400 hover:text-white"
-          }`}
+              className={`flex-1 px-6 py-4 text-sm font-medium transition ${
+                activeTab === "activity"
+                  ? `${isLight ? 'text-black' : 'text-white'} border-b-2 border-blue-500 bg-gray-800/50`
+                  : isLight ? "text-gray-600 hover:text-black" : "text-gray-400 hover:text-white"
+              }`}
         >
           Activity
         </button>
@@ -1382,14 +1385,14 @@ function ContractTabs({ contractId, userEmail }) {
                         #{index + 1}
                       </div>
                       <div>
-                        <div className="text-white font-medium">
+                        <div className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>
                           {holder.username || holder.email.split("@")[0]}
                         </div>
                         <div className="text-xs text-gray-400">{holder.email}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-white font-semibold">
+                      <div className={`font-semibold ${isLight ? 'text-black' : 'text-white'}`}>
                         {holder.contracts.toFixed(2)} contracts
                       </div>
                       <div className="text-xs text-gray-400">
@@ -1426,7 +1429,7 @@ function ContractTabs({ contractId, userEmail }) {
                         {order.type === "buy" ? "B" : "S"}
                       </div>
                       <div>
-                        <div className="text-white font-medium">
+                        <div className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>
                           {order.username || order.email.split("@")[0]}
                         </div>
                         <div className="text-xs text-gray-400">
@@ -1435,7 +1438,7 @@ function ContractTabs({ contractId, userEmail }) {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-white font-semibold">
+                      <div className={`font-semibold ${isLight ? 'text-black' : 'text-white'}`}>
                         ${order.amountUsd.toFixed(2)}
                       </div>
                       <div className="text-xs text-gray-400">

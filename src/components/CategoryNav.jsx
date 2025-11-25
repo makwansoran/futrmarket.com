@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
 const CATEGORIES = [
   { id: "trending", label: "Trending", path: "/trending" },
@@ -18,6 +19,8 @@ const CATEGORIES = [
 
 export default function CategoryNav() {
   const location = useLocation();
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   
   const isActive = (path) => {
     if (path === "/markets") {
@@ -39,8 +42,12 @@ export default function CategoryNav() {
                 className={`
                   px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors
                   ${active
-                    ? "text-white border-b-2 border-blue-500"
-                    : "text-gray-400 hover:text-white"
+                    ? isLight 
+                      ? "text-black border-b-2 border-blue-500"
+                      : "text-white border-b-2 border-blue-500"
+                    : isLight
+                      ? "text-gray-600 hover:text-black"
+                      : "text-gray-400 hover:text-white"
                   }
                 `}
               >

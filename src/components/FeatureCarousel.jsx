@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getSessionId } from "../lib/sessionId.js";
 import { getApiUrl } from "/src/api.js";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
 // Helper function to wrap index - ensures endless looping
 function wrapIndex(currentIndex, direction, arrayLength) {
@@ -26,6 +27,8 @@ function wrapIndex(currentIndex, direction, arrayLength) {
 }
 
 export default function FeatureCarousel({ features = [], subjects = [] }) {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   // Generate unique instance ID - compute once at component level (not in hooks)
   const sessionId = getSessionId();
   const mountTime = Date.now() + Math.random();
@@ -319,7 +322,7 @@ function FeatureCardContent({ feature, subject }) {
         
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 lg:p-16">
           <div className="max-w-4xl">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 md:mb-6 leading-tight drop-shadow-lg">
+            <h2 className={`text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 leading-tight drop-shadow-lg ${isLight ? 'text-black' : 'text-white'}`}>
               {feature.title}
             </h2>
             {feature.description && (

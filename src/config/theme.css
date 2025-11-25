@@ -102,7 +102,7 @@
   --bg-secondary: rgb(249, 250, 251);     /* gray-50 */
   --bg-tertiary: rgb(243, 244, 246);      /* gray-100 */
   --bg-quaternary: rgb(229, 231, 235);   /* gray-200 */
-  --bg-footer: rgb(17, 24, 39);          /* gray-900 */
+  --bg-footer: rgb(107, 114, 128);       /* gray-500 */
   
   /* Navbar Backgrounds (with transparency) */
   --bg-header: rgba(255, 255, 255, 0.7);   /* white/70 */
@@ -157,9 +157,9 @@
   --text-input-label: rgb(55, 65, 81); /* gray-700 */
   
   /* Text Colors - Footer */
-  --text-footer: rgb(209, 213, 219);    /* gray-300 */
+  --text-footer: rgb(255, 255, 255);    /* white */
   --text-footer-hover: rgb(255, 255, 255); /* white */
-  --text-footer-copyright: rgb(156, 163, 175); /* gray-400 */
+  --text-footer-copyright: rgb(255, 255, 255); /* white */
   
   /* Text Colors - Modals & Overlays */
   --text-modal-title: rgb(17, 24, 39); /* gray-900 */

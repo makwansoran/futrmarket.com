@@ -1,8 +1,11 @@
 import React from "react";
 import { TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
 export default function PortfolioButton({ portfolio, cash }) {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const [open, setOpen] = React.useState(false);
   const [isClosing, setIsClosing] = React.useState(false);
   const navigate = useNavigate();
@@ -56,14 +59,16 @@ export default function PortfolioButton({ portfolio, cash }) {
             onClick={handleClose}
           />
           <div 
-            className={`absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900 backdrop-blur-sm shadow-xl z-[101] ${
-              isClosing ? 'modal-close' : 'modal-open'
-            }`}
+            className={`absolute right-0 top-full mt-2 w-80 rounded-md backdrop-blur-sm shadow-xl z-[101] border-2 ${
+              isLight 
+                ? 'bg-white border-gray-300' 
+                : 'bg-gray-900 border-gray-700'
+            } ${isClosing ? 'modal-close' : 'modal-open'}`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b border-white/10 flex-shrink-0">
-              <h3 className="text-sm font-semibold text-white">Portfolio</h3>
+            <div className={`flex items-center justify-between p-3 border-b flex-shrink-0 ${isLight ? 'border-gray-200' : 'border-white/10'}`}>
+              <h3 className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Portfolio</h3>
             </div>
 
             <div className="p-4 space-y-4 max-h-96 overflow-y-auto">

@@ -2,9 +2,12 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Key, ArrowRight, Lock } from "lucide-react";
 import { checkEmail, checkPassword, sendCode, verifyCode, saveUser, saveSession, resetPassword } from "./lib.session.js";
+import { useTheme } from "./contexts/ThemeContext.jsx";
 
 export default function LoginPage({ onLogin }){
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [code, setCode] = React.useState("");
@@ -158,13 +161,17 @@ export default function LoginPage({ onLogin }){
   }
 
   return (
-    <main className="max-w-md mx-auto px-6 py-10 text-white">
-      <h1 className="text-3xl font-bold mb-4">Login</h1>
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
+      <h1 className={`text-3xl font-bold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Login</h1>
+      <div className={`rounded-xl p-8 border-2 ${
+        isLight 
+          ? 'bg-white border-gray-300' 
+          : 'bg-gray-900 border-gray-800'
+      }`}>
         {step === 1 ? (
           <form onSubmit={handleEmailSubmit}>
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+              <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                 <Mail className="w-4 h-4" />
                 Email Address
               </label>
@@ -173,7 +180,11 @@ export default function LoginPage({ onLogin }){
                 value={email} 
                 onChange={e=>setEmail(e.target.value)} 
                 placeholder="you@example.com" 
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className={`w-full px-4 py-3 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                  isLight 
+                    ? 'bg-white border-gray-300 text-black' 
+                    : 'bg-gray-800 border-gray-700 text-white'
+                }`}
                 required
                 disabled={loading}
               />
@@ -187,7 +198,7 @@ export default function LoginPage({ onLogin }){
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
             <div className="text-center">
-              <Link to="/signup" className="text-sm text-gray-400 hover:text-gray-300">
+              <Link to="/signup" className={`text-sm ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}>
                 Don't have an account? Create one
               </Link>
             </div>
@@ -195,10 +206,10 @@ export default function LoginPage({ onLogin }){
         ) : step === 2 ? (
           <form onSubmit={handlePasswordSubmit}>
             <div className="mb-6">
-              <p className="text-sm text-gray-400 mb-4">
-                Enter your password for <span className="text-white font-medium">{email}</span>
+              <p className={`text-sm mb-4 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                Enter your password for <span className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>{email}</span>
               </p>
-              <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+              <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                 <Lock className="w-4 h-4" />
                 Password
               </label>
@@ -207,7 +218,11 @@ export default function LoginPage({ onLogin }){
                 value={password} 
                 onChange={e=>setPassword(e.target.value)} 
                 placeholder="Enter your password"
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className={`w-full px-4 py-3 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                  isLight 
+                    ? 'bg-white border-gray-300 text-black' 
+                    : 'bg-gray-800 border-gray-700 text-white'
+                }`}
                 required
                 disabled={loading}
                 autoFocus
@@ -225,7 +240,7 @@ export default function LoginPage({ onLogin }){
               type="button"
               onClick={handleBack}
               disabled={loading}
-              className="w-full text-sm text-gray-400 hover:text-gray-300 disabled:opacity-50 mb-4"
+              className={`w-full text-sm disabled:opacity-50 mb-4 ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}
             >
               ← Back
             </button>
@@ -242,7 +257,7 @@ export default function LoginPage({ onLogin }){
               </div>
             )}
             <div className="text-center">
-              <Link to="/signup" className="text-sm text-gray-400 hover:text-gray-300">
+              <Link to="/signup" className={`text-sm ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}>
                 Don't have an account? Create one
               </Link>
             </div>
@@ -256,7 +271,7 @@ export default function LoginPage({ onLogin }){
               
               {/* Verification Code field */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                   <Key className="w-4 h-4" />
                   Verification Code
                 </label>
@@ -275,7 +290,7 @@ export default function LoginPage({ onLogin }){
 
               {/* New Password field */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                   <Lock className="w-4 h-4" />
                   New Password
                 </label>
@@ -284,7 +299,11 @@ export default function LoginPage({ onLogin }){
                   value={newPassword} 
                   onChange={e=>setNewPassword(e.target.value)} 
                   placeholder="Enter new password"
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className={`w-full px-4 py-3 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                  isLight 
+                    ? 'bg-white border-gray-300 text-black' 
+                    : 'bg-gray-800 border-gray-700 text-white'
+                }`}
                   required
                   disabled={loading}
                 />
@@ -292,7 +311,7 @@ export default function LoginPage({ onLogin }){
 
               {/* Confirm Password field */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                   <Lock className="w-4 h-4" />
                   Confirm New Password
                 </label>
@@ -301,7 +320,11 @@ export default function LoginPage({ onLogin }){
                   value={confirmPassword} 
                   onChange={e=>setConfirmPassword(e.target.value)} 
                   placeholder="Confirm new password"
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className={`w-full px-4 py-3 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                  isLight 
+                    ? 'bg-white border-gray-300 text-black' 
+                    : 'bg-gray-800 border-gray-700 text-white'
+                }`}
                   required
                   disabled={loading}
                 />
@@ -338,7 +361,7 @@ export default function LoginPage({ onLogin }){
               
               {/* Verification Code field */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                <label className={`block text-sm font-medium mb-2 flex items-center gap-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                   <Key className="w-4 h-4" />
                   Verification Code
                 </label>
@@ -353,7 +376,7 @@ export default function LoginPage({ onLogin }){
                   disabled={loading}
                   autoFocus
                 />
-                <p className="text-xs text-gray-500 mt-2 text-center">Enter the 6-digit code from your email</p>
+                <p className={`text-xs mt-2 text-center ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Enter the 6-digit code from your email</p>
               </div>
               
             </div>

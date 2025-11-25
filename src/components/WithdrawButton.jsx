@@ -1,8 +1,11 @@
 import React from "react";
 import { X, ArrowDownLeft, Wallet, Copy, Check, AlertCircle } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
 export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
   const [open, setOpen] = React.useState(false);
   const [withdrawAddress, setWithdrawAddress] = React.useState("");
   const [withdrawAmount, setWithdrawAmount] = React.useState("");
@@ -154,13 +157,17 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)}></div>
 
-          <div className="relative w-full max-w-md mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden flex flex-col" style={{ height: 'auto', maxHeight: '90vh', transform: 'translateY(0)' }}>
+          <div className={`relative w-full max-w-md mx-4 rounded-xl shadow-2xl overflow-hidden flex flex-col border-2 ${
+            isLight 
+              ? 'bg-white border-gray-300' 
+              : 'bg-gray-900 border-gray-700'
+          }`} style={{ height: 'auto', maxHeight: '90vh', transform: 'translateY(0)' }}>
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
-              <h3 className="text-lg font-semibold text-white">Withdraw Funds</h3>
+            <div className={`flex items-center justify-between p-4 border-b flex-shrink-0 ${isLight ? 'border-gray-200' : 'border-gray-800'}`}>
+              <h3 className={`text-lg font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Withdraw Funds</h3>
               <button
                 onClick={() => setOpen(false)}
-                className="text-gray-400 hover:text-white transition"
+                className={`transition ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-white'}`}
               >
                 <X size={18} />
               </button>
