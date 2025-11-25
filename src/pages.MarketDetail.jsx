@@ -948,7 +948,7 @@ export default function MarketDetailPage(){
                 onClick={() => setOpenOrderbook(openOrderbook ? null : 'combined')}
                 className="w-full rounded-lg p-4 text-left relative overflow-hidden transition-colors"
                 style={{
-                  background: `linear-gradient(to right, rgba(34, 197, 94, 0.15) ${yesPrice}%, rgba(220, 38, 38, 0.2) ${yesPrice}%)`
+                  background: `linear-gradient(to right, rgba(34, 197, 94, 0.4) ${yesPrice}%, rgba(220, 38, 38, 0.4) ${yesPrice}%)`
                 }}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
@@ -956,7 +956,7 @@ export default function MarketDetailPage(){
                 {/* Visual split indicator */}
                 <div className="absolute inset-0 flex items-center pointer-events-none">
                   <div 
-                    className="h-full w-0.5 bg-gray-400 opacity-50"
+                    className="h-full w-0.5 bg-gray-600 opacity-70"
                     style={{ left: `${yesPrice}%` }}
                   />
                 </div>
