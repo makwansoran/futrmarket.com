@@ -28,12 +28,12 @@ export default function NotificationButton({ userEmail }) {
           e.stopPropagation();
           setOpen(v => !v);
         }}
-        className="relative px-3 py-2 rounded-lg text-sm font-medium border border-gray-700 hover:bg-gray-800 transition"
+        className="relative px-3 py-2 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-sm flex items-center gap-2 transition"
         title="Notifications"
       >
-        <Bell className="w-4 h-4" />
+        <Bell className="w-4 h-4 text-gray-300" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -54,7 +54,12 @@ export default function NotificationButton({ userEmail }) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b border-white/10 flex-shrink-0">
+            <div 
+              className="flex items-center justify-between p-3 border-b border-white/10 flex-shrink-0"
+              style={{
+                animation: 'menuItemSlideIn 0.2s ease-out 0s forwards'
+              }}
+            >
               <h3 className="text-sm font-semibold text-white">Notifications</h3>
               {unreadCount > 0 && (
                 <span className="text-xs text-gray-400">{unreadCount} unread</span>
@@ -64,7 +69,12 @@ export default function NotificationButton({ userEmail }) {
             {/* Notifications List */}
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-sm">
+                <div 
+                  className="text-center py-8 text-gray-400 text-sm"
+                  style={{
+                    animation: 'menuItemSlideIn 0.2s ease-out 0.05s forwards'
+                  }}
+                >
                   No notifications yet
                 </div>
               ) : (
@@ -74,7 +84,7 @@ export default function NotificationButton({ userEmail }) {
                       key={index} 
                       className="p-3 rounded-md hover:bg-white/5 transition cursor-pointer border-b border-white/5 last:border-b-0"
                       style={{
-                        animation: `notificationSlideIn 0.2s ease-out ${index * 0.05}s both`
+                        animation: `menuItemSlideIn 0.2s ease-out ${0.1 + (index * 0.05)}s forwards`
                       }}
                     >
                       <div className="text-white text-sm">{notification.message || "Notification"}</div>
@@ -91,29 +101,6 @@ export default function NotificationButton({ userEmail }) {
           </div>
         </>
       )}
-      <style>{`
-        @keyframes dropdownFadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-8px) scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-        
-        @keyframes notificationSlideIn {
-          from {
-            opacity: 0;
-            transform: translateX(-8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }

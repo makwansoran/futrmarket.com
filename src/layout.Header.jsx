@@ -300,13 +300,18 @@ function HowItWorksButton() {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
-  const handleButtonClick = () => {
+  const handleButtonClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsAnimating(true);
-    setOpen(true);
+    // Start animation, then open modal after a short delay
+    setTimeout(() => {
+      setOpen(true);
+    }, 100);
     // Reset animation after it completes
     setTimeout(() => {
       setIsAnimating(false);
-    }, 300);
+    }, 500);
   };
 
   React.useEffect(() => {
@@ -335,13 +340,15 @@ function HowItWorksButton() {
 
       {open && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          {/* Backdrop - click to close */}
           <div 
             className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-modal-backdrop" 
             onClick={() => setOpen(false)}
           ></div>
 
+          {/* Modal Content - stop propagation to prevent closing when clicking inside */}
           <div 
-            className="relative w-full max-w-md mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden animate-modal-content" 
+            className="relative w-full max-w-md mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden animate-modal-content z-[101]" 
             style={{ transform: 'translateY(55%)' }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -410,69 +417,6 @@ function HowItWorksButton() {
           </div>
         </div>
       )}
-      <style>{`
-        @keyframes buttonClick {
-          0% {
-            transform: scale(1);
-          }
-          30% {
-            transform: scale(0.88);
-          }
-          60% {
-            transform: scale(1.05);
-          }
-          100% {
-            transform: scale(1);
-          }
-        }
-        
-        @keyframes iconPulse {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          50% {
-            transform: scale(1.3);
-            opacity: 0.8;
-          }
-        }
-        
-        .animate-button-click {
-          animation: buttonClick 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        
-        .animate-icon-pulse {
-          animation: iconPulse 0.3s ease-in-out;
-        }
-        
-        @keyframes modalBackdrop {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        
-        .animate-modal-backdrop {
-          animation: modalBackdrop 0.2s ease-out;
-        }
-        
-        @keyframes modalContent {
-          from {
-            opacity: 0;
-            transform: translateY(55%) scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(55%) scale(1);
-          }
-        }
-        
-        .animate-modal-content {
-          animation: modalContent 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-      `}</style>
     </>
   );
 }
