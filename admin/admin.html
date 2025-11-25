@@ -70,6 +70,7 @@
     <button class="tab" data-tab="subjects">Subjects</button>
     <button class="tab" data-tab="sports">Sports</button>
     <button class="tab" data-tab="features">Features</button>
+    <button class="tab" data-tab="footer">Footer Content</button>
     <button class="tab" data-tab="accounts">Accounts</button>
   </div>
 
@@ -344,6 +345,57 @@
     </div>
   </div>
 
+  <!-- Footer Content Tab -->
+  <div id="tab-footer" class="tab-content">
+    <div class="card">
+      <h2>Create Footer Content</h2>
+      <label>Content Type</label>
+      <select id="footerContentType">
+        <option value="blog">Blog</option>
+        <option value="careers">Careers</option>
+        <option value="privacy">Privacy Policy</option>
+        <option value="data-terms">Data Terms of Service</option>
+        <option value="company">Company</option>
+        <option value="brand-kit">Brand Kit</option>
+        <option value="become-a-partner">Become A Partner</option>
+        <option value="help">Help Center</option>
+        <option value="api">API</option>
+        <option value="faq-finance">FAQ for Finance Professionals</option>
+        <option value="regulatory">Regulatory</option>
+        <option value="trading-hours">Trading Hours</option>
+        <option value="fee-schedule">Fee Schedule</option>
+        <option value="trading-prohibitions">Trading Prohibitions</option>
+        <option value="incentive-program">Incentive Program</option>
+      </select>
+      
+      <label class="mt16">Title</label>
+      <input id="footerContentTitle" placeholder="Content title">
+      
+      <label class="mt16">Content</label>
+      <textarea id="footerContentBody" placeholder="Enter the content here..." style="min-height:200px;resize:vertical"></textarea>
+      
+      <div class="row mt16">
+        <div><label>Author (optional)</label><input id="footerContentAuthor" placeholder="Author name"></div>
+        <div><label>Published Date</label><input id="footerContentDate" type="date"></div>
+      </div>
+
+      <div class="mt16">
+        <label>Image (optional)</label>
+        <input id="footerContentImg" type="file" accept="image/*">
+        <div id="footerContentPreview" class="mt8"></div>
+      </div>
+
+      <div class="mt16"><button id="createFooterContent">Create Footer Content</button></div>
+      <div class="mt8 meta">Create content for footer links. This content will be displayed when users click on footer links.</div>
+    </div>
+
+    <div class="card mt16">
+      <h2>Existing Footer Content</h2>
+      <div id="footerContentList"></div>
+      <div class="mt8 meta">All footer content items.</div>
+    </div>
+  </div>
+
   <!-- Accounts Tab -->
   <div id="tab-accounts" class="tab-content">
     <div class="card">
@@ -375,6 +427,7 @@
       else if(targetTab === "features") loadFeatures();
       else if(targetTab === "sports") loadSports();
       else if(targetTab === "subjects") loadSubjects();
+      else if(targetTab === "footer") loadFooterContent();
     };
   });
 
@@ -2141,6 +2194,209 @@
   }
 
   if(createSubjectBtn) createSubjectBtn.onclick = function(){ createSubject(); };
+
+  // Footer Content elements
+  var footerContentType = document.getElementById("footerContentType"),
+      footerContentTitle = document.getElementById("footerContentTitle"),
+      footerContentBody = document.getElementById("footerContentBody"),
+      footerContentAuthor = document.getElementById("footerContentAuthor"),
+      footerContentDate = document.getElementById("footerContentDate"),
+      footerContentImg = document.getElementById("footerContentImg"),
+      footerContentPreview = document.getElementById("footerContentPreview"),
+      createFooterContentBtn = document.getElementById("createFooterContent"),
+      footerContentList = document.getElementById("footerContentList");
+
+  // Image preview for footer content
+  if(footerContentImg) {
+    footerContentImg.onchange = function(e) {
+      var file = e.target.files[0];
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          footerContentPreview.innerHTML = "<img src='" + event.target.result + "' style='max-width:200px;max-height:150px;border-radius:8px;border:1px solid #374151' />";
+        };
+        reader.readAsDataURL(file);
+      } else {
+        footerContentPreview.innerHTML = "";
+      }
+    };
+  }
+
+  function footerContentRow(fc) {
+    var w = document.createElement("div"); w.className = "list-item";
+    var L = document.createElement("div");
+    var top = document.createElement("div"); top.style.fontWeight = "500"; top.style.marginBottom = "4px";
+    top.textContent = fc.title || "Untitled";
+    var meta = document.createElement("div"); meta.className = "meta";
+    meta.textContent = (fc.contentType || "Unknown") + " · " + (fc.author || "No author") + " · " + (fc.publishedDate || "No date");
+    L.appendChild(top); L.appendChild(meta);
+
+    var R = document.createElement("div"); R.className = "flex";
+    var editBtn = document.createElement("button"); editBtn.textContent = "Edit"; editBtn.style.marginRight = "4px";
+    editBtn.onclick = function(){ editFooterContent(fc); };
+    var del = document.createElement("button"); del.className = "danger"; del.textContent = "Delete";
+    del.onclick = function(){ removeFooterContent(fc.id); };
+    R.appendChild(editBtn); R.appendChild(del);
+
+    w.appendChild(L); w.appendChild(R); return w;
+  }
+
+  async function loadFooterContent() {
+    var token = getT();
+    if (!footerContentList) {
+      console.error("footerContentList element not found");
+      return;
+    }
+    if (!token) {
+      footerContentList.innerHTML = "<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
+      return;
+    }
+    try {
+      var r = await fetch(apiEndpoint("/api/footer-content"), { headers: { "x-admin-token": token } });
+      if (!r.ok) {
+        if (r.status === 401) {
+          footerContentList.innerHTML = "<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
+        } else if (r.status === 404) {
+          // API endpoint doesn't exist yet, show empty state
+          footerContentList.innerHTML = "<div class='meta'>No footer content yet. Create one above.</div>";
+        } else {
+          footerContentList.innerHTML = "<div class='meta'>Failed to load footer content: " + r.status + "</div>";
+        }
+        return;
+      }
+      var j = await r.json();
+      if (!j.ok) {
+        footerContentList.innerHTML = "<div class='meta'>Failed: " + (j.error || "unknown") + "</div>";
+        return;
+      }
+      footerContentList.innerHTML = "";
+      if (!j.data || !j.data.length) {
+        var e = document.createElement("div");
+        e.className = "meta";
+        e.textContent = "No footer content yet. Create one above.";
+        footerContentList.appendChild(e);
+        return;
+      }
+      for (var i = 0; i < j.data.length; i++) {
+        footerContentList.appendChild(footerContentRow(j.data[i]));
+      }
+    } catch (e) {
+      footerContentList.innerHTML = "<div class='meta' style='color:#ef4444'>Error loading footer content: " + e.message + "</div>";
+    }
+  }
+
+  async function createFooterContent() {
+    try {
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      if (!footerContentType.value || !footerContentTitle.value.trim() || !footerContentBody.value.trim()) {
+        alert("Content type, title, and body are required");
+        return;
+      }
+      
+      var payload = {
+        contentType: footerContentType.value,
+        title: footerContentTitle.value.trim(),
+        body: footerContentBody.value.trim(),
+        author: footerContentAuthor.value.trim() || null,
+        publishedDate: footerContentDate.value || null
+      };
+
+      // Handle image upload if provided
+      var imageUrl = null;
+      if (footerContentImg && footerContentImg.files && footerContentImg.files[0]) {
+        var formData = new FormData();
+        formData.append("file", footerContentImg.files[0]);
+        try {
+          var uploadR = await fetch("http://localhost:8788/upload", {
+            method: "POST",
+            body: formData
+          });
+          if (uploadR.ok) {
+            var uploadJ = await uploadR.json();
+            imageUrl = uploadJ.url || uploadJ.data?.url || null;
+          }
+        } catch (uploadErr) {
+          console.warn("Image upload failed:", uploadErr);
+        }
+      }
+      if (imageUrl) payload.imageUrl = imageUrl;
+      
+      var r = await fetch(apiEndpoint("/api/footer-content"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) {
+        if (r.status === 401) {
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        } else {
+          var errorText = await r.text().catch(() => "");
+          var j;
+          try { j = JSON.parse(errorText); } catch { j = {}; }
+          alert("Create failed: " + (j.error || r.status || "Unknown error"));
+        }
+        return;
+      }
+      var j = await r.json();
+      if (!j.ok) {
+        alert("Create failed: " + (j.error || "unknown"));
+        return;
+      }
+      footerContentType.value = "blog";
+      footerContentTitle.value = "";
+      footerContentBody.value = "";
+      footerContentAuthor.value = "";
+      footerContentDate.value = "";
+      footerContentImg.value = "";
+      footerContentPreview.innerHTML = "";
+      loadFooterContent();
+      alert("Footer content created successfully!");
+    } catch (e) {
+      alert(e.message || "Could not create footer content");
+    }
+  }
+
+  async function editFooterContent(fc) {
+    if (!fc) return;
+    footerContentType.value = fc.contentType || "blog";
+    footerContentTitle.value = fc.title || "";
+    footerContentBody.value = fc.body || "";
+    footerContentAuthor.value = fc.author || "";
+    footerContentDate.value = fc.publishedDate || "";
+    if (fc.imageUrl) {
+      footerContentPreview.innerHTML = "<img src='" + fc.imageUrl + "' style='max-width:200px;max-height:150px;border-radius:8px;border:1px solid #374151' />";
+    }
+    // Scroll to form
+    document.getElementById("footerContentType").scrollIntoView({ behavior: "smooth", block: "start" });
+    alert("Edit functionality: Update the form above and click 'Create Footer Content' to update (or implement a separate update endpoint)");
+  }
+
+  async function removeFooterContent(id) {
+    if (!confirm("Delete this footer content? This cannot be undone.")) return;
+    var token = getT();
+    try {
+      var r = await fetch(apiEndpoint("/api/footer-content/" + encodeURIComponent(id)), {
+        method: "DELETE",
+        headers: { "x-admin-token": token }
+      });
+      if (!r.ok) {
+        var j = await r.json().catch(() => ({}));
+        alert("Delete failed: " + (j.error || r.status));
+        return;
+      }
+      loadFooterContent();
+      alert("Footer content deleted!");
+    } catch (e) {
+      alert("Delete failed: " + e.message);
+    }
+  }
+
+  if(createFooterContentBtn) createFooterContentBtn.onclick = function(){ createFooterContent(); };
 
   // Initial load
   loadStats();
