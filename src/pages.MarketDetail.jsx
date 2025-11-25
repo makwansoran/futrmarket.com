@@ -912,7 +912,7 @@ export default function MarketDetailPage(){
         {/* Left Column: Chart, Probability, Order Book */}
         <div className="lg:col-span-2 space-y-6">
           {/* Price Chart - Same Width as Order Book */}
-          <div className={`rounded-xl p-6 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
+          <div className={`rounded-xl p-6 ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-lg font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Price History</h2>
               <div className="flex items-center gap-4 text-sm">
