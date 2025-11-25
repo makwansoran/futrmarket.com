@@ -102,7 +102,7 @@
   --bg-secondary: rgb(249, 250, 251);     /* gray-50 */
   --bg-tertiary: rgb(243, 244, 246);      /* gray-100 */
   --bg-quaternary: rgb(229, 231, 235);   /* gray-200 */
-  --bg-footer: rgb(107, 114, 128);       /* gray-500 */
+  --bg-footer: rgb(37, 99, 235);         /* blue-600 - FutrMarket blue */
   
   /* Navbar Backgrounds (with transparency) */
   --bg-header: rgba(255, 255, 255, 0.7);   /* white/70 */
