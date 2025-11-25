@@ -20,6 +20,12 @@ import { getSessionId, getSessionIdForDebug } from "./lib/sessionId.js";
   }
 })();
 
+// Global fallback to prevent isLight errors - this should never be used in production
+// but provides a safety net if something goes wrong
+if (typeof window !== 'undefined') {
+  window.__isLightFallback = false;
+}
+
 // Log session ID on app start (always log to help diagnose)
 console.log('🔵 ===== APP STARTED =====');
 console.log('🔵 Session ID:', getSessionIdForDebug());
