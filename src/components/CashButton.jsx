@@ -17,8 +17,7 @@ export default function CashButton({
   provider,
   useBlockchain = false
 }) {
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   const [open, setOpen] = React.useState(false);
   const [isClosing, setIsClosing] = React.useState(false);
   const [blockchainBalance, setBlockchainBalance] = React.useState("0");

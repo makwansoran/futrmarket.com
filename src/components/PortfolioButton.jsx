@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext.jsx";
 
 export default function PortfolioButton({ portfolio, cash }) {
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   const [open, setOpen] = React.useState(false);
   const [isClosing, setIsClosing] = React.useState(false);
   const navigate = useNavigate();

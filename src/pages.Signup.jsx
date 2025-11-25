@@ -6,8 +6,7 @@ import { useTheme } from "./contexts/ThemeContext.jsx";
 
 export default function SignupPage({ onLogin }){
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   const [email, setEmail] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");

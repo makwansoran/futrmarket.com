@@ -4,8 +4,7 @@ import { getApiUrl } from "/src/api.js";
 import { useTheme } from "../contexts/ThemeContext.jsx";
 
 export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   const [open, setOpen] = React.useState(false);
   const [withdrawAddress, setWithdrawAddress] = React.useState("");
   const [withdrawAmount, setWithdrawAmount] = React.useState("");

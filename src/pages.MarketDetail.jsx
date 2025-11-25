@@ -567,8 +567,7 @@ function Chat({ contractId, userEmail }) {
 }
 
 export default function MarketDetailPage(){
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   const { id: rawId } = useParams();
   // Decode the ID from URL (React Router should handle this, but be safe)
   const id = rawId ? decodeURIComponent(rawId) : null;

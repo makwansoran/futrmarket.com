@@ -19,8 +19,7 @@ const CATEGORIES = [
 
 export default function CategoryNav() {
   const location = useLocation();
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   
   const isActive = (path) => {
     if (path === "/markets") {

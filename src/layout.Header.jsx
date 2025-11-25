@@ -168,9 +168,8 @@ function AccountMenu({ userEmail, onLogout }) {
 export default function Header({ userEmail, onLogout, cash, portfolio, onSearch, onBalanceUpdate }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme } = useTheme();
+  const { isLight } = useTheme();
   const [q, setQ] = React.useState("");
-  const isLight = theme === 'light';
   
   const isActive = (path) => {
     if (path === "/markets") {
@@ -275,8 +274,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
 
 // How It Works Modal Component
 function HowItWorksButton() {
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   const [open, setOpen] = React.useState(false);
   const [currentSlide, setCurrentSlide] = React.useState(0);
   const [isAnimating, setIsAnimating] = React.useState(false);

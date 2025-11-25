@@ -3,8 +3,7 @@ import { Bell } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext.jsx";
 
 export default function NotificationButton({ userEmail }) {
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   const [open, setOpen] = React.useState(false);
   const [notifications, setNotifications] = React.useState([]);
   const [unreadCount, setUnreadCount] = React.useState(0);

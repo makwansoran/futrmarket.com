@@ -27,8 +27,7 @@ function wrapIndex(currentIndex, direction, arrayLength) {
 }
 
 export default function FeatureCarousel({ features = [], subjects = [] }) {
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   // Generate unique instance ID - compute once at component level (not in hooks)
   const sessionId = getSessionId();
   const mountTime = Date.now() + Math.random();
@@ -260,8 +259,7 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
 }
 
 function FeatureCardContent({ feature, subject }) {
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   
   // Convert relative image URLs to absolute URLs
   const getImageUrl = (url) => {

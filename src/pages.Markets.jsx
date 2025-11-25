@@ -281,8 +281,7 @@ const CATEGORY_MAP = {
 };
 
 export default function MarketsPage({ markets=[], limit, category }){
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   const params = useParams();
   const location = useLocation();
   

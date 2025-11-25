@@ -4,8 +4,7 @@ import { getApiUrl } from "/src/api.js"
 import { useTheme } from "../contexts/ThemeContext.jsx";
 
 export default function DepositButton({ userEmail, onBalanceUpdate }) {
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
+  const { isLight } = useTheme();
   const [open, setOpen] = React.useState(false)
   const [asset, setAsset] = React.useState("USDC")
   const [addr, setAddr] = React.useState("")
