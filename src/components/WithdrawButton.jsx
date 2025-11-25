@@ -214,15 +214,19 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
                     value={withdrawAddress}
                     onChange={(e) => setWithdrawAddress(e.target.value)}
                     placeholder="0x..."
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono text-sm"
+                    className={`w-full px-4 py-2 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono text-sm border ${
+                      isLight 
+                        ? 'bg-white border-gray-300 text-black' 
+                        : 'bg-gray-800 border-gray-700 text-white'
+                    }`}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className={`text-xs mt-1 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                     Enter the Ethereum address where you want to receive funds
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                     Asset
                   </label>
                   <select
@@ -231,7 +235,11 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
                       setAsset(e.target.value);
                       loadCustodialAddress();
                     }}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                      isLight 
+                        ? 'bg-white border-gray-300 text-black' 
+                        : 'bg-gray-800 border-gray-700 text-white'
+                    }`}
                   >
                     <option value="USDC">USDC</option>
                     <option value="ETH">ETH</option>
@@ -239,11 +247,11 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                     Amount (USD)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-400">$</span>
+                    <span className={`absolute left-3 top-2.5 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>$</span>
                     <input
                       type="number"
                       step="0.01"
@@ -252,10 +260,14 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
                       value={withdrawAmount}
                       onChange={(e) => setWithdrawAmount(e.target.value)}
                       placeholder="0.00"
-                      className="w-full pl-8 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      className={`w-full pl-8 pr-4 py-2 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                        isLight 
+                          ? 'bg-white border-gray-300 text-black' 
+                          : 'bg-gray-800 border-gray-700 text-white'
+                      }`}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className={`flex justify-between text-xs mt-1 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                     <span>Available: ${cash.toFixed(2)}</span>
                     <button
                       type="button"
@@ -305,16 +317,20 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
 
               {/* Withdrawal History */}
               {withdrawals.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-800">
-                  <h4 className="text-sm font-semibold text-gray-300 mb-3">Recent Withdrawals</h4>
+                <div className={`mt-6 pt-6 border-t ${isLight ? 'border-gray-200' : 'border-gray-800'}`}>
+                  <h4 className={`text-sm font-semibold mb-3 ${isLight ? 'text-black' : 'text-gray-300'}`}>Recent Withdrawals</h4>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {withdrawals.slice(0, 5).map((w) => (
-                      <div key={w.id} className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs">
+                      <div key={w.id} className={`rounded-lg p-3 text-xs border ${
+                        isLight 
+                          ? 'bg-gray-50 border-gray-300' 
+                          : 'bg-gray-800 border-gray-700'
+                      }`}>
                         <div className="flex justify-between items-start mb-1">
-                          <span className="text-gray-400">{w.asset}</span>
+                          <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>{w.asset}</span>
                           <span className="text-green-400 font-semibold">${w.amountUSD.toFixed(2)}</span>
                         </div>
-                        <div className="text-gray-500 font-mono text-xs break-all">
+                        <div className={`font-mono text-xs break-all ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                           To: {w.toAddress.slice(0, 6)}...{w.toAddress.slice(-4)}
                         </div>
                         {w.txHash && (
