@@ -84,9 +84,10 @@ function PriceChart({ data }) {
         className="w-full h-[340px]"
         preserveAspectRatio="none"
       >
-        {/* Grid lines */}
+        {/* Grid lines with dotted horizontal lines at 0%, 50%, and 100% */}
         {[0, 25, 50, 75, 100].map((price) => {
           const y = padding.top + innerHeight - ((price - minPrice) / priceRange) * innerHeight;
+          const isKeyLine = price === 0 || price === 50 || price === 100;
           return (
             <g key={price}>
               <line
@@ -95,8 +96,9 @@ function PriceChart({ data }) {
                 x2={padding.left + innerWidth}
                 y2={y}
                 stroke={isLight ? "#e5e7eb" : "#374151"}
-                strokeWidth="0.5"
-                strokeDasharray="2,2"
+                strokeWidth={isKeyLine ? "1" : "0.5"}
+                strokeDasharray={isKeyLine ? "4,4" : "2,2"}
+                opacity={isKeyLine ? "0.8" : "0.5"}
               />
               <text
                 x={padding.left - 10}
@@ -105,7 +107,7 @@ function PriceChart({ data }) {
                 fontSize="10"
                 textAnchor="end"
               >
-                {price}¢
+                {price}%
               </text>
             </g>
           );
