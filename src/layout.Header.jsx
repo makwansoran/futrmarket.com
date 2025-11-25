@@ -9,7 +9,7 @@ import ThemeToggle from "./components/ThemeToggle.jsx";
 import { useTheme } from "./contexts/ThemeContext.jsx";
 
 function AccountMenu({ userEmail, onLogout }) {
-  const { isLight } = useTheme();
+  const { isLight, toggleTheme } = useTheme();
   const [open, setOpen] = React.useState(false);
   const [username, setUsername] = React.useState(null);
   const [profilePicture, setProfilePicture] = React.useState(null);
@@ -140,7 +140,7 @@ function AccountMenu({ userEmail, onLogout }) {
               Leaderboard
             </Link>
             <button
-              onClick={() => { setOpen(false); onLogout?.(); }}
+              onClick={toggleTheme}
               className={`w-full text-left px-3 py-2 text-sm transition ${
                 isLight 
                   ? 'text-black hover:bg-gray-50' 
@@ -150,7 +150,80 @@ function AccountMenu({ userEmail, onLogout }) {
                 animation: `menuItemSlideIn 0.2s ease-out 0.1s forwards`
               }}
             >
-              Log out
+              Dark Mode Toggle
+            </button>
+            <Link 
+              to="/api" 
+              onClick={() => setOpen(false)}
+              className={`block px-3 py-2 text-sm transition ${
+                isLight 
+                  ? 'text-black hover:bg-gray-50' 
+                  : 'text-white hover:bg-white/5'
+              }`}
+              style={{
+                animation: `menuItemSlideIn 0.2s ease-out 0.15s forwards`
+              }}
+            >
+              API
+            </Link>
+            
+            {/* Divider */}
+            <div 
+              className={`my-1 ${isLight ? 'border-t border-gray-200' : 'border-t border-gray-700'}`}
+              style={{
+                animation: `menuItemSlideIn 0.2s ease-out 0.2s forwards`
+              }}
+            />
+            
+            <Link 
+              to="/documentation" 
+              onClick={() => setOpen(false)}
+              className={`block px-3 py-2 text-sm transition ${
+                isLight 
+                  ? 'text-black hover:bg-gray-50' 
+                  : 'text-white hover:bg-white/5'
+              }`}
+              style={{
+                animation: `menuItemSlideIn 0.2s ease-out 0.25s forwards`
+              }}
+            >
+              Documentation
+            </Link>
+            <Link 
+              to="/terms" 
+              onClick={() => setOpen(false)}
+              className={`block px-3 py-2 text-sm transition ${
+                isLight 
+                  ? 'text-black hover:bg-gray-50' 
+                  : 'text-white hover:bg-white/5'
+              }`}
+              style={{
+                animation: `menuItemSlideIn 0.2s ease-out 0.3s forwards`
+              }}
+            >
+              Terms of use
+            </Link>
+            
+            {/* Divider */}
+            <div 
+              className={`my-1 ${isLight ? 'border-t border-gray-200' : 'border-t border-gray-700'}`}
+              style={{
+                animation: `menuItemSlideIn 0.2s ease-out 0.35s forwards`
+              }}
+            />
+            
+            <button
+              onClick={() => { setOpen(false); onLogout?.(); }}
+              className={`w-full text-left px-3 py-2 text-sm transition ${
+                isLight 
+                  ? 'text-black hover:bg-gray-50' 
+                  : 'text-white hover:bg-white/5'
+              }`}
+              style={{
+                animation: `menuItemSlideIn 0.2s ease-out 0.4s forwards`
+              }}
+            >
+              Log Out
             </button>
           </div>
         </>
