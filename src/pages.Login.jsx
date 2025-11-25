@@ -280,7 +280,11 @@ export default function LoginPage({ onLogin }){
                   onChange={e=>setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} 
                   placeholder="000000" 
                   maxLength={6}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 text-center text-2xl tracking-widest font-mono"
+                  className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-center text-2xl tracking-widest font-mono border ${
+                    isLight 
+                      ? 'bg-white border-gray-300 text-black placeholder-gray-400' 
+                      : 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                  }`}
                   required
                   disabled={loading}
                   autoFocus
@@ -370,7 +374,11 @@ export default function LoginPage({ onLogin }){
                   onChange={e=>setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} 
                   placeholder="000000" 
                   maxLength={6}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 text-center text-2xl tracking-widest font-mono"
+                  className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-center text-2xl tracking-widest font-mono border ${
+                    isLight 
+                      ? 'bg-white border-gray-300 text-black placeholder-gray-400' 
+                      : 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                  }`}
                   required
                   disabled={loading}
                   autoFocus
