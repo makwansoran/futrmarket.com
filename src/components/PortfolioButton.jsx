@@ -52,7 +52,7 @@ export default function PortfolioButton({ portfolio, cash }) {
             onClick={handleClose}
           />
           <div 
-            className={`absolute right-0 top-full mt-2 w-80 rounded-md backdrop-blur-sm shadow-xl z-[101] border-2 ${
+            className={`absolute right-0 top-full mt-2 w-96 rounded-md backdrop-blur-sm shadow-xl z-[101] border-2 ${
               isLight 
                 ? 'bg-white border-gray-300' 
                 : 'bg-gray-900 border-gray-700'
@@ -64,10 +64,10 @@ export default function PortfolioButton({ portfolio, cash }) {
               <h3 className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Portfolio</h3>
             </div>
 
-            <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+            <div className="p-4 space-y-4">
               {/* Total Value */}
               <div className="text-center py-2">
-                <div className="text-gray-400 text-xs mb-1">Total Value</div>
+                <div className={`text-xs mb-1 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Total Value</div>
                 <div className="text-2xl font-bold text-green-400 mb-2">${totalValue.toFixed(2)}</div>
                 {change !== 0 && (
                   <div className={`flex items-center justify-center gap-1 text-xs ${change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -80,29 +80,37 @@ export default function PortfolioButton({ portfolio, cash }) {
               {/* Breakdown */}
               <div className="space-y-2">
                 <div 
-                  className="bg-gray-800 border border-gray-700 rounded-lg p-3"
+                  className={`rounded-lg p-3 border ${
+                    isLight 
+                      ? 'bg-gray-50 border-gray-300' 
+                      : 'bg-gray-800 border-gray-700'
+                  }`}
                   style={{
                     animation: isClosing ? 'none' : `menuItemSlideIn 0.2s ease-out 0s forwards`
                   }}
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-gray-400 text-xs">Cash</span>
+                    <span className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Cash</span>
                     <span className="text-green-400 font-semibold text-sm">${cashValue.toFixed(2)}</span>
                   </div>
-                  <div className="text-xs text-gray-500">Available for trading</div>
+                  <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Available for trading</div>
                 </div>
 
                 <div 
-                  className="bg-gray-800 border border-gray-700 rounded-lg p-3"
+                  className={`rounded-lg p-3 border ${
+                    isLight 
+                      ? 'bg-gray-50 border-gray-300' 
+                      : 'bg-gray-800 border-gray-700'
+                  }`}
                   style={{
                     animation: isClosing ? 'none' : `menuItemSlideIn 0.2s ease-out 0.05s forwards`
                   }}
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-gray-400 text-xs">Portfolio Value</span>
+                    <span className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Portfolio Value</span>
                     <span className="text-green-400 font-semibold text-sm">${portfolioValue.toFixed(2)}</span>
                   </div>
-                  <div className="text-xs text-gray-500">Value of your positions</div>
+                  <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Value of your positions</div>
                 </div>
               </div>
 
