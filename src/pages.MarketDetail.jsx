@@ -194,7 +194,7 @@ function PriceChart({ data }) {
           x={chartWidth - padding.right - 5}
           y={chartHeight - 10}
           fill={isLight ? "#2563eb" : "#ffffff"}
-          fontSize="14"
+          fontSize="18"
           fontWeight="bold"
           textAnchor="end"
           fontFamily="system-ui, -apple-system, sans-serif"
