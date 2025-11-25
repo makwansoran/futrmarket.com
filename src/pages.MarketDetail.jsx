@@ -10,9 +10,9 @@ import { motion, AnimatePresence } from "framer-motion";
 // Price Chart Component
 function PriceChart({ data }) {
   const { isLight } = useTheme();
-  const chartHeight = 300;
+  const chartHeight = 320;
   const chartWidth = 800; // Base width for viewBox
-  const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+  const padding = { top: 20, right: 20, bottom: 50, left: 50 };
   const innerWidth = chartWidth - padding.left - padding.right;
   const innerHeight = chartHeight - padding.top - padding.bottom;
 
@@ -81,7 +81,7 @@ function PriceChart({ data }) {
     <div className="w-full">
       <svg
         viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-        className="w-full h-[300px]"
+        className="w-full h-[320px]"
         preserveAspectRatio="none"
       >
         {/* Grid lines */}
@@ -192,7 +192,7 @@ function PriceChart({ data }) {
         {/* FutrMarket Logo - Lower Right Corner */}
         <text
           x={chartWidth - padding.right - 5}
-          y={chartHeight - padding.bottom + 15}
+          y={chartHeight - 10}
           fill={isLight ? "#2563eb" : "#ffffff"}
           fontSize="10"
           fontWeight="bold"
