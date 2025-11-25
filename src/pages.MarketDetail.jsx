@@ -974,7 +974,7 @@ export default function MarketDetailPage(){
                   </div>
                 </div>
                 
-                <div className="relative z-10 flex items-center justify-center mt-2">
+                <div className="relative z-10 flex items-center justify-center mt-6">
                   <ChevronDown 
                     className={`w-4 h-4 transition-transform ${openOrderbook ? 'rotate-180' : ''} ${isLight ? 'text-gray-600' : 'text-gray-400'}`}
                   />
