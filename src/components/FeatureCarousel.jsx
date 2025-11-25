@@ -260,6 +260,9 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
 }
 
 function FeatureCardContent({ feature, subject }) {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+  
   // Convert relative image URLs to absolute URLs
   const getImageUrl = (url) => {
     if (!url) {
