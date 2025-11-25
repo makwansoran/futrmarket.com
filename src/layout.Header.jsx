@@ -340,7 +340,6 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
 
         {/* RIGHT: balances + notifications + account OR sign up/login buttons */}
         <div className="min-w-[280px] flex items-center justify-end gap-3">
-          <ThemeToggle />
           {userEmail ? (
             <>
               <PortfolioButton portfolio={portfolio} cash={cash} />
