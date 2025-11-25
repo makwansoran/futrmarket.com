@@ -436,6 +436,7 @@ function Chat({ contractId, userEmail }) {
   }
 
   function CommentItem({ comment, isReply = false }) {
+    const { isLight } = useTheme();
     const replies = repliesByParent[comment.id] || [];
     const isLiked = comment.likedBy?.includes(userEmail) || false;
     const isAuthor = comment.email === userEmail;
