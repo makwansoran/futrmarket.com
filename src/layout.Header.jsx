@@ -126,20 +126,6 @@ function AccountMenu({ userEmail, onLogout }) {
               Account
             </Link>
             <Link 
-              to="/settings" 
-              onClick={() => setOpen(false)}
-              className={`block px-3 py-2 text-sm transition ${
-                isLight 
-                  ? 'text-black hover:bg-gray-50' 
-                  : 'text-white hover:bg-white/5'
-              }`}
-              style={{
-                animation: `menuItemSlideIn 0.2s ease-out 0.05s forwards`
-              }}
-            >
-              Settings
-            </Link>
-            <Link 
               to="/leaderboard" 
               onClick={() => setOpen(false)}
               className={`block px-3 py-2 text-sm transition ${
@@ -148,7 +134,7 @@ function AccountMenu({ userEmail, onLogout }) {
                   : 'text-white hover:bg-white/5'
               }`}
               style={{
-                animation: `menuItemSlideIn 0.2s ease-out 0.1s forwards`
+                animation: `menuItemSlideIn 0.2s ease-out 0.05s forwards`
               }}
             >
               Leaderboard
@@ -161,7 +147,7 @@ function AccountMenu({ userEmail, onLogout }) {
                   : 'text-white hover:bg-white/5'
               }`}
               style={{
-                animation: `menuItemSlideIn 0.2s ease-out 0.15s forwards`
+                animation: `menuItemSlideIn 0.2s ease-out 0.1s forwards`
               }}
             >
               Log out
