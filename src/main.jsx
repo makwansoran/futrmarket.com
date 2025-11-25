@@ -11,19 +11,20 @@ import { getSessionId, getSessionIdForDebug } from "./lib/sessionId.js";
   const savedTheme = localStorage.getItem('theme');
   const root = document.documentElement;
   
-  if (savedTheme === 'light') {
-    root.classList.add('light-theme');
-    root.classList.remove('dark-theme');
-  } else {
+  if (savedTheme === 'dark') {
     root.classList.add('dark-theme');
     root.classList.remove('light-theme');
+  } else {
+    // Default to light theme if no saved preference
+    root.classList.add('light-theme');
+    root.classList.remove('dark-theme');
   }
 })();
 
 // Global fallback to prevent isLight errors - this should never be used in production
 // but provides a safety net if something goes wrong
 if (typeof window !== 'undefined') {
-  window.__isLightFallback = false;
+  window.__isLightFallback = true;
 }
 
 // Log session ID on app start (always log to help diagnose)

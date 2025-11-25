@@ -4,16 +4,16 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    // Check localStorage first, then system preference, default to dark
+    // Check localStorage first, then system preference, default to light
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
       return savedTheme;
     }
     // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      return 'light';
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
     }
-    return 'dark';
+    return 'light';
   });
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export function ThemeProvider({ children }) {
   
   // Create context value with all required properties
   const contextValue = {
-    theme: theme || 'dark',
+    theme: theme || 'light',
     toggleTheme: toggleTheme,
     isLight: isLightValue
   };
@@ -56,11 +56,11 @@ export function useTheme() {
     const context = useContext(ThemeContext);
     if (!context) {
       // Return a safe default instead of throwing to prevent crashes
-      console.warn('useTheme called outside ThemeProvider, using default dark theme');
+      console.warn('useTheme called outside ThemeProvider, using default light theme');
       return {
-        theme: 'dark',
+        theme: 'light',
         toggleTheme: () => {},
-        isLight: false
+        isLight: true
       };
     }
     // Ensure isLight is always defined - use context.isLight if available, otherwise derive from theme
@@ -70,7 +70,7 @@ export function useTheme() {
         : (context.theme === 'light')
     );
     return {
-      theme: context.theme || 'dark',
+      theme: context.theme || 'light',
       toggleTheme: context.toggleTheme || (() => {}),
       isLight: isLight
     };
@@ -78,9 +78,9 @@ export function useTheme() {
     // Ultimate fallback - return safe defaults if anything goes wrong
     console.error('Error in useTheme hook:', error);
     return {
-      theme: 'dark',
+      theme: 'light',
       toggleTheme: () => {},
-      isLight: false
+      isLight: true
     };
   }
 }
