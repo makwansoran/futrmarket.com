@@ -41,7 +41,7 @@ export default function PortfolioButton({ portfolio, cash }) {
         onClick={handleOpen}
         className="flex flex-col items-end text-xs hover:opacity-80 transition cursor-pointer"
       >
-        <div className="text-gray-400">Portfolio</div>
+        <div className={isLight ? 'text-black' : 'text-gray-400'}>Portfolio</div>
         <div className="text-green-400 font-semibold">${portfolioValue.toFixed(2)}</div>
       </button>
 
