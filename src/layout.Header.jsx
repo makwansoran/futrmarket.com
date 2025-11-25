@@ -100,7 +100,7 @@ function AccountMenu({ userEmail, onLogout }) {
             onClick={() => setOpen(false)}
           />
           <div 
-            className={`absolute right-0 top-full mt-2 w-44 rounded-md backdrop-blur-sm shadow-xl z-[101] border-2 ${
+            className={`absolute right-0 top-full mt-2 w-56 rounded-md backdrop-blur-sm shadow-xl z-[101] border-2 ${
               isLight 
                 ? 'bg-white border-gray-300' 
                 : 'bg-gray-900 border-gray-700'
@@ -139,19 +139,21 @@ function AccountMenu({ userEmail, onLogout }) {
             >
               Leaderboard
             </Link>
-            <button
-              onClick={toggleTheme}
-              className={`w-full text-left px-3 py-2 text-sm transition ${
+            <div
+              className={`flex items-center justify-between px-3 py-2 ${
                 isLight 
-                  ? 'text-black hover:bg-gray-50' 
-                  : 'text-white hover:bg-white/5'
+                  ? 'hover:bg-gray-50' 
+                  : 'hover:bg-white/5'
               }`}
               style={{
                 animation: `menuItemSlideIn 0.2s ease-out 0.1s forwards`
               }}
             >
-              Dark Mode Toggle
-            </button>
+              <span className={`text-sm ${isLight ? 'text-black' : 'text-white'}`}>
+                Dark Mode Toggle
+              </span>
+              <ThemeToggle />
+            </div>
             <Link 
               to="/api" 
               onClick={() => setOpen(false)}
