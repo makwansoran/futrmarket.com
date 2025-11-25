@@ -45,13 +45,15 @@ export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
     // Return a safe default instead of throwing to prevent crashes
+    console.warn('useTheme called outside ThemeProvider, using default dark theme');
     return {
       theme: 'dark',
       toggleTheme: () => {},
       isLight: false
     };
   }
-  const isLight = context.theme === 'light';
+  // Ensure isLight is always defined
+  const isLight = Boolean(context.isLight !== undefined ? context.isLight : context.theme === 'light');
   return {
     ...context,
     isLight: isLight
