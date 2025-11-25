@@ -252,6 +252,7 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
       animate="center"
       exit="exit"
       className="w-full relative"
+      style={{ boxShadow: 'none' }}
     >
       {content}
     </motion.div>
@@ -296,7 +297,7 @@ function FeatureCardContent({ feature, subject }) {
   console.log("🔵 FeatureCardContent: Final imageUrl:", imageUrl);
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border-2 border-gray-700 rounded-2xl overflow-hidden hover:border-gray-600 transition-all cursor-pointer">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border-2 border-gray-700 rounded-2xl overflow-hidden hover:border-gray-600 transition-all cursor-pointer" style={{ boxShadow: 'none' }}>
       <div className="relative">
         {imageUrl ? (
           <div className="relative h-[300px] md:h-[350px] lg:h-[400px] overflow-hidden">
