@@ -36,6 +36,8 @@ const getImageUrl = (url) => {
 
 // Small Market Card (for grid)
 function MarketCard({ m }){
+  const { isLight } = useTheme();
+  
   const getStatusBadge = () => {
     if (!m.status || m.category !== "Sports") return null;
     const statusConfig = {
