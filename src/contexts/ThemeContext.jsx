@@ -34,8 +34,10 @@ export function ThemeProvider({ children }) {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
+  const isLight = theme === 'light';
+  
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isLight: theme === 'light' }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, isLight: Boolean(isLight) }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -52,10 +54,15 @@ export function useTheme() {
       isLight: false
     };
   }
-  // Ensure isLight is always defined
-  const isLight = Boolean(context.isLight !== undefined ? context.isLight : context.theme === 'light');
+  // Ensure isLight is always defined - use context.isLight if available, otherwise derive from theme
+  const isLight = Boolean(
+    context.isLight !== undefined && context.isLight !== null 
+      ? context.isLight 
+      : context.theme === 'light'
+  );
   return {
-    ...context,
+    theme: context.theme || 'dark',
+    toggleTheme: context.toggleTheme || (() => {}),
     isLight: isLight
   };
 }
