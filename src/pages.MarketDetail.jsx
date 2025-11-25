@@ -940,160 +940,135 @@ export default function MarketDetailPage(){
             </motion.button>
           </div>
           
-          {/* Probability Display - Buttons with Orderbook Dropdowns */}
+          {/* Probability Display - Combined Button with Orderbook Dropdown */}
           <div className={`rounded-xl p-4 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
-            <div className="flex flex-col gap-4">
-              {/* YES Price Button */}
-              <div className="relative">
-                <motion.button
-                  onClick={() => setOpenOrderbook(openOrderbook === 'yes' ? null : 'yes')}
-                  className="w-full bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-left hover:bg-green-500/20 transition-colors relative"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center justify-between mb-2">
+            <div className="relative">
+              {/* Combined YES/NO Button - Split by percentage */}
+              <motion.button
+                onClick={() => setOpenOrderbook(openOrderbook ? null : 'combined')}
+                className="w-full rounded-lg p-4 text-left relative overflow-hidden transition-colors"
+                style={{
+                  background: `linear-gradient(to right, rgba(34, 197, 94, 0.15) ${yesPrice}%, rgba(239, 68, 68, 0.15) ${yesPrice}%)`
+                }}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                {/* Visual split indicator */}
+                <div className="absolute inset-0 flex items-center pointer-events-none">
+                  <div 
+                    className="h-full w-0.5 bg-gray-400 opacity-50"
+                    style={{ left: `${yesPrice}%` }}
+                  />
+                </div>
+                
+                <div className="relative z-10 flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-4">
                     <div className="text-xs text-green-400 font-medium">YES</div>
-                    <ChevronDown 
-                      className={`w-4 h-4 text-green-400 transition-transform ${openOrderbook === 'yes' ? 'rotate-180' : ''}`}
-                    />
+                    <div className={`text-3xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>{yesPrice}¢</div>
+                    <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>{yesPrice}%</div>
                   </div>
-                  <div className={`text-3xl font-bold mb-2 ${isLight ? 'text-black' : 'text-white'}`}>{yesPrice}¢</div>
-                  <div className="w-full bg-gray-800 rounded-full h-1.5 mb-1">
-                    <div 
-                      className="bg-green-500 h-1.5 rounded-full transition-all" 
-                      style={{width: `${yesPrice}%`}} 
-                    />
-                  </div>
-                  <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>{yesPrice}% probability</div>
-                </motion.button>
-                
-                {/* YES Orderbook Dropdown */}
-                <AnimatePresence>
-                  {openOrderbook === 'yes' && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: -20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                      transition={{ 
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 25,
-                        mass: 0.8
-                      }}
-                      className={`absolute top-full left-0 right-0 mt-2 rounded-lg overflow-hidden z-10 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-800 border-gray-700'}`}
-                    >
-                      <div className={`p-3 bg-green-500/10 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
-                        <div className="text-sm font-semibold text-green-400">YES Order Book</div>
-                      </div>
-                      <div>
-                        {/* Sell Orders (Asks) */}
-                        <div className={`p-3 space-y-1 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
-                          <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Sell Orders</div>
-                          {orderBook.yes.sell.map((order, i) => (
-                            <div key={i} className="flex justify-between text-sm py-1">
-                              <span className="text-red-400 font-medium">{Math.round(order.price * 100)}¢</span>
-                              <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {/* Current Price */}
-                        <div className={`p-3 border-y ${isLight ? 'bg-gray-50 border-gray-200' : 'bg-gray-800/50 border-gray-700'}`}>
-                          <div className="flex justify-between items-center">
-                            <span className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Current</span>
-                            <span className="text-lg font-bold text-green-400">{yesPrice}¢</span>
-                          </div>
-                        </div>
-                        {/* Buy Orders (Bids) */}
-                        <div className="p-3 space-y-1">
-                          <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Buy Orders</div>
-                          {orderBook.yes.buy.map((order, i) => (
-                            <div key={i} className="flex justify-between text-sm py-1">
-                              <span className="text-green-400 font-medium">{Math.round(order.price * 100)}¢</span>
-                              <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* NO Price Button */}
-              <div className="relative">
-                <motion.button
-                  onClick={() => setOpenOrderbook(openOrderbook === 'no' ? null : 'no')}
-                  className="w-full bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-left hover:bg-red-500/20 transition-colors relative"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-4">
+                    <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>{noPrice}%</div>
+                    <div className={`text-3xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>{noPrice}¢</div>
                     <div className="text-xs text-red-400 font-medium">NO</div>
-                    <ChevronDown 
-                      className={`w-4 h-4 text-red-400 transition-transform ${openOrderbook === 'no' ? 'rotate-180' : ''}`}
-                    />
                   </div>
-                  <div className={`text-3xl font-bold mb-2 ${isLight ? 'text-black' : 'text-white'}`}>{noPrice}¢</div>
-                  <div className={`w-full rounded-full h-1.5 mb-1 ${isLight ? 'bg-gray-200' : 'bg-gray-800'}`}>
-                    <div 
-                      className="bg-red-500 h-1.5 rounded-full transition-all" 
-                      style={{width: `${noPrice}%`}} 
-                    />
-                  </div>
-                  <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>{noPrice}% probability</div>
-                </motion.button>
+                </div>
                 
-                {/* NO Orderbook Dropdown */}
-                <AnimatePresence>
-                  {openOrderbook === 'no' && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: -20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                      transition={{ 
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 25,
-                        mass: 0.8
-                      }}
-                      className={`absolute top-full left-0 right-0 mt-2 rounded-lg overflow-hidden z-10 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-800 border-gray-700'}`}
-                    >
-                      <div className={`p-3 bg-red-500/10 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
-                        <div className="text-sm font-semibold text-red-400">NO Order Book</div>
-                      </div>
-                      <div>
-                        {/* Sell Orders (Asks) */}
-                        <div className={`p-3 space-y-1 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
-                          <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Sell Orders</div>
-                          {orderBook.no.sell.map((order, i) => (
-                            <div key={i} className="flex justify-between text-sm py-1">
-                              <span className="text-red-400 font-medium">{Math.round(order.price * 100)}¢</span>
-                              <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {/* Current Price */}
-                        <div className={`p-3 border-y ${isLight ? 'bg-gray-50 border-gray-200' : 'bg-gray-800/50 border-gray-700'}`}>
-                          <div className="flex justify-between items-center">
-                            <span className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Current</span>
-                            <span className="text-lg font-bold text-red-400">{noPrice}¢</span>
+                <div className="relative z-10 flex items-center justify-center mt-2">
+                  <ChevronDown 
+                    className={`w-4 h-4 transition-transform ${openOrderbook ? 'rotate-180' : ''} ${isLight ? 'text-gray-600' : 'text-gray-400'}`}
+                  />
+                </div>
+              </motion.button>
+              
+              {/* Combined Orderbook Dropdown */}
+              <AnimatePresence>
+                {openOrderbook && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                    transition={{ 
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 25,
+                      mass: 0.8
+                    }}
+                    className={`absolute top-full left-0 right-0 mt-2 rounded-lg overflow-hidden z-10 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-800 border-gray-700'}`}
+                  >
+                    {/* YES Order Book Section */}
+                    <div className={`p-3 bg-green-500/10 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
+                      <div className="text-sm font-semibold text-green-400">YES Order Book</div>
+                    </div>
+                    <div>
+                      {/* Sell Orders (Asks) */}
+                      <div className={`p-3 space-y-1 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
+                        <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Sell Orders</div>
+                        {orderBook.yes.sell.map((order, i) => (
+                          <div key={i} className="flex justify-between text-sm py-1">
+                            <span className="text-red-400 font-medium">{Math.round(order.price * 100)}¢</span>
+                            <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
                           </div>
-                        </div>
-                        {/* Buy Orders (Bids) */}
-                        <div className="p-3 space-y-1">
-                          <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Buy Orders</div>
-                          {orderBook.no.buy.map((order, i) => (
-                            <div key={i} className="flex justify-between text-sm py-1">
-                              <span className="text-green-400 font-medium">{Math.round(order.price * 100)}¢</span>
-                              <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
-                            </div>
-                          ))}
+                        ))}
+                      </div>
+                      {/* Current Price */}
+                      <div className={`p-3 border-y ${isLight ? 'bg-gray-50 border-gray-200' : 'bg-gray-800/50 border-gray-700'}`}>
+                        <div className="flex justify-between items-center">
+                          <span className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Current</span>
+                          <span className="text-lg font-bold text-green-400">{yesPrice}¢</span>
                         </div>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                      {/* Buy Orders (Bids) */}
+                      <div className="p-3 space-y-1">
+                        <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Buy Orders</div>
+                        {orderBook.yes.buy.map((order, i) => (
+                          <div key={i} className="flex justify-between text-sm py-1">
+                            <span className="text-green-400 font-medium">{Math.round(order.price * 100)}¢</span>
+                            <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Divider */}
+                    <div className={`h-px ${isLight ? 'bg-gray-200' : 'bg-gray-700'}`} />
+                    
+                    {/* NO Order Book Section */}
+                    <div className={`p-3 bg-red-500/10 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
+                      <div className="text-sm font-semibold text-red-400">NO Order Book</div>
+                    </div>
+                    <div>
+                      {/* Sell Orders (Asks) */}
+                      <div className={`p-3 space-y-1 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
+                        <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Sell Orders</div>
+                        {orderBook.no.sell.map((order, i) => (
+                          <div key={i} className="flex justify-between text-sm py-1">
+                            <span className="text-red-400 font-medium">{Math.round(order.price * 100)}¢</span>
+                            <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Current Price */}
+                      <div className={`p-3 border-y ${isLight ? 'bg-gray-50 border-gray-200' : 'bg-gray-800/50 border-gray-700'}`}>
+                        <div className="flex justify-between items-center">
+                          <span className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Current</span>
+                          <span className="text-lg font-bold text-red-400">{noPrice}¢</span>
+                        </div>
+                      </div>
+                      {/* Buy Orders (Bids) */}
+                      <div className="p-3 space-y-1">
+                        <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Buy Orders</div>
+                        {orderBook.no.buy.map((order, i) => (
+                          <div key={i} className="flex justify-between text-sm py-1">
+                            <span className="text-green-400 font-medium">{Math.round(order.price * 100)}¢</span>
+                            <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
