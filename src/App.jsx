@@ -18,6 +18,7 @@ import ForumPage from "./pages.Forum.jsx";
 import NewsPage from "./pages.News.jsx";
 import PositionsPage from "./pages.Positions.jsx";
 import PartnerPage from "./pages.Partner.jsx";
+import BlogPage from "./pages.Blog.jsx";
 
 import { UserProvider, useUser } from "./contexts/UserContext.jsx";
 import { MarketsProvider, useMarkets } from "./contexts/MarketsContext.jsx";
@@ -99,6 +100,7 @@ function AppContent() {
           <Route path="/live" element={<LivePage markets={markets} />} />
           <Route path="/forum" element={<ForumPage />} />
           <Route path="/news" element={<NewsPage markets={markets} />} />
+          <Route path="/blog" element={<BlogPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/settings" element={<SettingsPage />} />
