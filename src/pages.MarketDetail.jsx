@@ -194,6 +194,7 @@ function PriceChart({ data }) {
 
 // News Component for Contract Page
 function ContractNews({ contractId }) {
+  const { isLight } = useTheme();
   const [news, setNews] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -285,6 +286,7 @@ function ContractNews({ contractId }) {
 
 // Chat Component (renamed from Forum)
 function Chat({ contractId, userEmail }) {
+  const { isLight } = useTheme();
   const [comments, setComments] = React.useState([]);
   const [userProfiles, setUserProfiles] = React.useState({});
   const [loading, setLoading] = React.useState(true);
@@ -1262,6 +1264,7 @@ export default function MarketDetailPage(){
 
 // Contract Tabs Component (Chat, Biggest Holder, Activity)
 function ContractTabs({ contractId, userEmail }) {
+  const { isLight } = useTheme();
   const [activeTab, setActiveTab] = React.useState("chat");
   const [holders, setHolders] = React.useState([]);
   const [activity, setActivity] = React.useState([]);
