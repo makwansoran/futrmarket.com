@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Price Chart Component
 function PriceChart({ data }) {
+  const { isLight } = useTheme();
   const chartHeight = 300;
   const chartWidth = 800; // Base width for viewBox
   const padding = { top: 20, right: 20, bottom: 40, left: 50 };
@@ -17,7 +18,7 @@ function PriceChart({ data }) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-[300px] flex items-center justify-center text-gray-500">
+      <div className={`h-[300px] flex items-center justify-center ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
         No price history available
       </div>
     );
@@ -93,14 +94,14 @@ function PriceChart({ data }) {
                 y1={y}
                 x2={padding.left + innerWidth}
                 y2={y}
-                stroke="#374151"
+                stroke={isLight ? "#e5e7eb" : "#374151"}
                 strokeWidth="0.5"
                 strokeDasharray="2,2"
               />
               <text
                 x={padding.left - 10}
                 y={y + 4}
-                fill="#9ca3af"
+                fill={isLight ? "#4b5563" : "#9ca3af"}
                 fontSize="10"
                 textAnchor="end"
               >
@@ -160,7 +161,7 @@ function PriceChart({ data }) {
             key={i}
             x={label.x}
             y={chartHeight - padding.bottom + 20}
-            fill="#9ca3af"
+            fill={isLight ? "#4b5563" : "#9ca3af"}
             fontSize="10"
             textAnchor="middle"
           >
@@ -174,7 +175,7 @@ function PriceChart({ data }) {
           y1={padding.top}
           x2={padding.left}
           y2={padding.top + innerHeight}
-          stroke="#4b5563"
+          stroke={isLight ? "#d1d5db" : "#4b5563"}
           strokeWidth="1"
         />
 
@@ -184,7 +185,7 @@ function PriceChart({ data }) {
           y1={padding.top + innerHeight}
           x2={padding.left + innerWidth}
           y2={padding.top + innerHeight}
-          stroke="#4b5563"
+          stroke={isLight ? "#d1d5db" : "#4b5563"}
           strokeWidth="1"
         />
       </svg>
@@ -470,7 +471,7 @@ function Chat({ contractId, userEmail }) {
             {isAuthor && (
               <button
                 onClick={() => handleDelete(comment.id)}
-                className="text-gray-500 hover:text-red-400 transition"
+                className={`transition ${isLight ? 'text-gray-600 hover:text-red-500' : 'text-gray-500 hover:text-red-400'}`}
               >
                 <Trash2 size={14} />
               </button>
