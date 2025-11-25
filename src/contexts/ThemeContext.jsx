@@ -35,7 +35,7 @@ export function ThemeProvider({ children }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, isLight: theme === 'light' }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -46,6 +46,9 @@ export function useTheme() {
   if (!context) {
     throw new Error('useTheme must be used within ThemeProvider');
   }
-  return context;
+  return {
+    ...context,
+    isLight: context.theme === 'light'
+  };
 }
 
