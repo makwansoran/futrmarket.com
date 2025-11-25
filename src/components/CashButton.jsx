@@ -584,16 +584,20 @@ export default function CashButton({
 
               {/* Withdrawal History */}
               {withdrawals.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-800">
-                  <h4 className="text-sm font-semibold text-gray-300 mb-3">Recent Withdrawals</h4>
+                <div className={`mt-6 pt-6 border-t ${isLight ? 'border-gray-200' : 'border-gray-800'}`}>
+                  <h4 className={`text-sm font-semibold mb-3 ${isLight ? 'text-black' : 'text-gray-300'}`}>Recent Withdrawals</h4>
                   <div className="space-y-2 max-h-48 overflow-y-visible">
                     {withdrawals.slice(0, 5).map((w) => (
-                      <div key={w.id} className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs">
+                      <div key={w.id} className={`rounded-lg p-3 text-xs border ${
+                        isLight 
+                          ? 'bg-gray-50 border-gray-300' 
+                          : 'bg-gray-800 border-gray-700'
+                      }`}>
                         <div className="flex justify-between items-start mb-1">
-                          <span className="text-gray-400">{w.asset}</span>
+                          <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>{w.asset}</span>
                           <span className="text-green-400 font-semibold">${w.amountUSD.toFixed(2)}</span>
                         </div>
-                        <div className="text-gray-500 font-mono text-xs break-all">
+                        <div className={`font-mono text-xs break-all ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                           To: {w.toAddress.slice(0, 6)}...{w.toAddress.slice(-4)}
                         </div>
                         {w.txHash && (
@@ -606,7 +610,7 @@ export default function CashButton({
                             View on Etherscan →
                           </a>
                         )}
-                        <div className="text-gray-600 text-xs mt-1">
+                        <div className={`text-xs mt-1 ${isLight ? 'text-gray-600' : 'text-gray-600'}`}>
                           {new Date(w.createdAt).toLocaleString()}
                         </div>
                       </div>
