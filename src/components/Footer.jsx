@@ -152,7 +152,7 @@ export default function Footer() {
 
         {/* Copyright and Disclaimer */}
         <div className="space-y-2">
-          <p className="text-[var(--text-footer-copyright)] text-xs">© 2025 FutrMarket Inc.</p>
+          <p className="text-[var(--text-footer-copyright)] text-xs">© 2025 FutrMarket AS, Oslo Norway</p>
           <p className="text-[var(--text-footer-copyright)] text-xs leading-relaxed">
             Trading on FutrMarket involves risk and may not be appropriate for all. Members risk losing their cost to enter any transaction, including fees. You should carefully consider whether trading on FutrMarket is appropriate for you in light of your investment experience and financial resources. Any trading decisions you make are solely your responsibility and at your own risk. Information is provided for convenience only on an "AS IS" basis. Past performance is not necessarily indicative of future results. FutrMarket is subject to U.S. regulatory oversight by the CFTC.
           </p>
