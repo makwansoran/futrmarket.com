@@ -85,11 +85,7 @@ export default function LeaderboardPage(){
       ) : (
         <div className={`rounded-xl overflow-hidden border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
           {/* Header */}
-          <div className={`grid grid-cols-5 p-4 border-b font-semibold text-sm ${
-            isLight 
-              ? 'bg-gray-50 border-gray-200 text-gray-700' 
-              : 'bg-gray-800/50 border-gray-700 text-gray-300'
-          }`}>
+          <div className="grid grid-cols-5 p-4 border-b font-semibold text-sm bg-blue-600 text-white">
             <div>Rank</div>
             <div>User</div>
             <div>Cash</div>
