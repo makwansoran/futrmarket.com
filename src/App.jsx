@@ -21,6 +21,7 @@ import PartnerPage from "./pages.Partner.jsx";
 
 import { UserProvider, useUser } from "./contexts/UserContext.jsx";
 import { MarketsProvider, useMarkets } from "./contexts/MarketsContext.jsx";
+import { ThemeProvider } from "./contexts/ThemeContext.jsx";
 
 // Check for placeholder API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
@@ -131,10 +132,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <UserProvider>
-      <MarketsProvider>
-        <AppContent />
-      </MarketsProvider>
-    </UserProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <MarketsProvider>
+          <AppContent />
+        </MarketsProvider>
+      </UserProvider>
+    </ThemeProvider>
   );
 }

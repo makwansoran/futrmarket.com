@@ -5,6 +5,7 @@ import { getApiUrl } from "/src/api.js";
 import NotificationButton from "./components/NotificationButton.jsx";
 import PortfolioButton from "./components/PortfolioButton.jsx";
 import CashButton from "./components/CashButton.jsx";
+import ThemeToggle from "./components/ThemeToggle.jsx";
 
 function AccountMenu({ userEmail, onLogout }) {
   const [open, setOpen] = React.useState(false);
@@ -234,6 +235,7 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
 
         {/* RIGHT: balances + notifications + account OR sign up/login buttons */}
         <div className="min-w-[280px] flex items-center justify-end gap-3">
+          <ThemeToggle />
           {userEmail ? (
             <>
               <PortfolioButton portfolio={portfolio} cash={cash} />

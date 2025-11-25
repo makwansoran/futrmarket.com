@@ -6,6 +6,20 @@ import App from "./App.jsx";
 import "./style.css";
 import { getSessionId, getSessionIdForDebug } from "./lib/sessionId.js";
 
+// Apply theme immediately on page load to prevent flash
+(function() {
+  const savedTheme = localStorage.getItem('theme');
+  const root = document.documentElement;
+  
+  if (savedTheme === 'light') {
+    root.classList.add('light-theme');
+    root.classList.remove('dark-theme');
+  } else {
+    root.classList.add('dark-theme');
+    root.classList.remove('light-theme');
+  }
+})();
+
 // Log session ID on app start (always log to help diagnose)
 console.log('🔵 ===== APP STARTED =====');
 console.log('🔵 Session ID:', getSessionIdForDebug());
