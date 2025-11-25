@@ -1067,10 +1067,38 @@ export default function MarketDetailPage(){
         {/* Right Column: Trading Panel */}
         <div className="lg:col-span-1">
           <div className={`rounded-xl p-6 sticky top-20 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
-            {/* Buy/Sell Text Labels */}
-            <div className="flex gap-4 mb-4">
-              <span className={`text-lg font-semibold ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>Buy</span>
-              <span className={`text-lg font-semibold ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>Sell</span>
+            {/* Buy/Sell Text Labels with Underline Indicator */}
+            <div className="relative flex gap-4 mb-4 pb-1">
+              <button
+                onClick={() => setOrderType("buy")}
+                className={`text-lg font-semibold transition relative z-10 ${
+                  orderType === "buy"
+                    ? isLight ? "text-gray-900" : "text-white"
+                    : isLight ? "text-gray-500 hover:text-gray-700" : "text-gray-400 hover:text-gray-300"
+                }`}
+              >
+                Buy
+              </button>
+              <button
+                onClick={() => setOrderType("sell")}
+                className={`text-lg font-semibold transition relative z-10 ${
+                  orderType === "sell"
+                    ? isLight ? "text-gray-900" : "text-white"
+                    : isLight ? "text-gray-500 hover:text-gray-700" : "text-gray-400 hover:text-gray-300"
+                }`}
+              >
+                Sell
+              </button>
+              {/* Underline indicator */}
+              <div 
+                className={`absolute bottom-0 h-1 transition-all duration-300 ${
+                  orderType === "buy" ? "bg-blue-600" : "bg-orange-600"
+                }`}
+                style={{
+                  left: orderType === "buy" ? "0" : "calc(3rem + 1rem)",
+                  width: "3rem",
+                }}
+              />
             </div>
             
             {error && (
@@ -1079,11 +1107,11 @@ export default function MarketDetailPage(){
               </div>
             )}
 
-            {/* YES/NO Toggle with Underline Indicator */}
-            <div className="relative grid grid-cols-2 gap-2 mb-4 pb-1">
+            {/* YES/NO Toggle */}
+            <div className="grid grid-cols-2 gap-2 mb-4">
               <button
                 onClick={() => setSide("yes")}
-                className={`py-3 rounded-lg font-semibold transition relative z-10 ${
+                className={`py-3 rounded-lg font-semibold transition ${
                   side === "yes"
                     ? "bg-green-600 text-white"
                     : isLight ? "bg-gray-200 text-gray-600 hover:text-black" : "bg-gray-800 text-gray-400 hover:text-white"
@@ -1093,7 +1121,7 @@ export default function MarketDetailPage(){
               </button>
               <button
                 onClick={() => setSide("no")}
-                className={`py-3 rounded-lg font-semibold transition relative z-10 ${
+                className={`py-3 rounded-lg font-semibold transition ${
                   side === "no"
                     ? "bg-red-600 text-white"
                     : isLight ? "bg-gray-200 text-gray-600 hover:text-black" : "bg-gray-800 text-gray-400 hover:text-white"
@@ -1101,16 +1129,6 @@ export default function MarketDetailPage(){
               >
                 NO
               </button>
-              {/* Underline indicator */}
-              <div 
-                className={`absolute bottom-0 h-1 transition-all duration-300 ${
-                  side === "yes" ? "bg-green-600" : "bg-red-600"
-                }`}
-                style={{
-                  left: side === "yes" ? "0" : "calc(50% + 0.25rem)",
-                  width: "calc(50% - 0.25rem)",
-                }}
-              />
             </div>
 
             {/* Amount Input */}
