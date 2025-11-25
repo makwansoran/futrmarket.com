@@ -245,13 +245,7 @@ export default function CashButton({
       {open && (
         <>
           <div 
-            className={`fixed inset-0 z-[100] transition-opacity duration-200 ${
-              isClosing ? 'opacity-0' : 'opacity-100'
-            }`}
-            style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              backdropFilter: 'blur(2px)'
-            }}
+            className="fixed inset-0 z-[100] bg-transparent"
             onClick={handleClose}
           />
           <div 
