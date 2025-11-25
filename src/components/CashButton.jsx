@@ -231,7 +231,7 @@ export default function CashButton({
         }}
         className="flex flex-col items-end text-xs hover:opacity-80 transition cursor-pointer"
       >
-        <div className="text-gray-400 flex items-center gap-1">
+        <div className={`flex items-center gap-1 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
           {useBlockchain && <Wallet size={12} />}
           {displayLabel}
         </div>
@@ -461,7 +461,7 @@ export default function CashButton({
                       className="flex-shrink-0 p-1.5 rounded hover:bg-gray-700 transition"
                       title="Copy address"
                     >
-                      {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-gray-400" />}
+                      {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className={isLight ? 'text-gray-600' : 'text-gray-400'} />}
                     </button>
                   )}
                 </div>
