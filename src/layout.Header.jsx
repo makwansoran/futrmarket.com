@@ -9,6 +9,7 @@ import ThemeToggle from "./components/ThemeToggle.jsx";
 import { useTheme } from "./contexts/ThemeContext.jsx";
 
 function AccountMenu({ userEmail, onLogout }) {
+  const { isLight } = useTheme();
   const [open, setOpen] = React.useState(false);
   const [username, setUsername] = React.useState(null);
   const [profilePicture, setProfilePicture] = React.useState(null);
@@ -63,24 +64,34 @@ function AccountMenu({ userEmail, onLogout }) {
           e.stopPropagation();
           setOpen(v => !v);
         }}
-        className="px-3 py-2 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 text-sm flex items-center gap-2"
+        className={`px-3 py-2 rounded-md border text-sm flex items-center gap-2 transition ${
+          isLight 
+            ? 'border-gray-300 bg-white hover:bg-gray-50' 
+            : 'border-white/10 bg-white/5 hover:bg-white/10'
+        }`}
       >
         {profilePicture ? (
           <img 
             src={profilePicture} 
             alt={displayName}
-            className="w-6 h-6 rounded-full object-cover border border-gray-700"
+            className={`w-6 h-6 rounded-full object-cover border ${
+              isLight ? 'border-gray-300' : 'border-gray-700'
+            }`}
             onError={(e) => {
               e.target.style.display = 'none';
             }}
           />
         ) : (
-          <div className="w-6 h-6 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center flex-shrink-0">
-            <User className="w-3.5 h-3.5 text-gray-400" />
+          <div className={`w-6 h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${
+            isLight 
+              ? 'bg-gray-200 border-gray-300' 
+              : 'bg-gray-700 border-gray-600'
+          }`}>
+            <User className={`w-3.5 h-3.5 ${isLight ? 'text-gray-600' : 'text-gray-400'}`} />
           </div>
         )}
-        <span className="hidden sm:inline text-gray-200">{displayName}</span>
-        <ChevronDown className="w-4 h-4 text-gray-400" />
+        <span className={`hidden sm:inline ${isLight ? 'text-black' : 'text-gray-200'}`}>{displayName}</span>
+        <ChevronDown className={`w-4 h-4 ${isLight ? 'text-gray-600' : 'text-gray-400'}`} />
       </button>
       {open && (
         <>
@@ -89,7 +100,11 @@ function AccountMenu({ userEmail, onLogout }) {
             onClick={() => setOpen(false)}
           />
           <div 
-            className="absolute right-0 top-full mt-2 w-44 rounded-md border border-white/10 bg-gray-900 backdrop-blur-sm shadow-xl z-[101]"
+            className={`absolute right-0 top-full mt-2 w-44 rounded-md backdrop-blur-sm shadow-xl z-[101] border-2 ${
+              isLight 
+                ? 'bg-white border-gray-300' 
+                : 'bg-gray-900 border-gray-700'
+            }`}
             style={{
               animation: 'dropdownFadeIn 0.2s ease-out forwards',
               transformOrigin: 'top right'
@@ -99,7 +114,11 @@ function AccountMenu({ userEmail, onLogout }) {
             <Link 
               to="/account" 
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm hover:bg-white/5"
+              className={`block px-3 py-2 text-sm transition ${
+                isLight 
+                  ? 'text-black hover:bg-gray-50' 
+                  : 'text-white hover:bg-white/5'
+              }`}
               style={{
                 animation: `menuItemSlideIn 0.2s ease-out 0s forwards`
               }}
@@ -109,7 +128,11 @@ function AccountMenu({ userEmail, onLogout }) {
             <Link 
               to="/settings" 
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm hover:bg-white/5"
+              className={`block px-3 py-2 text-sm transition ${
+                isLight 
+                  ? 'text-black hover:bg-gray-50' 
+                  : 'text-white hover:bg-white/5'
+              }`}
               style={{
                 animation: `menuItemSlideIn 0.2s ease-out 0.05s forwards`
               }}
@@ -119,7 +142,11 @@ function AccountMenu({ userEmail, onLogout }) {
             <Link 
               to="/leaderboard" 
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm hover:bg-white/5"
+              className={`block px-3 py-2 text-sm transition ${
+                isLight 
+                  ? 'text-black hover:bg-gray-50' 
+                  : 'text-white hover:bg-white/5'
+              }`}
               style={{
                 animation: `menuItemSlideIn 0.2s ease-out 0.1s forwards`
               }}
@@ -128,7 +155,11 @@ function AccountMenu({ userEmail, onLogout }) {
             </Link>
             <button
               onClick={() => { setOpen(false); onLogout?.(); }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-white/5"
+              className={`w-full text-left px-3 py-2 text-sm transition ${
+                isLight 
+                  ? 'text-black hover:bg-gray-50' 
+                  : 'text-white hover:bg-white/5'
+              }`}
               style={{
                 animation: `menuItemSlideIn 0.2s ease-out 0.15s forwards`
               }}
