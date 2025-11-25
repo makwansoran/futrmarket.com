@@ -1069,8 +1069,8 @@ export default function MarketDetailPage(){
           <div className={`rounded-xl p-6 sticky top-20 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
             {/* Buy/Sell Text Labels */}
             <div className="flex gap-4 mb-4">
-              <span className={`text-sm font-medium ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>Buy</span>
-              <span className={`text-sm font-medium ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>Sell</span>
+              <span className={`text-lg font-semibold ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>Buy</span>
+              <span className={`text-lg font-semibold ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>Sell</span>
             </div>
             
             {error && (
@@ -1080,10 +1080,10 @@ export default function MarketDetailPage(){
             )}
 
             {/* YES/NO Toggle with Underline Indicator */}
-            <div className="relative grid grid-cols-2 gap-2 mb-4">
+            <div className="relative grid grid-cols-2 gap-2 mb-4 pb-1">
               <button
                 onClick={() => setSide("yes")}
-                className={`py-3 rounded-lg font-semibold transition relative ${
+                className={`py-3 rounded-lg font-semibold transition relative z-10 ${
                   side === "yes"
                     ? "bg-green-600 text-white"
                     : isLight ? "bg-gray-200 text-gray-600 hover:text-black" : "bg-gray-800 text-gray-400 hover:text-white"
@@ -1093,7 +1093,7 @@ export default function MarketDetailPage(){
               </button>
               <button
                 onClick={() => setSide("no")}
-                className={`py-3 rounded-lg font-semibold transition relative ${
+                className={`py-3 rounded-lg font-semibold transition relative z-10 ${
                   side === "no"
                     ? "bg-red-600 text-white"
                     : isLight ? "bg-gray-200 text-gray-600 hover:text-black" : "bg-gray-800 text-gray-400 hover:text-white"
@@ -1103,13 +1103,12 @@ export default function MarketDetailPage(){
               </button>
               {/* Underline indicator */}
               <div 
-                className={`absolute bottom-0 h-0.5 transition-all duration-300 ${
+                className={`absolute bottom-0 h-1 transition-all duration-300 ${
                   side === "yes" ? "bg-green-600" : "bg-red-600"
                 }`}
                 style={{
-                  left: side === "yes" ? "0" : "50%",
+                  left: side === "yes" ? "0" : "calc(50% + 0.25rem)",
                   width: "calc(50% - 0.25rem)",
-                  transform: side === "yes" ? "translateX(0)" : "translateX(0.25rem)"
                 }}
               />
             </div>
