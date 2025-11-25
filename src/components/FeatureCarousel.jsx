@@ -323,11 +323,11 @@ function FeatureCardContent({ feature, subject }) {
         
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 lg:p-16">
           <div className="max-w-4xl">
-            <h2 className={`text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 leading-tight ${isLight ? 'text-black' : 'text-white drop-shadow-lg'}`}>
+            <h2 className={`text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 leading-tight text-white ${isLight ? '' : 'drop-shadow-lg'}`}>
               {feature.title}
             </h2>
             {feature.description && (
-              <p className={`text-base md:text-lg lg:text-xl text-gray-200 leading-relaxed ${isLight ? '' : 'drop-shadow-md'}`}>
+              <p className={`text-base md:text-lg lg:text-xl text-white leading-relaxed ${isLight ? '' : 'drop-shadow-md'}`}>
                 {feature.description}
               </p>
             )}
