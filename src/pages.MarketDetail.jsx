@@ -229,25 +229,25 @@ function ContractNews({ contractId }) {
 
   if (loading) {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 sticky top-6">
-        <h2 className="text-lg font-semibold mb-4">Related News</h2>
-        <div className="text-center text-gray-500 py-4">Loading news...</div>
+      <div className={`rounded-xl p-6 sticky top-6 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
+        <h2 className={`text-lg font-semibold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Related News</h2>
+        <div className={`text-center py-4 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Loading news...</div>
       </div>
     );
   }
 
   if (news.length === 0) {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 sticky top-6">
-        <h2 className="text-lg font-semibold mb-4">Related News</h2>
-        <div className="text-center text-gray-500 py-4 text-sm">No news articles yet.</div>
+      <div className={`rounded-xl p-6 sticky top-6 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
+        <h2 className={`text-lg font-semibold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Related News</h2>
+        <div className={`text-center py-4 text-sm ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>No news articles yet.</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 sticky top-6">
-      <h2 className="text-lg font-semibold mb-4">Related News</h2>
+    <div className={`rounded-xl p-6 sticky top-6 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
+      <h2 className={`text-lg font-semibold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Related News</h2>
       <div className="space-y-4">
         {news.map(item => (
           <a
@@ -255,27 +255,27 @@ function ContractNews({ contractId }) {
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition group"
+            className={`block rounded-lg p-4 transition group border ${isLight ? 'bg-gray-50 border-gray-300 hover:border-gray-400' : 'bg-gray-800/50 border-gray-700 hover:border-gray-600'}`}
           >
             {item.imageUrl && (
               <img 
                 src={item.imageUrl} 
                 alt={item.title}
-                className="w-full h-32 object-cover rounded-lg mb-3 border border-gray-700"
+                className={`w-full h-32 object-cover rounded-lg mb-3 border ${isLight ? 'border-gray-300' : 'border-gray-700'}`}
               />
             )}
             <div className="flex items-center gap-2 mb-2">
               <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
                 {item.category || "News"}
               </span>
-              <span className="text-xs text-gray-500">{formatDate(item.createdAt)}</span>
+              <span className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>{formatDate(item.createdAt)}</span>
             </div>
             <h3 className={`text-sm font-semibold mb-2 group-hover:text-blue-400 transition line-clamp-2 ${isLight ? 'text-black' : 'text-white'}`}>
               {item.title}
             </h3>
-            <p className="text-xs text-gray-400 line-clamp-2 mb-2">{item.summary}</p>
+            <p className={`text-xs line-clamp-2 mb-2 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>{item.summary}</p>
             {item.source && (
-              <div className="text-xs text-gray-500">{item.source}</div>
+              <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>{item.source}</div>
             )}
           </a>
         ))}
@@ -446,7 +446,7 @@ function Chat({ contractId, userEmail }) {
 
     return (
       <div className={isReply ? "ml-8 mt-3" : ""}>
-        <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <div className={`rounded-lg p-4 border ${isLight ? 'bg-gray-50 border-gray-300' : 'bg-gray-800/50 border-gray-700'}`}>
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-3">
               {profilePicture ? (
@@ -464,7 +464,7 @@ function Chat({ contractId, userEmail }) {
                 <div className={`text-sm font-medium ${isLight ? 'text-black' : 'text-white'}`}>
                   {displayName}
                 </div>
-                <div className="text-xs text-gray-500">{formatTime(comment.createdAt)}</div>
+                <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>{formatTime(comment.createdAt)}</div>
               </div>
             </div>
             {isAuthor && (
@@ -476,7 +476,7 @@ function Chat({ contractId, userEmail }) {
               </button>
             )}
           </div>
-          <p className="text-gray-300 text-sm mb-3 whitespace-pre-wrap">{comment.text}</p>
+          <p className={`text-sm mb-3 whitespace-pre-wrap ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>{comment.text}</p>
           <div className="flex items-center gap-4">
             <button
               onClick={() => handleLike(comment.id)}
@@ -532,7 +532,11 @@ function Chat({ contractId, userEmail }) {
             placeholder={replyingTo ? "Write a reply..." : "Share your thoughts..."}
             rows={3}
             maxLength={5000}
-            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"
+            className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none border ${
+              isLight 
+                ? 'bg-white border-gray-300 text-black placeholder-gray-400' 
+                : 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+            }`}
           />
           <div className="flex items-center justify-between mt-2">
             <span className="text-xs text-gray-500">{newComment.length}/5000</span>
@@ -546,7 +550,7 @@ function Chat({ contractId, userEmail }) {
           </div>
         </form>
       ) : (
-        <div className="mb-6 p-4 bg-gray-800/50 border border-gray-700 rounded-lg text-center">
+        <div className={`mb-6 p-4 rounded-lg text-center border ${isLight ? 'bg-gray-50 border-gray-300' : 'bg-gray-800/50 border-gray-700'}`}>
           <Link to="/login" className="text-blue-400 hover:text-blue-300 text-sm">
             Log in to participate in the chat
           </Link>
@@ -555,9 +559,9 @@ function Chat({ contractId, userEmail }) {
 
       {/* Comments List */}
       {loading ? (
-        <div className="text-center text-gray-500 py-8">Loading comments...</div>
+        <div className={`text-center py-8 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Loading comments...</div>
       ) : topLevelComments.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">No comments yet. Be the first to comment!</div>
+        <div className={`text-center py-8 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>No comments yet. Be the first to comment!</div>
       ) : (
         <div className="space-y-4">
           {topLevelComments.map(comment => (
@@ -910,17 +914,17 @@ export default function MarketDetailPage(){
         {/* Left Column: Chart, Probability, Order Book */}
         <div className="lg:col-span-2 space-y-6">
           {/* Price Chart - Same Width as Order Book */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <div className={`rounded-xl p-6 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Price History</h2>
+              <h2 className={`text-lg font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Price History</h2>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-gray-400">YES</span>
+                  <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>YES</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <span className="text-gray-400">NO</span>
+                  <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>NO</span>
                 </div>
               </div>
             </div>
@@ -928,9 +932,9 @@ export default function MarketDetailPage(){
           </div>
           
           {/* Market Context Button */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div className={`rounded-xl p-4 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
             <motion.button
-              className={`w-full text-left text-gray-300 font-medium transition-colors ${isLight ? 'hover:text-black' : 'hover:text-white'}`}
+              className={`w-full text-left font-medium transition-colors ${isLight ? 'text-black hover:text-gray-700' : 'text-gray-300 hover:text-white'}`}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
@@ -939,7 +943,7 @@ export default function MarketDetailPage(){
           </div>
           
           {/* Probability Display - Buttons with Orderbook Dropdowns */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div className={`rounded-xl p-4 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
             <div className="flex flex-col gap-4">
               {/* YES Price Button */}
               <div className="relative">
@@ -962,7 +966,7 @@ export default function MarketDetailPage(){
                       style={{width: `${yesPrice}%`}} 
                     />
                   </div>
-                  <div className="text-xs text-gray-400">{yesPrice}% probability</div>
+                  <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>{yesPrice}% probability</div>
                 </motion.button>
                 
                 {/* YES Orderbook Dropdown */}
@@ -978,24 +982,24 @@ export default function MarketDetailPage(){
                         damping: 25,
                         mass: 0.8
                       }}
-                      className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden z-10 shadow-xl"
+                      className={`absolute top-full left-0 right-0 mt-2 rounded-lg overflow-hidden z-10 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-800 border-gray-700'}`}
                     >
-                      <div className="p-3 bg-green-500/10 border-b border-gray-700">
+                      <div className={`p-3 bg-green-500/10 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
                         <div className="text-sm font-semibold text-green-400">YES Order Book</div>
                       </div>
                       <div>
                         {/* Sell Orders (Asks) */}
-                        <div className="p-3 space-y-1 border-b border-gray-700">
-                          <div className="text-xs text-gray-500 mb-2 font-medium">Sell Orders</div>
+                        <div className={`p-3 space-y-1 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
+                          <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Sell Orders</div>
                           {orderBook.yes.sell.map((order, i) => (
                             <div key={i} className="flex justify-between text-sm py-1">
                               <span className="text-red-400 font-medium">{Math.round(order.price * 100)}¢</span>
-                              <span className="text-gray-300">{order.shares}</span>
+                              <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
                             </div>
                           ))}
                         </div>
                         {/* Current Price */}
-                        <div className="p-3 bg-gray-800/50 border-y border-gray-700">
+                        <div className={`p-3 border-y ${isLight ? 'bg-gray-50 border-gray-200' : 'bg-gray-800/50 border-gray-700'}`}>
                           <div className="flex justify-between items-center">
                             <span className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Current</span>
                             <span className="text-lg font-bold text-green-400">{yesPrice}¢</span>
@@ -1003,11 +1007,11 @@ export default function MarketDetailPage(){
                         </div>
                         {/* Buy Orders (Bids) */}
                         <div className="p-3 space-y-1">
-                          <div className="text-xs text-gray-500 mb-2 font-medium">Buy Orders</div>
+                          <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Buy Orders</div>
                           {orderBook.yes.buy.map((order, i) => (
                             <div key={i} className="flex justify-between text-sm py-1">
                               <span className="text-green-400 font-medium">{Math.round(order.price * 100)}¢</span>
-                              <span className="text-gray-300">{order.shares}</span>
+                              <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
                             </div>
                           ))}
                         </div>
@@ -1031,14 +1035,14 @@ export default function MarketDetailPage(){
                       className={`w-4 h-4 text-red-400 transition-transform ${openOrderbook === 'no' ? 'rotate-180' : ''}`}
                     />
                   </div>
-                  <div className="text-3xl font-bold text-white mb-2">{noPrice}¢</div>
-                  <div className="w-full bg-gray-800 rounded-full h-1.5 mb-1">
+                  <div className={`text-3xl font-bold mb-2 ${isLight ? 'text-black' : 'text-white'}`}>{noPrice}¢</div>
+                  <div className={`w-full rounded-full h-1.5 mb-1 ${isLight ? 'bg-gray-200' : 'bg-gray-800'}`}>
                     <div 
                       className="bg-red-500 h-1.5 rounded-full transition-all" 
                       style={{width: `${noPrice}%`}} 
                     />
                   </div>
-                  <div className="text-xs text-gray-400">{noPrice}% probability</div>
+                  <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>{noPrice}% probability</div>
                 </motion.button>
                 
                 {/* NO Orderbook Dropdown */}
@@ -1054,24 +1058,24 @@ export default function MarketDetailPage(){
                         damping: 25,
                         mass: 0.8
                       }}
-                      className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden z-10 shadow-xl"
+                      className={`absolute top-full left-0 right-0 mt-2 rounded-lg overflow-hidden z-10 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-800 border-gray-700'}`}
                     >
-                      <div className="p-3 bg-red-500/10 border-b border-gray-700">
+                      <div className={`p-3 bg-red-500/10 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
                         <div className="text-sm font-semibold text-red-400">NO Order Book</div>
                       </div>
                       <div>
                         {/* Sell Orders (Asks) */}
-                        <div className="p-3 space-y-1 border-b border-gray-700">
-                          <div className="text-xs text-gray-500 mb-2 font-medium">Sell Orders</div>
+                        <div className={`p-3 space-y-1 border-b ${isLight ? 'border-gray-200' : 'border-gray-700'}`}>
+                          <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Sell Orders</div>
                           {orderBook.no.sell.map((order, i) => (
                             <div key={i} className="flex justify-between text-sm py-1">
                               <span className="text-red-400 font-medium">{Math.round(order.price * 100)}¢</span>
-                              <span className="text-gray-300">{order.shares}</span>
+                              <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
                             </div>
                           ))}
                         </div>
                         {/* Current Price */}
-                        <div className="p-3 bg-gray-800/50 border-y border-gray-700">
+                        <div className={`p-3 border-y ${isLight ? 'bg-gray-50 border-gray-200' : 'bg-gray-800/50 border-gray-700'}`}>
                           <div className="flex justify-between items-center">
                             <span className={`text-sm font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Current</span>
                             <span className="text-lg font-bold text-red-400">{noPrice}¢</span>
@@ -1079,11 +1083,11 @@ export default function MarketDetailPage(){
                         </div>
                         {/* Buy Orders (Bids) */}
                         <div className="p-3 space-y-1">
-                          <div className="text-xs text-gray-500 mb-2 font-medium">Buy Orders</div>
+                          <div className={`text-xs mb-2 font-medium ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Buy Orders</div>
                           {orderBook.no.buy.map((order, i) => (
                             <div key={i} className="flex justify-between text-sm py-1">
                               <span className="text-green-400 font-medium">{Math.round(order.price * 100)}¢</span>
-                              <span className="text-gray-300">{order.shares}</span>
+                              <span className={isLight ? 'text-gray-700' : 'text-gray-300'}>{order.shares}</span>
                             </div>
                           ))}
                         </div>
@@ -1099,8 +1103,8 @@ export default function MarketDetailPage(){
 
         {/* Right Column: Trading Panel */}
         <div className="lg:col-span-1">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 sticky top-20">
-            <h2 className="text-lg font-semibold mb-4">Place Order</h2>
+          <div className={`rounded-xl p-6 sticky top-20 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
+            <h2 className={`text-lg font-semibold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Place Order</h2>
             
             {error && (
               <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
@@ -1109,13 +1113,13 @@ export default function MarketDetailPage(){
             )}
 
             {/* Buy/Sell Toggle */}
-            <div className="flex gap-2 mb-4 bg-gray-800 rounded-lg p-1">
+            <div className={`flex gap-2 mb-4 rounded-lg p-1 ${isLight ? 'bg-gray-100' : 'bg-gray-800'}`}>
               <button
                 onClick={() => setOrderType("buy")}
                 className={`flex-1 py-2.5 rounded-md font-semibold text-sm transition ${
                   orderType === "buy"
                     ? "bg-blue-600 text-white"
-                    : "text-gray-400 hover:text-white"
+                    : isLight ? "text-gray-600 hover:text-black" : "text-gray-400 hover:text-white"
                 }`}
               >
                 Buy
@@ -1125,7 +1129,7 @@ export default function MarketDetailPage(){
                 className={`flex-1 py-2.5 rounded-md font-semibold text-sm transition ${
                   orderType === "sell"
                     ? "bg-orange-600 text-white"
-                    : "text-gray-400 hover:text-white"
+                    : isLight ? "text-gray-600 hover:text-black" : "text-gray-400 hover:text-white"
                 }`}
               >
                 Sell
@@ -1139,7 +1143,7 @@ export default function MarketDetailPage(){
                 className={`py-3 rounded-lg font-semibold transition ${
                   side === "yes"
                     ? "bg-green-600 text-white"
-                    : "bg-gray-800 text-gray-400 hover:text-white"
+                    : isLight ? "bg-gray-200 text-gray-600 hover:text-black" : "bg-gray-800 text-gray-400 hover:text-white"
                 }`}
               >
                 YES
@@ -1149,7 +1153,7 @@ export default function MarketDetailPage(){
                 className={`py-3 rounded-lg font-semibold transition ${
                   side === "no"
                     ? "bg-red-600 text-white"
-                    : "bg-gray-800 text-gray-400 hover:text-white"
+                    : isLight ? "bg-gray-200 text-gray-600 hover:text-black" : "bg-gray-800 text-gray-400 hover:text-white"
                 }`}
               >
                 NO
@@ -1158,7 +1162,7 @@ export default function MarketDetailPage(){
 
             {/* Amount Input */}
             <div className="mb-4">
-              <label className="block text-sm text-gray-400 mb-2">
+              <label className={`block text-sm mb-2 ${isLight ? 'text-gray-700' : 'text-gray-400'}`}>
                 {orderType === "buy" ? "Amount USD" : "Shares to Sell"}
               </label>
               <input
@@ -1167,10 +1171,14 @@ export default function MarketDetailPage(){
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder={orderType === "buy" ? "0.00" : "0"}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-blue-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className={`w-full px-4 py-3 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border ${
+                  isLight 
+                    ? 'bg-white border-gray-300 text-black placeholder-gray-400' 
+                    : 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                }`}
               />
               {orderType === "sell" && maxSell > 0 && (
-                <div className="text-xs text-gray-500 mt-1.5">
+                <div className={`text-xs mt-1.5 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                   Max: {maxSell.toFixed(2)} shares
                 </div>
               )}
@@ -1178,20 +1186,20 @@ export default function MarketDetailPage(){
 
             {/* Order Summary */}
             {amount && parseFloat(amount) > 0 && (
-              <div className="mb-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                <div className="text-sm text-gray-400 mb-2">Order Summary</div>
+              <div className={`mb-4 p-4 rounded-lg border ${isLight ? 'bg-gray-50 border-gray-300' : 'bg-gray-800/50 border-gray-700'}`}>
+                <div className={`text-sm mb-2 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Order Summary</div>
                 {orderType === "buy" && sharesReceived && (
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Price:</span>
+                      <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>Price:</span>
                       <span className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>{Math.round(price * 100)}¢</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">You'll receive:</span>
+                      <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>You'll receive:</span>
                       <span className="text-green-400 font-bold">{sharesReceived} shares</span>
                     </div>
-                    <div className="flex justify-between pt-2 border-t border-gray-700">
-                      <span className="text-gray-400">Total cost:</span>
+                    <div className={`flex justify-between pt-2 border-t ${isLight ? 'border-gray-300' : 'border-gray-700'}`}>
+                      <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>Total cost:</span>
                       <span className={`font-semibold ${isLight ? 'text-black' : 'text-white'}`}>${parseFloat(amount).toFixed(2)}</span>
                     </div>
                   </div>
@@ -1199,15 +1207,15 @@ export default function MarketDetailPage(){
                 {orderType === "sell" && usdReceived && (
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Price:</span>
+                      <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>Price:</span>
                       <span className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>{Math.round(price * 100)}¢</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">You'll receive:</span>
+                      <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>You'll receive:</span>
                       <span className="text-green-400 font-bold">${usdReceived}</span>
                     </div>
-                    <div className="flex justify-between pt-2 border-t border-gray-700">
-                      <span className="text-gray-400">Shares selling:</span>
+                    <div className={`flex justify-between pt-2 border-t ${isLight ? 'border-gray-300' : 'border-gray-700'}`}>
+                      <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>Shares selling:</span>
                       <span className={`font-semibold ${isLight ? 'text-black' : 'text-white'}`}>{parseFloat(amount).toFixed(2)}</span>
                     </div>
                   </div>
@@ -1324,14 +1332,14 @@ function ContractTabs({ contractId, userEmail }) {
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+    <div className={`rounded-xl overflow-hidden border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
       {/* Tab Navigation */}
-      <div className="border-b border-gray-800 flex">
+      <div className={`border-b flex ${isLight ? 'border-gray-200' : 'border-gray-800'}`}>
         <button
           onClick={() => setActiveTab("chat")}
               className={`flex-1 px-6 py-4 text-sm font-medium transition ${
                 activeTab === "chat"
-                  ? `${isLight ? 'text-black' : 'text-white'} border-b-2 border-blue-500 bg-gray-800/50`
+                  ? `${isLight ? 'text-black' : 'text-white'} border-b-2 border-blue-500 ${isLight ? 'bg-gray-50' : 'bg-gray-800/50'}`
                   : isLight ? "text-gray-600 hover:text-black" : "text-gray-400 hover:text-white"
               }`}
         >
@@ -1341,7 +1349,7 @@ function ContractTabs({ contractId, userEmail }) {
           onClick={() => setActiveTab("holders")}
               className={`flex-1 px-6 py-4 text-sm font-medium transition ${
                 activeTab === "holders"
-                  ? `${isLight ? 'text-black' : 'text-white'} border-b-2 border-blue-500 bg-gray-800/50`
+                  ? `${isLight ? 'text-black' : 'text-white'} border-b-2 border-blue-500 ${isLight ? 'bg-gray-50' : 'bg-gray-800/50'}`
                   : isLight ? "text-gray-600 hover:text-black" : "text-gray-400 hover:text-white"
               }`}
         >
@@ -1351,7 +1359,7 @@ function ContractTabs({ contractId, userEmail }) {
           onClick={() => setActiveTab("activity")}
               className={`flex-1 px-6 py-4 text-sm font-medium transition ${
                 activeTab === "activity"
-                  ? `${isLight ? 'text-black' : 'text-white'} border-b-2 border-blue-500 bg-gray-800/50`
+                  ? `${isLight ? 'text-black' : 'text-white'} border-b-2 border-blue-500 ${isLight ? 'bg-gray-50' : 'bg-gray-800/50'}`
                   : isLight ? "text-gray-600 hover:text-black" : "text-gray-400 hover:text-white"
               }`}
         >
@@ -1367,17 +1375,17 @@ function ContractTabs({ contractId, userEmail }) {
         
         {activeTab === "holders" && (
           <div>
-            <h2 className="text-lg font-semibold mb-4">Top Holders</h2>
+            <h2 className={`text-lg font-semibold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Top Holders</h2>
             {loadingHolders ? (
-              <div className="text-center text-gray-500 py-8">Loading holders...</div>
+              <div className={`text-center py-8 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Loading holders...</div>
             ) : holders.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">No holders yet.</div>
+              <div className={`text-center py-8 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>No holders yet.</div>
             ) : (
               <div className="space-y-3">
                 {holders.map((holder, index) => (
                   <div
                     key={holder.email}
-                    className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-700 rounded-lg"
+                    className={`flex items-center justify-between p-4 rounded-lg border ${isLight ? 'bg-gray-50 border-gray-300' : 'bg-gray-800/50 border-gray-700'}`}
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-semibold">
@@ -1387,14 +1395,14 @@ function ContractTabs({ contractId, userEmail }) {
                         <div className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>
                           {holder.username || holder.email.split("@")[0]}
                         </div>
-                        <div className="text-xs text-gray-400">{holder.email}</div>
+                        <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>{holder.email}</div>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className={`font-semibold ${isLight ? 'text-black' : 'text-white'}`}>
                         {holder.contracts.toFixed(2)} contracts
                       </div>
-                      <div className="text-xs text-gray-400">
+                      <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
                         ${holder.value.toFixed(2)} value
                       </div>
                     </div>
@@ -1407,17 +1415,17 @@ function ContractTabs({ contractId, userEmail }) {
         
         {activeTab === "activity" && (
           <div>
-            <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
+            <h2 className={`text-lg font-semibold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Recent Activity</h2>
             {loadingActivity ? (
-              <div className="text-center text-gray-500 py-8">Loading activity...</div>
+              <div className={`text-center py-8 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Loading activity...</div>
             ) : activity.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">No activity yet.</div>
+              <div className={`text-center py-8 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>No activity yet.</div>
             ) : (
               <div className="space-y-3">
                 {activity.map((order) => (
                   <div
                     key={order.id}
-                    className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-700 rounded-lg"
+                    className={`flex items-center justify-between p-4 rounded-lg border ${isLight ? 'bg-gray-50 border-gray-300' : 'bg-gray-800/50 border-gray-700'}`}
                   >
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
@@ -1431,7 +1439,7 @@ function ContractTabs({ contractId, userEmail }) {
                         <div className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>
                           {order.username || order.email.split("@")[0]}
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
                           {order.type === "buy" ? "Bought" : "Sold"} {order.side.toUpperCase()} at {Math.round(order.price * 100)}¢
                         </div>
                       </div>
@@ -1440,7 +1448,7 @@ function ContractTabs({ contractId, userEmail }) {
                       <div className={`font-semibold ${isLight ? 'text-black' : 'text-white'}`}>
                         ${order.amountUsd.toFixed(2)}
                       </div>
-                      <div className="text-xs text-gray-400">
+                      <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
                         {formatTime(order.timestamp)}
                       </div>
                     </div>
