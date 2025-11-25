@@ -200,7 +200,7 @@ export default function DepositButton({ userEmail, onBalanceUpdate }) {
                   <div className="bg-white p-2 rounded-lg">
                     <img src={qr} alt="QR Code" className="w-32 h-32" />
                   </div>
-                  <p className="text-xs text-gray-400 mt-2 text-center">
+                  <p className={`text-xs mt-2 text-center ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
                     Scan with your wallet app to deposit
                   </p>
                 </div>
@@ -216,7 +216,7 @@ export default function DepositButton({ userEmail, onBalanceUpdate }) {
 
               {/* Scan Button */}
               <div className="flex items-center justify-between pt-1">
-                <div className="text-xs text-gray-400">
+                <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
                   {lastScan ? `Last checked: ${new Date(lastScan).toLocaleTimeString()}` : "Click to check for deposits"}
                 </div>
                 <button
@@ -231,25 +231,29 @@ export default function DepositButton({ userEmail, onBalanceUpdate }) {
 
               {/* Transaction History */}
               <div className="flex-shrink-0">
-                <h4 className="text-xs font-semibold text-white mb-2">Recent Deposits</h4>
+                <h4 className={`text-xs font-semibold mb-2 ${isLight ? 'text-black' : 'text-white'}`}>Recent Deposits</h4>
                 {loading ? (
-                  <div className="text-center py-2 text-gray-400 text-xs">Loading...</div>
+                  <div className={`text-center py-2 text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Loading...</div>
                 ) : deposits.length === 0 ? (
-                  <div className="text-center py-2 text-gray-500 text-xs">
+                  <div className={`text-center py-2 text-xs ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                     No deposits yet. Send {asset} to the address above.
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {deposits.slice(0, 2).map((dep) => (
-                      <div key={dep.id || dep.txHash} className="bg-gray-800 border border-gray-700 rounded-lg p-3">
+                      <div key={dep.id || dep.txHash} className={`rounded-lg p-3 border ${
+                        isLight 
+                          ? 'bg-gray-50 border-gray-300' 
+                          : 'bg-gray-800 border-gray-700'
+                      }`}>
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <CheckCircle2 size={12} className="text-green-500" />
-                              <span className="text-white font-medium text-xs">{dep.asset}</span>
-                              <span className="text-gray-400 text-xs">${dep.amountUSD?.toFixed(2) || dep.amount?.toFixed(2)}</span>
+                              <span className={`font-medium text-xs ${isLight ? 'text-black' : 'text-white'}`}>{dep.asset}</span>
+                              <span className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>${dep.amountUSD?.toFixed(2) || dep.amount?.toFixed(2)}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className={`flex items-center gap-2 text-xs ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                               <span className="text-xs">{formatDate(dep.timestamp)}</span>
                               {dep.txHash && (
                                 <a
@@ -267,7 +271,7 @@ export default function DepositButton({ userEmail, onBalanceUpdate }) {
                           <div className="text-right">
                             <div className="text-green-400 text-xs font-medium">Confirmed</div>
                             {dep.blockNumber && (
-                              <div className="text-xs text-gray-500">#{dep.blockNumber}</div>
+                              <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>#{dep.blockNumber}</div>
                             )}
                           </div>
                         </div>
