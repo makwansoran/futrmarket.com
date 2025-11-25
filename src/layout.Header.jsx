@@ -142,7 +142,7 @@ function AccountMenu({ userEmail, onLogout }) {
               Leaderboard
             </Link>
             <div
-              className={`flex items-center justify-between px-3 py-2 ${
+              className={`flex items-center gap-3 px-3 py-2 ${
                 isLight 
                   ? 'hover:bg-gray-50' 
                   : 'hover:bg-white/5'
