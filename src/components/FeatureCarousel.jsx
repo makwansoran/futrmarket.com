@@ -228,7 +228,7 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
   // Priority: Subject link > External URL > No link
   // If feature has a subject, always link to the subject page
   const content = subject ? (
-    <Link to={`/subjects/${subject.slug}`} className="block">
+    <Link to={`/subjects/${subject.slug}`} className="block" style={{ boxShadow: 'none' }}>
       <FeatureCardContent feature={feature} subject={subject} />
     </Link>
   ) : feature.url ? (
@@ -237,6 +237,7 @@ function FeatureSlide({ feature, direction, subjects = [] }) {
       target="_blank"
       rel="noopener noreferrer"
       className="block"
+      style={{ boxShadow: 'none' }}
     >
       <FeatureCardContent feature={feature} subject={subject} />
     </a>
