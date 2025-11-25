@@ -264,8 +264,8 @@ export default function LoginPage({ onLogin }){
         ) : step === 4 ? (
           <form onSubmit={handleResetPassword}>
             <div className="mb-4">
-              <p className="text-sm text-gray-400 mb-4">
-                We sent a 6-digit verification code to <span className="text-white font-medium">{email}</span>
+              <p className={`text-sm mb-4 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                We sent a 6-digit verification code to <span className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>{email}</span>
               </p>
               
               {/* Verification Code field */}
@@ -358,8 +358,8 @@ export default function LoginPage({ onLogin }){
         ) : (
           <form onSubmit={handleVerify}>
             <div className="mb-4">
-              <p className="text-sm text-gray-400 mb-4">
-                We sent a 6-digit verification code to <span className="text-white font-medium">{email}</span>
+              <p className={`text-sm mb-4 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                We sent a 6-digit verification code to <span className={`font-medium ${isLight ? 'text-black' : 'text-white'}`}>{email}</span>
               </p>
               
               {/* Verification Code field */}
@@ -398,7 +398,7 @@ export default function LoginPage({ onLogin }){
               type="button"
               onClick={handleResend}
               disabled={loading}
-              className="w-full text-sm text-gray-400 hover:text-gray-300 disabled:opacity-50 mb-3"
+              className={`w-full text-sm disabled:opacity-50 mb-3 ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}
             >
               Didn't receive code? Resend
             </button>
