@@ -1,7 +1,7 @@
 import React from "react"
 import { X, Copy, Check, ExternalLink, RefreshCw, CheckCircle2 } from "lucide-react"
 import { getApiUrl } from "/src/api.js"
-import { useTheme } from "../contexts/ThemeContext.jsx"
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
 export default function DepositButton({ userEmail, onBalanceUpdate }) {
   const { theme } = useTheme();
@@ -149,11 +149,15 @@ export default function DepositButton({ userEmail, onBalanceUpdate }) {
             <div className="p-4 space-y-3 overflow-visible">
               {/* Asset Selection */}
               <div>
-                <label className="text-xs text-gray-300 mb-2 block">Select Asset</label>
+                <label className={`text-xs mb-2 block ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>Select Asset</label>
                 <select
                   value={asset}
                   onChange={e=>setAsset(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className={`w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                    isLight 
+                      ? 'bg-white border-gray-300 text-black' 
+                      : 'bg-gray-800 border-gray-700 text-white'
+                  }`}
                 >
                   <option value="USDC">USDC (Ethereum)</option>
                   <option value="ETH">ETH (Ethereum)</option>
@@ -162,22 +166,30 @@ export default function DepositButton({ userEmail, onBalanceUpdate }) {
 
               {/* Deposit Address */}
               <div>
-                <label className="text-xs text-gray-300 mb-2 block">Deposit Address</label>
+                <label className={`text-xs mb-2 block ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>Deposit Address</label>
                 <div className="flex items-center gap-2">
                   <input
                     value={addr||""}
                     readOnly
-                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 font-mono text-xs text-white"
+                    className={`flex-1 rounded-lg px-3 py-2 font-mono text-xs border ${
+                      isLight 
+                        ? 'bg-white border-gray-300 text-black' 
+                        : 'bg-gray-800 border-gray-700 text-white'
+                    }`}
                   />
                   <button
                     onClick={copyAddress}
-                    className="px-3 py-2 rounded-lg border border-gray-700 hover:bg-gray-800 text-xs text-white flex items-center gap-1 transition"
+                    className={`px-3 py-2 rounded-lg border text-xs flex items-center gap-1 transition ${
+                      isLight 
+                        ? 'border-gray-300 hover:bg-gray-100 text-black' 
+                        : 'border-gray-700 hover:bg-gray-800 text-white'
+                    }`}
                   >
                     {copied ? <Check size={14} /> : <Copy size={14} />}
                     {copied ? "Copied" : "Copy"}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className={`text-xs mt-1 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                   Send only {asset} to this address. Sending other assets may result in permanent loss.
                 </p>
               </div>

@@ -358,13 +358,17 @@ export default function CashButton({
 
               {/* Info */}
               <div 
-                className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2"
+                className={`rounded-lg p-3 space-y-2 border ${
+                  isLight 
+                    ? 'bg-gray-50 border-gray-300' 
+                    : 'bg-gray-800 border-gray-700'
+                }`}
                 style={{
                   animation: `menuItemSlideIn 0.2s ease-out ${!useBlockchain ? '0.2s' : '0.1s'} forwards`
                 }}
               >
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-400">
+                  <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>
                     {useBlockchain ? "Marketplace Balance" : "Cash Balance"}
                   </span>
                   <span className="text-green-400 font-medium">
@@ -374,7 +378,7 @@ export default function CashButton({
                     }
                   </span>
                 </div>
-                <div className="text-xs text-gray-500 pt-2 border-t border-gray-700">
+                <div className={`text-xs pt-2 border-t ${isLight ? 'text-gray-600 border-gray-300' : 'text-gray-500 border-gray-700'}`}>
                   {useBlockchain 
                     ? "Balance available in the marketplace contract. Deposit tokens from your wallet to get started."
                     : "Cash can be used to place orders on any market. Deposit funds to get started."
@@ -469,7 +473,7 @@ export default function CashButton({
               {/* Withdrawal Form */}
               <form onSubmit={handleWithdraw} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                     Your Personal Wallet Address
                   </label>
                   <input
@@ -477,15 +481,19 @@ export default function CashButton({
                     value={withdrawAddress}
                     onChange={(e) => setWithdrawAddress(e.target.value)}
                     placeholder="0x..."
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono text-sm"
+                    className={`w-full px-4 py-2 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono text-sm border ${
+                      isLight 
+                        ? 'bg-white border-gray-300 text-black' 
+                        : 'bg-gray-800 border-gray-700 text-white'
+                    }`}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className={`text-xs mt-1 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                     Enter the Ethereum address where you want to receive funds
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                     Asset
                   </label>
                   <select
@@ -494,7 +502,11 @@ export default function CashButton({
                       setAsset(e.target.value);
                       loadCustodialAddress();
                     }}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                      isLight 
+                        ? 'bg-white border-gray-300 text-black' 
+                        : 'bg-gray-800 border-gray-700 text-white'
+                    }`}
                   >
                     <option value="USDC">USDC</option>
                     <option value="ETH">ETH</option>
@@ -502,11 +514,11 @@ export default function CashButton({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                     Amount (USD)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-400">$</span>
+                    <span className={`absolute left-3 top-2.5 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>$</span>
                     <input
                       type="number"
                       step="0.01"
@@ -515,10 +527,14 @@ export default function CashButton({
                       value={withdrawAmount}
                       onChange={(e) => setWithdrawAmount(e.target.value)}
                       placeholder="0.00"
-                      className="w-full pl-8 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      className={`w-full pl-8 pr-4 py-2 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 border ${
+                        isLight 
+                          ? 'bg-white border-gray-300 text-black' 
+                          : 'bg-gray-800 border-gray-700 text-white'
+                      }`}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className={`flex justify-between text-xs mt-1 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                     <span>Available: ${cashValue.toFixed(2)}</span>
                     <button
                       type="button"

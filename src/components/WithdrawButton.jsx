@@ -175,17 +175,21 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
 
             <div className="p-6 space-y-4 overflow-y-auto">
               {/* Your Custodial Wallet Info */}
-              <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                <div className="text-xs text-gray-400 mb-2">Your Deposit Address</div>
+              <div className={`rounded-lg p-4 border ${
+                isLight 
+                  ? 'bg-gray-50 border-gray-300' 
+                  : 'bg-gray-800 border-gray-700'
+              }`}>
+                <div className={`text-xs mb-2 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Your Deposit Address</div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-white font-mono text-sm flex-1 break-all">{custodialAddress || "Loading..."}</span>
+                  <span className={`font-mono text-sm flex-1 break-all ${isLight ? 'text-black' : 'text-white'}`}>{custodialAddress || "Loading..."}</span>
                   {custodialAddress && (
                     <button
                       onClick={copyAddress}
                       className="flex-shrink-0 p-1.5 rounded hover:bg-gray-700 transition"
                       title="Copy address"
                     >
-                      {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-gray-400" />}
+                      {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className={isLight ? 'text-gray-600' : 'text-gray-400'} />}
                     </button>
                   )}
                 </div>
@@ -194,7 +198,7 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
                     <img src={qr} alt="QR Code" className="w-24 h-24 rounded" />
                   </div>
                 )}
-                <p className="text-xs text-gray-500 mt-2">
+                <p className={`text-xs mt-2 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                   This is your custodial wallet address. Funds deposited here are credited to your account balance.
                 </p>
               </div>
@@ -202,7 +206,7 @@ export default function WithdrawButton({ userEmail, cash, onBalanceUpdate }) {
               {/* Withdrawal Form */}
               <form onSubmit={handleWithdraw} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                     Your Personal Wallet Address
                   </label>
                   <input
