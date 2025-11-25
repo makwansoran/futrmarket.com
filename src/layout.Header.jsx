@@ -152,7 +152,7 @@ function AccountMenu({ userEmail, onLogout }) {
               }}
             >
               <span className={`text-sm ${isLight ? 'text-black' : 'text-white'}`}>
-                Dark Mode Toggle
+                Dark Mode
               </span>
               <ThemeToggle />
             </div>
