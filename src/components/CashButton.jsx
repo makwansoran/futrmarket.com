@@ -17,6 +17,7 @@ export default function CashButton({
   useBlockchain = false
 }) {
   const [open, setOpen] = React.useState(false);
+  const [isClosing, setIsClosing] = React.useState(false);
   const [blockchainBalance, setBlockchainBalance] = React.useState("0");
   const [walletTokenBalance, setWalletTokenBalance] = React.useState("0");
   const [loading, setLoading] = React.useState(false);
@@ -194,15 +195,23 @@ export default function CashButton({
     };
   }, [open, withdrawOpen]);
 
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setOpen(false);
+      setIsClosing(false);
+    }, 200); // Match animation duration
+  };
+
   const handleDeposit = () => {
-    setOpen(false);
+    handleClose();
     // Trigger deposit modal
     setTimeout(() => {
       const depositBtn = document.querySelector('[data-deposit-button]');
       if (depositBtn) {
         depositBtn.click();
       }
-    }, 200);
+    }, 250);
   };
   
   return (
@@ -211,11 +220,11 @@ export default function CashButton({
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log('Cash button clicked, current open:', open);
-          setOpen(v => {
-            console.log('Toggling cash dropdown to:', !v);
-            return !v;
-          });
+          if (open) {
+            handleClose();
+          } else {
+            setOpen(true);
+          }
         }}
         className="flex flex-col items-end text-xs hover:opacity-80 transition cursor-pointer"
       >
@@ -234,16 +243,22 @@ export default function CashButton({
       {open && (
         <>
           <div 
-            className="fixed inset-0 z-[100] bg-transparent" 
-            onClick={() => setOpen(false)}
+            className={`fixed inset-0 z-[100] transition-opacity duration-200 ${
+              isClosing ? 'opacity-0' : 'opacity-100'
+            }`}
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              backdropFilter: 'blur(2px)'
+            }}
+            onClick={handleClose}
           />
           <div 
             className="absolute right-0 top-full mt-2 w-80 rounded-md border border-white/10 bg-gray-900 backdrop-blur-sm shadow-xl z-[101]"
             style={{
-              animation: 'dropdownFadeIn 0.2s ease-out forwards',
+              animation: isClosing 
+                ? 'dropdownFadeOut 0.2s ease-in forwards' 
+                : 'dropdownFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
               transformOrigin: 'top right',
-              opacity: 1,
-              visibility: 'visible'
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -314,10 +329,10 @@ export default function CashButton({
                         alert("Please log in to withdraw funds");
                         return;
                       }
-                      setOpen(false); // Close cash dropdown first
+                      handleClose(); // Close cash dropdown first
                       setTimeout(() => {
                         setWithdrawOpen(true); // Then open withdraw modal
-                      }, 200);
+                      }, 250);
                     }}
                     className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm font-medium cursor-pointer"
                     style={{
@@ -363,11 +378,22 @@ export default function CashButton({
         @keyframes dropdownFadeIn {
           from {
             opacity: 0;
-            transform: translateY(-8px) scale(0.95);
+            transform: translateY(-10px) scale(0.9);
           }
           to {
             opacity: 1;
             transform: translateY(0) scale(1);
+          }
+        }
+        
+        @keyframes dropdownFadeOut {
+          from {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+          to {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.9);
           }
         }
         
