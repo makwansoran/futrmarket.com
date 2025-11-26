@@ -4,20 +4,28 @@ import { getApiUrl } from "./api.js";
 import { motion } from "framer-motion";
 
 const phrases = [
-  "We build",
-  "We create",
-  "We innovate",
-  "We design",
-  "We develop"
+  "Politics",
+  "Crypto",
+  "Climate",
+  "Economics",
+  "Sports",
+  "Mentions",
+  "Companies",
+  "Financials",
+  "Tech & Science"
 ];
 
 function TypewriterText({ isLight }) {
-  const [currentPhraseIndex, setCurrentPhraseIndex] = React.useState(0);
+  const [currentPhrase, setCurrentPhrase] = React.useState(phrases[0]);
   const [displayedText, setDisplayedText] = React.useState("");
   const [isDeleting, setIsDeleting] = React.useState(false);
 
+  const getRandomPhrase = React.useCallback((excludePhrase) => {
+    const availablePhrases = phrases.filter(p => p !== excludePhrase);
+    return availablePhrases[Math.floor(Math.random() * availablePhrases.length)];
+  }, []);
+
   React.useEffect(() => {
-    const currentPhrase = phrases[currentPhraseIndex];
     let timeout;
 
     if (!isDeleting && displayedText.length < currentPhrase.length) {
@@ -36,24 +44,24 @@ function TypewriterText({ isLight }) {
         setDisplayedText(currentPhrase.slice(0, displayedText.length - 1));
       }, 50);
     } else if (isDeleting && displayedText.length === 0) {
-      // Finished deleting, move to next phrase
+      // Finished deleting, pick a random phrase (different from current)
       setIsDeleting(false);
-      setCurrentPhraseIndex((prev) => (prev + 1) % phrases.length);
+      setCurrentPhrase(getRandomPhrase(currentPhrase));
     }
 
     return () => clearTimeout(timeout);
-  }, [displayedText, isDeleting, currentPhraseIndex]);
+  }, [displayedText, isDeleting, currentPhrase, getRandomPhrase]);
 
   return (
     <div className="mb-8">
       <h1 className="text-3xl font-bold text-black mb-2">Predict</h1>
-      <h2 className="text-3xl font-bold">
+      <h2 className="text-5xl md:text-6xl font-bold">
         <span className="inline-block text-blue-500">
           {displayedText}
           <motion.span
             animate={{ opacity: [1, 0] }}
             transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
-            className="inline-block w-0.5 h-6 bg-blue-500 ml-1 align-middle"
+            className="inline-block w-1 h-10 md:h-12 bg-blue-500 ml-2 align-middle"
           />
         </span>
       </h2>
