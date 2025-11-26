@@ -54,8 +54,17 @@ function TypewriterText({ isLight }) {
 
   return (
     <div className="mb-8">
-      <h1 className="text-3xl font-bold text-black mb-2">Predict On</h1>
-      <h2 className="text-5xl md:text-6xl font-bold">
+      <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6" style={{
+        background: 'linear-gradient(135deg, #c0c0c0 0%, #808080 50%, #a0a0a0 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}>
+        Information Center
+      </h1>
+      <h2 className="text-3xl font-bold text-black mb-2">Predict On</h2>
+      <h3 className="text-5xl md:text-6xl font-bold">
         <span className="inline-block text-blue-500">
           {displayedText}
           <motion.span
@@ -64,7 +73,7 @@ function TypewriterText({ isLight }) {
             className="inline-block w-1 h-10 md:h-12 bg-blue-500 ml-2 align-middle"
           />
         </span>
-      </h2>
+      </h3>
     </div>
   );
 }
