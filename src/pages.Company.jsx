@@ -48,7 +48,7 @@ export default function CompanyPage() {
                   : 'bg-gray-800 text-white font-medium'
               }`}
             >
-              Company
+              About Us
             </Link>
             <Link 
               to="/privacy" 
