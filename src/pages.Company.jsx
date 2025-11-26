@@ -176,7 +176,7 @@ export default function CompanyPage() {
       
       {/* Main Content */}
       <div className="flex-1">
-        <h1 className="text-4xl font-bold mb-6" style={{
+        <h1 className="text-4xl font-bold mb-6 ml-2" style={{
           background: 'linear-gradient(135deg, #c0c0c0 0%, #808080 50%, #a0a0a0 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
