@@ -874,7 +874,7 @@ export default function MarketsPage({ markets=[], limit, category }){
               
               return (
                 <div key={category.slug} className="mb-12">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3 mb-4">
                     <h3 className={`text-xl font-semibold ${isLight ? 'text-black' : 'text-white'}`}>{category.name}</h3>
                     <Link 
                       to={`/markets/${category.slug}`}
