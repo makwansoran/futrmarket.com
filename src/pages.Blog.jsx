@@ -56,15 +56,6 @@ function TypewriterText({ isLight }) {
 
   return (
     <div className="mb-8">
-      <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6" style={{
-        background: 'linear-gradient(135deg, #c0c0c0 0%, #808080 50%, #a0a0a0 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}>
-        Information Center
-      </h1>
       <div className="flex items-center gap-4 flex-wrap">
         <h2 className="text-3xl font-bold text-black">Predict On</h2>
         <h3 className="text-3xl font-bold">
