@@ -495,7 +495,9 @@ function HowItWorksButton() {
                     className={`w-2 h-2 rounded-full transition ${
                       index === currentSlide
                         ? "bg-blue-500 w-6"
-                        : "bg-gray-600 hover:bg-gray-500"
+                        : isLight 
+                          ? "bg-gray-300 hover:bg-gray-400"
+                          : "bg-gray-600 hover:bg-gray-500"
                     }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -515,7 +517,11 @@ function HowItWorksButton() {
                 ) : (
                   <button
                     onClick={nextSlide}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isLight
+                        ? "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                        : "bg-gray-800 hover:bg-gray-700 text-white"
+                    }`}
                     disabled={slides.length === 0}
                   >
                     <span className="hidden sm:inline">Next</span>
