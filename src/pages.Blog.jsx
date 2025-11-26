@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useTheme } from "./contexts/ThemeContext.jsx";
 import { getApiUrl } from "./api.js";
 import { motion } from "framer-motion";
@@ -115,9 +116,6 @@ export default function BlogPage() {
     fetchInformation();
   }, []);
 
-  // Get unique categories from posts
-  const categories = [...new Set(posts.map(post => post.category).filter(Boolean))];
-
   if (loading) {
     return (
       <main className={`flex gap-4 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
@@ -142,9 +140,148 @@ export default function BlogPage() {
               </div>
             </div>
             
-            <h3 className={`hidden group-hover:block text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Categories</h3>
-            <div className="space-y-2">
-              {/* Categories will go here */}
+            <h3 className={`hidden group-hover:block text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Navigation</h3>
+            <div className="space-y-1">
+              <Link 
+                to="/blog" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Blog
+              </Link>
+              <Link 
+                to="/company" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Company
+              </Link>
+              <Link 
+                to="/privacy" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Privacy Policy
+              </Link>
+              <Link 
+                to="/data-terms" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Data Terms of Service
+              </Link>
+              <Link 
+                to="/brand-kit" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Brand Kit
+              </Link>
+              <Link 
+                to="/become-a-partner" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Become A Partner
+              </Link>
+              <Link 
+                to="/help" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Help Center
+              </Link>
+              <Link 
+                to="/api" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                API
+              </Link>
+              <Link 
+                to="/faq-finance" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                FAQ for Finance Professionals
+              </Link>
+              <Link 
+                to="/regulatory" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Regulatory
+              </Link>
+              <Link 
+                to="/trading-hours" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Trading Hours
+              </Link>
+              <Link 
+                to="/fee-schedule" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Fee Schedule
+              </Link>
+              <Link 
+                to="/trading-prohibitions" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Trading Prohibitions
+              </Link>
+              <Link 
+                to="/incentive-program" 
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                  isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+                }`}
+              >
+                Incentive Program
+              </Link>
             </div>
           </div>
         </aside>
@@ -183,24 +320,148 @@ export default function BlogPage() {
             </div>
           </div>
           
-          <h3 className={`hidden group-hover:block text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Categories</h3>
-          <div className="space-y-2">
-            {categories.length > 0 ? (
-              categories.map((category) => (
-                <div
-                  key={category}
-                  className={`px-3 py-2 rounded text-sm cursor-pointer transition whitespace-nowrap hidden group-hover:block ${
-                    isLight 
-                      ? 'hover:bg-gray-100 text-gray-700' 
-                      : 'hover:bg-gray-800 text-gray-300'
-                  }`}
-                >
-                  {category}
-                </div>
-              ))
-            ) : (
-              <div className={`hidden group-hover:block text-sm whitespace-nowrap ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>No categories yet</div>
-            )}
+          <h3 className={`hidden group-hover:block text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Navigation</h3>
+          <div className="space-y-1">
+            <Link 
+              to="/blog" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Blog
+            </Link>
+            <Link 
+              to="/company" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Company
+            </Link>
+            <Link 
+              to="/privacy" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Privacy Policy
+            </Link>
+            <Link 
+              to="/data-terms" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Data Terms of Service
+            </Link>
+            <Link 
+              to="/brand-kit" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Brand Kit
+            </Link>
+            <Link 
+              to="/become-a-partner" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Become A Partner
+            </Link>
+            <Link 
+              to="/help" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Help Center
+            </Link>
+            <Link 
+              to="/api" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              API
+            </Link>
+            <Link 
+              to="/faq-finance" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              FAQ for Finance Professionals
+            </Link>
+            <Link 
+              to="/regulatory" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Regulatory
+            </Link>
+            <Link 
+              to="/trading-hours" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Trading Hours
+            </Link>
+            <Link 
+              to="/fee-schedule" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Fee Schedule
+            </Link>
+            <Link 
+              to="/trading-prohibitions" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Trading Prohibitions
+            </Link>
+            <Link 
+              to="/incentive-program" 
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                isLight 
+                  ? 'hover:bg-gray-100 text-gray-700' 
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              Incentive Program
+            </Link>
           </div>
         </div>
       </aside>
