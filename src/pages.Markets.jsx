@@ -665,7 +665,6 @@ export default function MarketsPage({ markets=[], limit, category }){
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-orange-400" />
-            <h2 className={`text-xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>Explore Markets by Category</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(trendingByCategory).map(([category, contracts]) => {
@@ -854,7 +853,6 @@ export default function MarketsPage({ markets=[], limit, category }){
         
         return (
           <div className="mb-12 mt-8">
-            <h2 className={`text-2xl font-bold mb-8 text-center ${isLight ? 'text-black' : 'text-white'}`}>Explore Markets by Category</h2>
             {categorySections.map(({ category, contracts }) => {
               // ABSOLUTE FINAL CHECK: Use Set to ensure no duplicates by ID
               const finalContractsMap = new Map(); // key: contract ID, value: contract
