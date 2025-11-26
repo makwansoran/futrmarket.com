@@ -711,7 +711,7 @@ export default function MarketsPage({ markets=[], limit, category }){
       
       {/* Small feature cards below carousel dots, above contracts */}
       {isHomepage && (
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl mx-auto -mt-16 justify-center ml-8">
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-6xl -mt-16 justify-center" style={{ marginLeft: 'auto', marginRight: 'auto', transform: 'translateX(1.5rem)' }}>
           {/* Grow portfolio */}
           <div className="flex items-start gap-3 p-4">
             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
