@@ -96,6 +96,7 @@ const ORDERS_FILE = path.join(DATA, "orders.json");
 const FORUM_FILE = path.join(DATA, "forum.json");
 const IDEAS_FILE = path.join(DATA, "ideas.json");
 const NEWS_FILE = path.join(DATA, "news.json");
+const BLOG_FILE = path.join(DATA, "blog.json");
 const USERS_FILE = path.join(DATA, "users.json");
 const CODES_FILE = path.join(DATA, "codes.json");
 const COMPETITIONS_FILE = path.join(DATA, "competitions.json");
@@ -2977,6 +2978,105 @@ app.delete("/api/news/:id", requireAdmin, async (req, res) => {
     console.error("Error deleting news:", error);
     res.status(500).json({ ok: false, error: error.message || "Failed to delete news" });
   }
+});
+
+// ---- Blog endpoints ----
+// Get all blog posts
+app.get("/api/blog", (req, res) => {
+  const blog = loadJSON(BLOG_FILE);
+  const blogList = Object.values(blog);
+  const sorted = blogList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  res.json({ ok: true, data: sorted });
+});
+
+// Get a single blog post by ID
+app.get("/api/blog/:id", (req, res) => {
+  const blogId = String(req.params.id || "").trim();
+  const blog = loadJSON(BLOG_FILE);
+  const blogPost = blog[blogId];
+  
+  if (!blogPost) {
+    return res.status(404).json({ ok: false, error: "Blog post not found" });
+  }
+  
+  res.json({ ok: true, data: blogPost });
+});
+
+// Post a new blog post (admin only)
+app.post("/api/blog", requireAdmin, (req, res) => {
+  const title = String(req.body.title || "").trim();
+  const excerpt = String(req.body.excerpt || "").trim();
+  const content = String(req.body.content || "").trim();
+  const author = String(req.body.author || "FutrMarket Team").trim();
+  const category = String(req.body.category || "General").trim();
+  const imageUrl = req.body.imageUrl ? String(req.body.imageUrl).trim() : null;
+  const published = req.body.published !== undefined ? Boolean(req.body.published) : true;
+  
+  if (!title) return res.status(400).json({ ok: false, error: "title required" });
+  if (!excerpt) return res.status(400).json({ ok: false, error: "excerpt required" });
+  if (!content) return res.status(400).json({ ok: false, error: "content required" });
+  
+  const blog = loadJSON(BLOG_FILE);
+  const blogId = `blog_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  const blogPost = {
+    id: blogId,
+    title,
+    excerpt,
+    content,
+    author,
+    category,
+    imageUrl,
+    published,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+  
+  blog[blogId] = blogPost;
+  saveJSON(BLOG_FILE, blog);
+  
+  res.json({ ok: true, data: blogPost });
+});
+
+// Update blog post (admin only)
+app.patch("/api/blog/:id", requireAdmin, (req, res) => {
+  const blogId = String(req.params.id || "").trim();
+  const blog = loadJSON(BLOG_FILE);
+  const blogPost = blog[blogId];
+  
+  if (!blogPost) {
+    return res.status(404).json({ ok: false, error: "Blog post not found" });
+  }
+  
+  // Update allowed fields
+  if (req.body.title !== undefined) blogPost.title = String(req.body.title).trim();
+  if (req.body.excerpt !== undefined) blogPost.excerpt = String(req.body.excerpt).trim();
+  if (req.body.content !== undefined) blogPost.content = String(req.body.content).trim();
+  if (req.body.author !== undefined) blogPost.author = String(req.body.author).trim();
+  if (req.body.category !== undefined) blogPost.category = String(req.body.category).trim();
+  if (req.body.imageUrl !== undefined) blogPost.imageUrl = req.body.imageUrl ? String(req.body.imageUrl).trim() : null;
+  if (req.body.published !== undefined) blogPost.published = Boolean(req.body.published);
+  blogPost.updatedAt = Date.now();
+  
+  blog[blogId] = blogPost;
+  saveJSON(BLOG_FILE, blog);
+  
+  res.json({ ok: true, data: blogPost });
+});
+
+// Delete blog post (admin only)
+app.delete("/api/blog/:id", requireAdmin, (req, res) => {
+  const blogId = String(req.params.id || "").trim();
+  const blog = loadJSON(BLOG_FILE);
+  
+  if (!blog[blogId]) {
+    return res.status(404).json({ ok: false, error: "Blog post not found" });
+  }
+  
+  delete blog[blogId];
+  saveJSON(BLOG_FILE, blog);
+  
+  res.json({ ok: true, message: "Blog post deleted" });
 });
 
 // ---- Features endpoints ----

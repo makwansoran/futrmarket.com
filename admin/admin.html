@@ -66,6 +66,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="stats">Statistics</button>
     <button class="tab" data-tab="news">News</button>
+    <button class="tab" data-tab="blog">Blog</button>
     <button class="tab" data-tab="contracts">Contracts</button>
     <button class="tab" data-tab="subjects">Subjects</button>
     <button class="tab" data-tab="sports">Sports</button>
@@ -133,6 +134,54 @@
       <h2>Existing News Articles</h2>
       <div id="newsList"></div>
       <div class="mt8 meta">Published news articles.</div>
+    </div>
+  </div>
+
+  <!-- Blog Tab -->
+  <div id="tab-blog" class="tab-content">
+    <div class="card">
+      <h2>Create Blog Post</h2>
+      <label>Title</label><input id="blogTitle" placeholder="Blog post title">
+      <label class="mt16">Excerpt/Summary</label><textarea id="blogExcerpt" placeholder="Brief summary that appears in the blog list..." style="min-height:80px;resize:vertical"></textarea>
+      <label class="mt16">Content</label><textarea id="blogContent" placeholder="Full blog post content (supports markdown)..." style="min-height:200px;resize:vertical"></textarea>
+      
+      <div class="row mt16">
+        <div><label>Author</label><input id="blogAuthor" placeholder="FutrMarket Team" value="FutrMarket Team"></div>
+        <div><label>Category</label>
+          <select id="blogCategory">
+            <option>Announcements</option>
+            <option>Tutorial</option>
+            <option>Education</option>
+            <option>News</option>
+            <option>General</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row mt16">
+        <div><label>Published</label>
+          <select id="blogPublished">
+            <option value="true">Yes</option>
+            <option value="false">No (Draft)</option>
+          </select>
+        </div>
+        <div></div>
+      </div>
+
+      <div class="mt16">
+        <label>Featured Image (optional)</label>
+        <input id="blogImg" type="file" accept="image/*">
+        <div id="blogPreview" class="mt8"></div>
+      </div>
+
+      <div class="mt16"><button id="createBlog">Create Blog Post</button></div>
+      <div class="mt8 meta">Create a blog post that appears on the /blog page. Content supports markdown formatting.</div>
+    </div>
+
+    <div class="card mt16">
+      <h2>Existing Blog Posts</h2>
+      <div id="blogList"></div>
+      <div class="mt8 meta">Published and draft blog posts.</div>
     </div>
   </div>
 
@@ -424,6 +473,7 @@
       else if(targetTab === "accounts") loadAccounts();
       else if(targetTab === "contracts") loadContracts();
       else if(targetTab === "news") loadNews();
+      else if(targetTab === "blog") loadBlog();
       else if(targetTab === "features") loadFeatures();
       else if(targetTab === "sports") loadSports();
       else if(targetTab === "subjects") loadSubjects();
@@ -833,6 +883,206 @@
     }
     loadNews();
     alert("News article deleted!");
+  }
+
+  // Blog elements
+  var blogTitle=document.getElementById("blogTitle"),blogExcerpt=document.getElementById("blogExcerpt"),
+      blogContent=document.getElementById("blogContent"),blogAuthor=document.getElementById("blogAuthor"),
+      blogCategory=document.getElementById("blogCategory"),blogPublished=document.getElementById("blogPublished"),
+      blogImg=document.getElementById("blogImg"),blogPreview=document.getElementById("blogPreview"),
+      createBlogBtn=document.getElementById("createBlog"),blogList=document.getElementById("blogList");
+
+  blogImg.onchange = function(){
+    blogPreview.innerHTML = "";
+    if (blogImg.files && blogImg.files[0]) {
+      var url = URL.createObjectURL(blogImg.files[0]);
+      var el = document.createElement("img");
+      el.src = url; el.className = "thumb";
+      blogPreview.appendChild(el);
+    }
+  };
+
+  function blogRow(b){
+    var w=document.createElement("div"); w.className="list-item";
+    var L=document.createElement("div");
+    var top=document.createElement("div"); top.style.display="flex"; top.style.gap="10px"; top.style.alignItems="center";
+    if (b.imageUrl) { var im=document.createElement("img"); im.src=b.imageUrl; im.className="thumb"; top.appendChild(im); }
+    var title=document.createElement("div"); title.textContent=b.title; top.appendChild(title);
+    var meta=document.createElement("div"); meta.className="meta";
+    var status = b.published ? "Published" : "Draft";
+    meta.textContent=(b.category||"General")+" · "+b.author+" · "+status+" · "+new Date(b.createdAt||Date.now()).toLocaleDateString();
+    L.appendChild(top); L.appendChild(meta);
+
+    var R=document.createElement("div"); R.className="flex";
+    var editBtn=document.createElement("button"); editBtn.textContent="Edit"; editBtn.style.marginRight="4px";
+    editBtn.onclick=function(){editBlog(b)};
+    var del=document.createElement("button"); del.className="danger"; del.textContent="Delete";
+    del.onclick=function(){removeBlog(b.id)};
+    R.appendChild(editBtn); R.appendChild(del);
+
+    w.appendChild(L); w.appendChild(R); return w;
+  }
+
+  async function loadBlog(){
+    var token = getT();
+    if (!token) {
+      blogList.innerHTML="<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
+      return;
+    }
+    var r=await fetch(apiEndpoint("/api/blog"),{headers:{"x-admin-token":token}});
+    if(!r.ok){
+      if(r.status===401){
+        blogList.innerHTML="<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
+      }else{
+        blogList.innerHTML="<div class='meta'>Failed to load blog posts: "+r.status+"</div>";
+      }
+      return;
+    }
+    var j=await r.json(); if(!j.ok){blogList.innerHTML="<div class='meta'>Failed: "+(j.error||"unknown")+"</div>";return}
+    blogList.innerHTML="";
+    if(!j.data||!j.data.length){ var e=document.createElement("div");e.className="meta";e.textContent="No blog posts yet.";blogList.appendChild(e);return;}
+    for(var i=0;i<j.data.length;i++) blogList.appendChild(blogRow(j.data[i]));
+  }
+
+  async function uploadBlogImage(){
+    if (!blogImg.files || !blogImg.files[0]) return null;
+    var fd = new FormData();
+    fd.append("image", blogImg.files[0]);
+    var r = await fetch(apiEndpoint("/api/upload"),{ method:"POST", headers:{ "x-admin-token":getT() }, body: fd });
+    if (!r.ok) { throw new Error("Upload failed: "+r.status); }
+    var j = await r.json();
+    if (!j.ok) { throw new Error("Upload failed: "+(j.error||"unknown")); }
+    return j.url;
+  }
+
+  async function createBlog(){
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      if(!blogTitle.value.trim()){alert("Title required");return}
+      if(!blogExcerpt.value.trim()){alert("Excerpt required");return}
+      if(!blogContent.value.trim()){alert("Content required");return}
+      
+      var imageUrl = await uploadBlogImage();
+      var payload = { 
+        title: blogTitle.value.trim(), 
+        excerpt: blogExcerpt.value.trim(), 
+        content: blogContent.value.trim(),
+        author: blogAuthor.value.trim() || "FutrMarket Team",
+        category: blogCategory.value, 
+        published: blogPublished.value === "true",
+        imageUrl: imageUrl 
+      };
+      
+      var r=await fetch(apiEndpoint("/api/blog"),{ 
+        method:"POST", 
+        headers: { "Content-Type":"application/json","x-admin-token":token }, 
+        body: JSON.stringify(payload) 
+      });
+      if(!r.ok){
+        if(r.status===401){
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        }else{
+          var j = await r.json().catch(()=>({}));
+          alert("Create failed: "+(j.error||r.status));
+        }
+        return;
+      }
+      var j=await r.json(); if(!j.ok){alert("Create failed: "+(j.error||"unknown"));return}
+      blogTitle.value=""; blogExcerpt.value=""; blogContent.value=""; blogAuthor.value="FutrMarket Team"; 
+      blogCategory.value="Announcements"; blogPublished.value="true"; blogImg.value=""; blogPreview.innerHTML="";
+      loadBlog();
+      alert("Blog post created successfully!");
+    }catch(e){ alert(e.message || "Could not create blog post"); }
+  }
+
+  function editBlog(b){
+    blogTitle.value=b.title||"";
+    blogExcerpt.value=b.excerpt||"";
+    blogContent.value=b.content||"";
+    blogAuthor.value=b.author||"FutrMarket Team";
+    blogCategory.value=b.category||"Announcements";
+    blogPublished.value=b.published ? "true" : "false";
+    blogImg.value="";
+    blogPreview.innerHTML="";
+    if(b.imageUrl){
+      var img=document.createElement("img");
+      img.src=b.imageUrl;
+      img.className="thumb";
+      blogPreview.appendChild(img);
+    }
+    
+    var btn=createBlogBtn;
+    var originalText=btn.textContent;
+    btn.textContent="Update Blog Post";
+    btn.onclick=function(){
+      updateBlog(b.id);
+      btn.textContent=originalText;
+      btn.onclick=function(){createBlog();};
+    };
+    
+    document.querySelector("#blogTitle").scrollIntoView({behavior:"smooth",block:"center"});
+  }
+
+  async function updateBlog(id){
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      if(!blogTitle.value.trim()){alert("Title required");return}
+      if(!blogExcerpt.value.trim()){alert("Excerpt required");return}
+      if(!blogContent.value.trim()){alert("Content required");return}
+      
+      var imageUrl = await uploadBlogImage();
+      var payload = { 
+        title: blogTitle.value.trim(), 
+        excerpt: blogExcerpt.value.trim(), 
+        content: blogContent.value.trim(),
+        author: blogAuthor.value.trim() || "FutrMarket Team",
+        category: blogCategory.value, 
+        published: blogPublished.value === "true"
+      };
+      if(imageUrl) payload.imageUrl = imageUrl;
+      
+      var r=await fetch(apiEndpoint("/api/blog/"+encodeURIComponent(id)),{ 
+        method:"PATCH", 
+        headers: { "Content-Type":"application/json","x-admin-token":token }, 
+        body: JSON.stringify(payload) 
+      });
+      if(!r.ok){
+        var j = await r.json().catch(()=>({}));
+        alert("Update failed: "+(j.error||r.status));
+        return;
+      }
+      var j=await r.json(); if(!j.ok){alert("Update failed: "+(j.error||"unknown"));return}
+      blogTitle.value=""; blogExcerpt.value=""; blogContent.value=""; blogAuthor.value="FutrMarket Team"; 
+      blogCategory.value="Announcements"; blogPublished.value="true"; blogImg.value=""; blogPreview.innerHTML="";
+      loadBlog();
+      alert("Blog post updated!");
+    }catch(e){ alert(e.message || "Could not update blog post"); }
+  }
+
+  async function removeBlog(id){
+    if (!confirm("Delete blog post "+id+"? This cannot be undone.")) return;
+    var token = getT();
+    var r=await fetch(apiEndpoint("/api/blog/"+encodeURIComponent(id)),{ 
+      method:"DELETE", 
+      headers:{ "x-admin-token":token }
+    });
+    if(!r.ok){
+      var j = await r.json().catch(()=>({}));
+      alert("Delete failed: "+(j.error||r.status));
+      return;
+    }
+    loadBlog();
+    alert("Blog post deleted!");
   }
 
   // Contracts elements
@@ -1524,6 +1774,7 @@
   // Event listeners
   if(createContractBtn) createContractBtn.onclick=function(){ createContract(); };
   if(createNewsBtn) createNewsBtn.onclick=function(){ createNews(); };
+  if(createBlogBtn) createBlogBtn.onclick=function(){ createBlog(); };
   
   // Cleanup duplicates button
   var cleanupDuplicatesBtn = document.getElementById("cleanupDuplicates");
