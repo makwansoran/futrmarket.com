@@ -854,9 +854,6 @@ export default function MarketDetailPage(){
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-3">
-              <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium">
-                {m.category || "General"}
-              </span>
               {m.resolution && (
                 <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm font-medium">
                   Resolved: {m.resolution.toUpperCase()}
