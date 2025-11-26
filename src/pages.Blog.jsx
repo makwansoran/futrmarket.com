@@ -140,7 +140,6 @@ export default function BlogPage() {
               </div>
             </div>
             
-            <h3 className={`text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Navigation</h3>
             <div className="space-y-1">
               <Link 
                 to="/blog" 
