@@ -338,7 +338,7 @@ export default function BlogPage() {
                   : 'hover:bg-gray-800 text-gray-300'
               }`}
             >
-              Company
+              About Us
             </Link>
             <Link 
               to="/privacy" 
