@@ -63,17 +63,19 @@ function TypewriterText({ isLight }) {
       }}>
         Information Center
       </h1>
-      <h2 className="text-3xl font-bold text-black mb-2">Predict On</h2>
-      <h3 className="text-5xl md:text-6xl font-bold">
-        <span className="inline-block text-blue-500">
-          {displayedText}
-          <motion.span
-            animate={{ opacity: [1, 0] }}
-            transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
-            className="inline-block w-1 h-10 md:h-12 bg-blue-500 ml-2 align-middle"
-          />
-        </span>
-      </h3>
+      <div className="flex items-center gap-4 flex-wrap">
+        <h2 className="text-3xl font-bold text-black">Predict On</h2>
+        <h3 className="text-5xl md:text-6xl font-bold">
+          <span className="inline-block text-blue-500">
+            {displayedText}
+            <motion.span
+              animate={{ opacity: [1, 0] }}
+              transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
+              className="inline-block w-1 h-10 md:h-12 bg-blue-500 ml-2 align-middle"
+            />
+          </span>
+        </h3>
+      </div>
     </div>
   );
 }
