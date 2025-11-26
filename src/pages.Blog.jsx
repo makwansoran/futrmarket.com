@@ -121,9 +121,9 @@ export default function BlogPage() {
       <main className={`flex gap-4 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
         {/* Sidebar */}
         <aside className={`w-64 flex-shrink-0 ${isLight ? 'text-black' : 'text-white'}`}>
-          <div className={`sticky top-24 rounded-xl p-4 border-2 overflow-hidden ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
+          <div className={`sticky top-24 rounded-xl p-4 overflow-hidden ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
             {/* Information Center Icon */}
-            <div className="mb-6 pb-4 border-b border-gray-300 dark:border-gray-700">
+            <div className="mb-6 pb-4">
               <div className="flex items-center justify-start">
                 <Info 
                   className={`${isLight ? 'text-gray-600' : 'text-gray-400'} text-blue-500`}
