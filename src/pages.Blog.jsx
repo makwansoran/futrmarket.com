@@ -120,16 +120,16 @@ export default function BlogPage() {
     return (
       <main className={`flex gap-4 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
         {/* Sidebar */}
-        <aside className={`group w-16 hover:w-64 flex-shrink-0 transition-all duration-300 ${isLight ? 'text-black' : 'text-white'}`}>
+        <aside className={`w-64 flex-shrink-0 ${isLight ? 'text-black' : 'text-white'}`}>
           <div className={`sticky top-24 rounded-xl p-4 border-2 overflow-hidden ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
             {/* Information Center Icon */}
             <div className="mb-6 pb-4 border-b border-gray-300 dark:border-gray-700">
-              <div className="flex items-center justify-center group-hover:justify-start">
+              <div className="flex items-center justify-start">
                 <Info 
-                  className={`${isLight ? 'text-gray-600' : 'text-gray-400'} group-hover:text-blue-500 transition-colors`}
+                  className={`${isLight ? 'text-gray-600' : 'text-gray-400'} text-blue-500`}
                   size={24}
                 />
-                <span className="hidden group-hover:inline ml-2 text-sm font-semibold" style={{
+                <span className="ml-2 text-sm font-semibold" style={{
                   background: 'linear-gradient(135deg, #c0c0c0 0%, #808080 50%, #a0a0a0 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
@@ -140,11 +140,11 @@ export default function BlogPage() {
               </div>
             </div>
             
-            <h3 className={`hidden group-hover:block text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Navigation</h3>
+            <h3 className={`text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Navigation</h3>
             <div className="space-y-1">
               <Link 
                 to="/blog" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -154,7 +154,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/company" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -164,7 +164,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/privacy" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -174,7 +174,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/data-terms" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -184,7 +184,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/brand-kit" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -194,7 +194,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/become-a-partner" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -204,7 +204,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/help" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -214,7 +214,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/api" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -224,7 +224,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/faq-finance" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -234,7 +234,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/regulatory" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -244,7 +244,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/trading-hours" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -254,7 +254,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/fee-schedule" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -264,7 +264,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/trading-prohibitions" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -274,7 +274,7 @@ export default function BlogPage() {
               </Link>
               <Link 
                 to="/incentive-program" 
-                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+                className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                   isLight 
                     ? 'hover:bg-gray-100 text-gray-700' 
                     : 'hover:bg-gray-800 text-gray-300'
@@ -300,16 +300,16 @@ export default function BlogPage() {
   return (
     <main className={`flex gap-4 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
       {/* Sidebar */}
-      <aside className={`group w-16 hover:w-64 flex-shrink-0 transition-all duration-300 ${isLight ? 'text-black' : 'text-white'}`}>
+      <aside className={`w-64 flex-shrink-0 ${isLight ? 'text-black' : 'text-white'}`}>
         <div className={`sticky top-24 rounded-xl p-4 border-2 overflow-hidden ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
           {/* Information Center Icon */}
           <div className="mb-6 pb-4 border-b border-gray-300 dark:border-gray-700">
-            <div className="flex items-center justify-center group-hover:justify-start">
+            <div className="flex items-center justify-start">
               <Info 
-                className={`${isLight ? 'text-gray-600' : 'text-gray-400'} group-hover:text-blue-500 transition-colors`}
+                className={`${isLight ? 'text-gray-600' : 'text-gray-400'} text-blue-500`}
                 size={24}
               />
-              <span className="hidden group-hover:inline ml-2 text-sm font-semibold" style={{
+              <span className="ml-2 text-sm font-semibold" style={{
                 background: 'linear-gradient(135deg, #c0c0c0 0%, #808080 50%, #a0a0a0 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -320,11 +320,11 @@ export default function BlogPage() {
             </div>
           </div>
           
-          <h3 className={`hidden group-hover:block text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Navigation</h3>
+          <h3 className={`text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Navigation</h3>
           <div className="space-y-1">
             <Link 
               to="/blog" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -334,7 +334,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/company" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -344,7 +344,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/privacy" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -354,7 +354,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/data-terms" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -364,7 +364,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/brand-kit" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -374,7 +374,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/become-a-partner" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -384,7 +384,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/help" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -394,7 +394,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/api" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -404,7 +404,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/faq-finance" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -414,7 +414,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/regulatory" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -424,7 +424,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/trading-hours" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -434,7 +434,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/fee-schedule" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -444,7 +444,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/trading-prohibitions" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
@@ -454,7 +454,7 @@ export default function BlogPage() {
             </Link>
             <Link 
               to="/incentive-program" 
-              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap hidden group-hover:block ${
+              className={`block px-3 py-2 rounded text-sm transition whitespace-nowrap ${
                 isLight 
                   ? 'hover:bg-gray-100 text-gray-700' 
                   : 'hover:bg-gray-800 text-gray-300'
