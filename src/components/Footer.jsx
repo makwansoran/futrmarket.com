@@ -37,16 +37,6 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/company" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                    Company
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/brand-kit" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                    Brand Kit
-                  </Link>
-                </li>
-                <li>
                   <Link to="/become-a-partner" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
                     Become A Partner
                   </Link>
