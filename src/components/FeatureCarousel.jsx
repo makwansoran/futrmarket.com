@@ -183,7 +183,7 @@ export default function FeatureCarousel({ features = [], subjects = [] }) {
               className={`transition-all duration-300 rounded-full ${
                 index === selectedIndex
                   ? "w-8 h-2 bg-blue-500"
-                  : "w-2 h-2 bg-gray-600 hover:bg-gray-500"
+                  : `w-2 h-2 ${isLight ? 'bg-gray-300 hover:bg-gray-400' : 'bg-gray-600 hover:bg-gray-500'}`
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />
