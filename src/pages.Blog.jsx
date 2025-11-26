@@ -1,6 +1,62 @@
 import React from "react";
 import { useTheme } from "./contexts/ThemeContext.jsx";
 import { getApiUrl } from "./api.js";
+import { motion } from "framer-motion";
+
+const phrases = [
+  "We build",
+  "We create",
+  "We innovate",
+  "We design",
+  "We develop"
+];
+
+function TypewriterText({ isLight }) {
+  const [currentPhraseIndex, setCurrentPhraseIndex] = React.useState(0);
+  const [displayedText, setDisplayedText] = React.useState("");
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
+  React.useEffect(() => {
+    const currentPhrase = phrases[currentPhraseIndex];
+    let timeout;
+
+    if (!isDeleting && displayedText.length < currentPhrase.length) {
+      // Typing
+      timeout = setTimeout(() => {
+        setDisplayedText(currentPhrase.slice(0, displayedText.length + 1));
+      }, 100);
+    } else if (!isDeleting && displayedText.length === currentPhrase.length) {
+      // Finished typing, wait then start deleting
+      timeout = setTimeout(() => {
+        setIsDeleting(true);
+      }, 2000);
+    } else if (isDeleting && displayedText.length > 0) {
+      // Deleting
+      timeout = setTimeout(() => {
+        setDisplayedText(currentPhrase.slice(0, displayedText.length - 1));
+      }, 50);
+    } else if (isDeleting && displayedText.length === 0) {
+      // Finished deleting, move to next phrase
+      setIsDeleting(false);
+      setCurrentPhraseIndex((prev) => (prev + 1) % phrases.length);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [displayedText, isDeleting, currentPhraseIndex]);
+
+  return (
+    <h1 className={`text-3xl font-bold mb-8 ${isLight ? 'text-black' : 'text-white'}`}>
+      <span className="inline-block">
+        {displayedText}
+        <motion.span
+          animate={{ opacity: [1, 0] }}
+          transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
+          className="inline-block w-0.5 h-6 bg-current ml-1 align-middle"
+        />
+      </span>
+    </h1>
+  );
+}
 
 export default function BlogPage() {
   const { isLight } = useTheme();
@@ -39,7 +95,7 @@ export default function BlogPage() {
   if (loading) {
     return (
       <main className={`max-w-5xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
-        <h1 className={`text-3xl font-bold mb-6 ${isLight ? 'text-black' : 'text-white'}`}>Blog</h1>
+        <TypewriterText isLight={isLight} />
         <div className={`rounded-xl p-8 text-center border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
           <div className={isLight ? 'text-gray-600' : 'text-gray-400'}>Loading blog posts...</div>
         </div>
@@ -49,10 +105,7 @@ export default function BlogPage() {
 
   return (
     <main className={`max-w-5xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
-      <h1 className={`text-3xl font-bold mb-2 ${isLight ? 'text-black' : 'text-white'}`}>Blog</h1>
-      <p className={`mb-8 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
-        Stay updated with the latest news, tutorials, and insights from FutrMarket
-      </p>
+      <TypewriterText isLight={isLight} />
       
       {posts.length === 0 ? (
         <div className={`rounded-xl p-8 text-center border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
