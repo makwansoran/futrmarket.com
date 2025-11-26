@@ -75,11 +75,11 @@ export default function BlogPage() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    async function fetchBlogPosts() {
+    async function fetchInformation() {
       try {
         const response = await fetch(getApiUrl("/api/blog"));
         if (!response.ok) {
-          console.error("Failed to fetch blog posts:", response.status);
+          console.error("Failed to fetch information:", response.status);
           setPosts([]);
           setLoading(false);
           return;
@@ -93,14 +93,14 @@ export default function BlogPage() {
           setPosts([]);
         }
       } catch (error) {
-        console.error("Error fetching blog posts:", error);
+        console.error("Error fetching information:", error);
         setPosts([]);
       } finally {
         setLoading(false);
       }
     }
     
-    fetchBlogPosts();
+    fetchInformation();
   }, []);
 
   // Get unique categories from posts
@@ -128,7 +128,7 @@ export default function BlogPage() {
         <div className="flex-1">
           <TypewriterText isLight={isLight} />
           <div className={`rounded-xl p-8 text-center border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
-            <div className={isLight ? 'text-gray-600' : 'text-gray-400'}>Loading blog posts...</div>
+            <div className={isLight ? 'text-gray-600' : 'text-gray-400'}>Loading information...</div>
           </div>
         </div>
       </main>
@@ -173,7 +173,7 @@ export default function BlogPage() {
         
         {posts.length === 0 ? (
           <div className={`rounded-xl p-8 text-center border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
-            <div className={isLight ? 'text-gray-600' : 'text-gray-400'}>No blog posts yet. Check back soon!</div>
+            <div className={isLight ? 'text-gray-600' : 'text-gray-400'}>No information available yet. Check back soon!</div>
           </div>
         ) : (
           <div className="space-y-6">

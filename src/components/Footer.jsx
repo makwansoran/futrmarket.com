@@ -12,7 +12,7 @@ export default function Footer() {
             <ul className="space-y-1">
               <li>
                 <Link to="/blog" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  Blog
+                  Information Center
                 </Link>
               </li>
               <li>
