@@ -45,16 +45,19 @@ function TypewriterText({ isLight }) {
   }, [displayedText, isDeleting, currentPhraseIndex]);
 
   return (
-    <h1 className={`text-3xl font-bold mb-8 ${isLight ? 'text-black' : 'text-white'}`}>
-      <span className="inline-block">
-        {displayedText}
-        <motion.span
-          animate={{ opacity: [1, 0] }}
-          transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
-          className="inline-block w-0.5 h-6 bg-current ml-1 align-middle"
-        />
-      </span>
-    </h1>
+    <div className="mb-8">
+      <h1 className="text-3xl font-bold text-black mb-2">Predict</h1>
+      <h2 className="text-3xl font-bold">
+        <span className="inline-block text-blue-500">
+          {displayedText}
+          <motion.span
+            animate={{ opacity: [1, 0] }}
+            transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
+            className="inline-block w-0.5 h-6 bg-blue-500 ml-1 align-middle"
+          />
+        </span>
+      </h2>
+    </div>
   );
 }
 
