@@ -103,13 +103,21 @@ export default function BlogPage() {
     fetchBlogPosts();
   }, []);
 
+  // Get unique categories from posts
+  const categories = [...new Set(posts.map(post => post.category).filter(Boolean))];
+
   if (loading) {
     return (
-      <main className={`flex gap-8 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
+      <main className={`flex gap-4 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
         {/* Sidebar */}
-        <aside className={`w-64 flex-shrink-0 ${isLight ? 'text-black' : 'text-white'}`}>
-          <div className={`sticky top-24 rounded-xl p-6 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
-            <h3 className={`text-lg font-bold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Categories</h3>
+        <aside className={`group w-16 hover:w-64 flex-shrink-0 transition-all duration-300 ${isLight ? 'text-black' : 'text-white'}`}>
+          <div className={`sticky top-24 rounded-xl p-4 border-2 overflow-hidden ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
+            {/* Icon/Indicator when collapsed */}
+            <div className="group-hover:hidden flex items-center justify-center h-8 mb-4">
+              <div className={`w-1 h-full rounded-full ${isLight ? 'bg-gray-400' : 'bg-gray-500'}`}></div>
+            </div>
+            
+            <h3 className={`hidden group-hover:block text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Categories</h3>
             <div className="space-y-2">
               {/* Categories will go here */}
             </div>
@@ -127,21 +135,23 @@ export default function BlogPage() {
     );
   }
 
-  // Get unique categories from posts
-  const categories = [...new Set(posts.map(post => post.category).filter(Boolean))];
-
   return (
-    <main className={`flex gap-8 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
+    <main className={`flex gap-4 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
       {/* Sidebar */}
-      <aside className={`w-64 flex-shrink-0 ${isLight ? 'text-black' : 'text-white'}`}>
-        <div className={`sticky top-24 rounded-xl p-6 border-2 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
-          <h3 className={`text-lg font-bold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Categories</h3>
+      <aside className={`group w-16 hover:w-64 flex-shrink-0 transition-all duration-300 ${isLight ? 'text-black' : 'text-white'}`}>
+        <div className={`sticky top-24 rounded-xl p-4 border-2 overflow-hidden ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
+          {/* Icon/Indicator when collapsed */}
+          <div className="group-hover:hidden flex items-center justify-center h-8 mb-4">
+            <div className={`w-1 h-full rounded-full ${isLight ? 'bg-gray-400' : 'bg-gray-500'}`}></div>
+          </div>
+          
+          <h3 className={`hidden group-hover:block text-lg font-bold mb-4 whitespace-nowrap ${isLight ? 'text-black' : 'text-white'}`}>Categories</h3>
           <div className="space-y-2">
             {categories.length > 0 ? (
               categories.map((category) => (
                 <div
                   key={category}
-                  className={`px-3 py-2 rounded text-sm cursor-pointer transition ${
+                  className={`px-3 py-2 rounded text-sm cursor-pointer transition whitespace-nowrap hidden group-hover:block ${
                     isLight 
                       ? 'hover:bg-gray-100 text-gray-700' 
                       : 'hover:bg-gray-800 text-gray-300'
@@ -151,7 +161,7 @@ export default function BlogPage() {
                 </div>
               ))
             ) : (
-              <div className={`text-sm ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>No categories yet</div>
+              <div className={`hidden group-hover:block text-sm whitespace-nowrap ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>No categories yet</div>
             )}
           </div>
         </div>
