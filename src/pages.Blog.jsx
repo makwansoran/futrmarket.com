@@ -1,5 +1,6 @@
 import React from "react";
 import { useTheme } from "./contexts/ThemeContext.jsx";
+import { getApiUrl } from "./api.js";
 
 export default function BlogPage() {
   const { isLight } = useTheme();
@@ -7,34 +8,32 @@ export default function BlogPage() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    // For now, we'll use mock data. Later you can fetch from an API
-    setPosts([
-      {
-        id: 1,
-        title: "Welcome to FutrMarket",
-        excerpt: "Learn about prediction markets and how FutrMarket is revolutionizing the way people trade on future events.",
-        date: "2025-01-15",
-        author: "FutrMarket Team",
-        category: "Announcements"
-      },
-      {
-        id: 2,
-        title: "Getting Started with Prediction Markets",
-        excerpt: "A comprehensive guide for beginners on how to start trading on prediction markets and make informed decisions.",
-        date: "2025-01-10",
-        author: "FutrMarket Team",
-        category: "Tutorial"
-      },
-      {
-        id: 3,
-        title: "Understanding Market Probabilities",
-        excerpt: "Deep dive into how market prices reflect probabilities and what that means for your trading strategy.",
-        date: "2025-01-05",
-        author: "FutrMarket Team",
-        category: "Education"
+    async function fetchBlogPosts() {
+      try {
+        const response = await fetch(getApiUrl("/api/blog"));
+        if (!response.ok) {
+          console.error("Failed to fetch blog posts:", response.status);
+          setPosts([]);
+          setLoading(false);
+          return;
+        }
+        const data = await response.json();
+        if (data.ok && Array.isArray(data.data)) {
+          // Only show published posts
+          const publishedPosts = data.data.filter(post => post.published !== false);
+          setPosts(publishedPosts);
+        } else {
+          setPosts([]);
+        }
+      } catch (error) {
+        console.error("Error fetching blog posts:", error);
+        setPosts([]);
+      } finally {
+        setLoading(false);
       }
-    ]);
-    setLoading(false);
+    }
+    
+    fetchBlogPosts();
   }, []);
 
   if (loading) {
@@ -81,7 +80,7 @@ export default function BlogPage() {
                       {post.category}
                     </span>
                     <span className={`text-xs ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>
-                      {new Date(post.date).toLocaleDateString('en-US', { 
+                      {new Date(post.createdAt || Date.now()).toLocaleDateString('en-US', { 
                         year: 'numeric', 
                         month: 'long', 
                         day: 'numeric' 
