@@ -176,7 +176,7 @@ export default function CompanyPage() {
       
       {/* Main Content */}
       <div className="flex-1">
-        <h1 className={`text-4xl font-bold mb-6 ${isLight ? 'text-black' : 'text-white'}`}>Company</h1>
+        <h1 className={`text-4xl font-bold mb-6 ${isLight ? 'text-black' : 'text-white'}`}>About us at Futrmarket.com</h1>
         
         <div className={`rounded-xl p-8 ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
           <div className={`prose prose-invert max-w-none ${isLight ? 'prose-gray' : 'prose-invert'}`}>
