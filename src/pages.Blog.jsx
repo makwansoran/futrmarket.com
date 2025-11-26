@@ -2,6 +2,7 @@ import React from "react";
 import { useTheme } from "./contexts/ThemeContext.jsx";
 import { getApiUrl } from "./api.js";
 import { motion } from "framer-motion";
+import { Info } from "lucide-react";
 
 const phrases = [
   "Politics",
@@ -123,27 +124,21 @@ export default function BlogPage() {
         {/* Sidebar */}
         <aside className={`group w-16 hover:w-64 flex-shrink-0 transition-all duration-300 ${isLight ? 'text-black' : 'text-white'}`}>
           <div className={`sticky top-24 rounded-xl p-4 border-2 overflow-hidden ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
-            {/* Information Center Logo */}
+            {/* Information Center Icon */}
             <div className="mb-6 pb-4 border-b border-gray-300 dark:border-gray-700">
-              {/* Logo when collapsed */}
-              <div className="group-hover:hidden flex items-center justify-center">
-                <div className={`text-2xl font-bold ${isLight ? 'text-gray-600' : 'text-gray-400'}`} style={{
-                  writingMode: 'vertical-rl',
-                  textOrientation: 'mixed'
-                }}>
-                  IC
-                </div>
-              </div>
-              {/* Logo when expanded */}
-              <div className="hidden group-hover:block">
-                <div className={`text-xl font-bold ${isLight ? 'text-black' : 'text-white'}`} style={{
+              <div className="flex items-center justify-center group-hover:justify-start">
+                <Info 
+                  className={`${isLight ? 'text-gray-600' : 'text-gray-400'} group-hover:text-blue-500 transition-colors`}
+                  size={24}
+                />
+                <span className="hidden group-hover:inline ml-2 text-sm font-semibold" style={{
                   background: 'linear-gradient(135deg, #c0c0c0 0%, #808080 50%, #a0a0a0 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text'
                 }}>
                   Information Center
-                </div>
+                </span>
               </div>
             </div>
             
@@ -170,27 +165,21 @@ export default function BlogPage() {
       {/* Sidebar */}
       <aside className={`group w-16 hover:w-64 flex-shrink-0 transition-all duration-300 ${isLight ? 'text-black' : 'text-white'}`}>
         <div className={`sticky top-24 rounded-xl p-4 border-2 overflow-hidden ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'}`}>
-          {/* Information Center Logo */}
+          {/* Information Center Icon */}
           <div className="mb-6 pb-4 border-b border-gray-300 dark:border-gray-700">
-            {/* Logo when collapsed */}
-            <div className="group-hover:hidden flex items-center justify-center">
-              <div className={`text-2xl font-bold ${isLight ? 'text-gray-600' : 'text-gray-400'}`} style={{
-                writingMode: 'vertical-rl',
-                textOrientation: 'mixed'
-              }}>
-                IC
-              </div>
-            </div>
-            {/* Logo when expanded */}
-            <div className="hidden group-hover:block">
-              <div className={`text-xl font-bold ${isLight ? 'text-black' : 'text-white'}`} style={{
+            <div className="flex items-center justify-center group-hover:justify-start">
+              <Info 
+                className={`${isLight ? 'text-gray-600' : 'text-gray-400'} group-hover:text-blue-500 transition-colors`}
+                size={24}
+              />
+              <span className="hidden group-hover:inline ml-2 text-sm font-semibold" style={{
                 background: 'linear-gradient(135deg, #c0c0c0 0%, #808080 50%, #a0a0a0 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
               }}>
                 Information Center
-              </div>
+              </span>
             </div>
           </div>
           
