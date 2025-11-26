@@ -6,8 +6,57 @@ export default function Footer() {
     <footer className="bg-[var(--bg-footer)] text-[var(--text-secondary)] mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex flex-row justify-between items-start gap-12 mb-4">
-          {/* Social Column */}
+          {/* Logo and Address Column - Left */}
           <div className="flex-1">
+            {/* Logo and address will be added here */}
+          </div>
+
+          {/* Company Column - Center */}
+          <div className="flex-1 flex justify-center">
+            <div>
+              <h3 className="font-semibold text-[var(--text-white)] mb-2 text-sm">Company</h3>
+              <ul className="space-y-1">
+                <li>
+                  <Link to="/blog" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                    Information Center
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/careers" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                    Careers
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/privacy" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/data-terms" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                    Data Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/company" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                    Company
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/brand-kit" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                    Brand Kit
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/become-a-partner" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                    Become A Partner
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Social Column - Right */}
+          <div className="flex-1 flex justify-end">
             <div>
               <h3 className="font-semibold text-[var(--text-white)] mb-2 text-sm">Social</h3>
               <ul className="space-y-1">
@@ -51,50 +100,6 @@ export default function Footer() {
                   Forum
                 </Link>
               </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Company Column */}
-          <div className="flex-1 flex justify-center">
-            <div>
-              <h3 className="font-semibold text-[var(--text-white)] mb-2 text-sm">Company</h3>
-              <ul className="space-y-1">
-                <li>
-                  <Link to="/blog" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                    Information Center
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/careers" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                    Careers
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/privacy" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/data-terms" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                    Data Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/company" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                    Company
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/brand-kit" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                    Brand Kit
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/become-a-partner" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                    Become A Partner
-                  </Link>
-                </li>
               </ul>
             </div>
           </div>
