@@ -2,12 +2,42 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "./contexts/ThemeContext.jsx";
 import { Info } from "lucide-react";
+import { motion, useSpring, useScroll } from "framer-motion";
+
+function ScrollProgressIndicator({ isLight }) {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
+
+  // Position it right under the navbar (Header ~56px + CategoryNav ~44px = ~100px)
+  return (
+    <motion.div
+      id="scroll-indicator"
+      style={{
+        scaleX,
+        position: "fixed",
+        top: "100px", // Right under the navbar
+        left: 0,
+        right: 0,
+        height: "3px",
+        originX: 0,
+        backgroundColor: isLight ? "#3b82f6" : "#60a5fa", // Blue color that works in both themes
+        zIndex: 100,
+      }}
+    />
+  );
+}
 
 export default function CompanyPage() {
   const { isLight } = useTheme();
 
   return (
-    <main className={`flex gap-4 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
+    <>
+      <ScrollProgressIndicator isLight={isLight} />
+      <main className={`flex gap-4 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
       {/* Sidebar */}
       <aside className={`w-64 flex-shrink-0 ${isLight ? 'text-black' : 'text-white'}`}>
         <div className={`sticky top-24 rounded-xl p-4 overflow-hidden ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
@@ -281,6 +311,7 @@ export default function CompanyPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }
 
