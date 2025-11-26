@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Twitter, Linkedin, MessageCircle, Facebook, Instagram, Reddit, Music2, MessageSquare } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -51,42 +52,50 @@ export default function Footer() {
               <h3 className="font-semibold text-[var(--text-white)] mb-2 text-sm">Social</h3>
               <ul className="space-y-1">
               <li>
-                <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                  <Twitter size={16} />
                   X
                 </a>
               </li>
               <li>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                  <Linkedin size={16} />
                   LinkedIn
                 </a>
               </li>
               <li>
-                <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                  <MessageCircle size={16} />
                   Discord
                 </a>
               </li>
               <li>
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                  <Facebook size={16} />
                   Facebook
                 </a>
               </li>
               <li>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                  <Instagram size={16} />
                   Instagram
                 </a>
               </li>
               <li>
-                <a href="https://reddit.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                <a href="https://reddit.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                  <Reddit size={16} />
                   Reddit
                 </a>
               </li>
               <li>
-                <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                  <Music2 size={16} />
                   TikTok
                 </a>
               </li>
               <li>
-                <Link to="/forum" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                <Link to="/forum" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
+                  <MessageSquare size={16} />
                   Forum
                 </Link>
               </li>
