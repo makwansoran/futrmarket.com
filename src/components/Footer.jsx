@@ -96,55 +96,6 @@ export default function Footer() {
               </ul>
             </div>
           </div>
-
-          {/* Product Column */}
-          <div className="flex-1 flex justify-end">
-            <div>
-              <h3 className="font-semibold text-[var(--text-white)] mb-2 text-sm">Product</h3>
-              <ul className="space-y-1">
-              <li>
-                <Link to="/help" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  Help Center
-                </Link>
-              </li>
-              <li>
-                <Link to="/api" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  API
-                </Link>
-              </li>
-              <li>
-                <Link to="/faq-finance" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  FAQ for Finance Professionals
-                </Link>
-              </li>
-              <li>
-                <Link to="/regulatory" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  Regulatory
-                </Link>
-              </li>
-              <li>
-                <Link to="/trading-hours" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  Trading Hours
-                </Link>
-              </li>
-              <li>
-                <Link to="/fee-schedule" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  Fee Schedule
-                </Link>
-              </li>
-              <li>
-                <Link to="/trading-prohibitions" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  Trading Prohibitions
-                </Link>
-              </li>
-              <li>
-                <Link to="/incentive-program" className="text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  Incentive Program
-                </Link>
-              </li>
-              </ul>
-            </div>
-          </div>
         </div>
 
         {/* Separator */}
