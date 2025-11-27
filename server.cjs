@@ -305,6 +305,11 @@ app.get("/api/test", (req, res) => {
   res.json({ ok: true, message: "Server is working", timestamp: Date.now() });
 });
 
+// Test wallet endpoint (for debugging)
+app.get("/api/wallet/test", (req, res) => {
+  res.json({ ok: true, message: "Wallet endpoints are available", timestamp: Date.now() });
+});
+
 // Generate and send verification code
 // Check if email exists in database
 app.post("/api/check-email", async (req,res)=>{
