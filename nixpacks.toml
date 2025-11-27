@@ -3,6 +3,3 @@ nixPkgs = ["nodejs_20", "npm-10_x"]
 
 [phases.install]
 cmds = ["npm ci --no-audit --no-fund"]
-
-[phases.build]
-cmds = ["echo 'Skipping build phase for backend deployment'"]
