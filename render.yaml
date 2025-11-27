@@ -2,7 +2,7 @@ services:
   - type: web
     name: futrmarket-api
     env: node
-    buildCommand: npm install
+    buildCommand: npm ci --prefer-offline --no-audit
     startCommand: node server.cjs
     envVars:
       - key: NODE_ENV
