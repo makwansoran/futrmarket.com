@@ -3782,6 +3782,8 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   } else {
     console.log("⚠️  Supabase: DISABLED (using file-based storage)");
     console.log("   Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env to enable");
+    console.log("   DEBUG - SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "NOT SET");
+    console.log("   DEBUG - SUPABASE_SERVICE_ROLE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "SET" : "NOT SET");
   }
   console.log("========================================");
   console.log("[STARTUP] Server ready!");
