@@ -9,11 +9,11 @@ localforage.config({
   storeName: `futurbet_store_${sessionId}` 
 })
 
-const USERS_KEY = (email) => `users:${email.toLowerCase()}`
+const USERS_KEY = (identifier) => `users:${identifier.toLowerCase()}`
 const SESS_KEY = 'session:user'
-const WALLET_KEY = (email) => `wallet:${email.toLowerCase()}`
-const CASH_KEY = (email) => `cash:${email.toLowerCase()}`
-const PORTF_KEY = (email) => `portfolio:${email.toLowerCase()}`
+const WALLET_KEY = (identifier) => `wallet:${identifier.toLowerCase()}`
+const CASH_KEY = (identifier) => `cash:${identifier.toLowerCase()}`
+const PORTF_KEY = (identifier) => `portfolio:${identifier.toLowerCase()}`
 
 // ----- Email code flow (your API at :8787) -----
 export async function sendCode(email) {
@@ -366,14 +366,27 @@ export async function verifyCode(email, code, password, confirmPassword, usernam
 }
 
 // ----- Users & session -----
-export async function saveUser(email) {
-  await localforage.setItem(USERS_KEY(email), { email, createdAt: Date.now() })
+// Now supports both wallet_address (primary) and email (backward compatibility)
+export async function saveUser(identifier) {
+  await localforage.setItem(USERS_KEY(identifier), { identifier, createdAt: Date.now() })
 }
-export async function saveSession(email) {
-  await localforage.setItem(SESS_KEY, { email, ts: Date.now() })
+export async function saveSession(identifier) {
+  // Store wallet_address or email as identifier
+  await localforage.setItem(SESS_KEY, { 
+    identifier, // wallet_address or email
+    wallet_address: identifier.startsWith('0x') ? identifier : null,
+    email: identifier.includes('@') ? identifier : null,
+    ts: Date.now() 
+  })
 }
 export async function loadSession() {
-  return (await localforage.getItem(SESS_KEY)) || null
+  const session = await localforage.getItem(SESS_KEY);
+  if (!session) return null;
+  // Backward compatibility: if old format (email only), convert it
+  if (session.email && !session.identifier) {
+    return { identifier: session.email, email: session.email, ts: session.ts };
+  }
+  return session;
 }
 export async function clearSession() {
   await localforage.removeItem(SESS_KEY)
@@ -381,13 +394,12 @@ export async function clearSession() {
 
 // ----- Wallet authentication -----
 /**
- * Authenticate user with wallet address and signature
+ * Authenticate user with wallet address
  * Checks if wallet is linked to existing account, or creates new account
  * @param {string} walletAddress - The wallet address (0x...)
- * @param {Function} signMessageFn - Function to sign authentication message
  * @returns {Promise<string>} - The user identifier (email)
  */
-export async function authenticateWithWallet(walletAddress, signMessageFn) {
+export async function authenticateWithWallet(walletAddress) {
   if (!walletAddress || typeof walletAddress !== 'string') {
     throw new Error('Wallet address is required');
   }
@@ -408,44 +420,23 @@ export async function authenticateWithWallet(walletAddress, signMessageFn) {
     
     const checkData = await checkRes.json().catch(() => ({}));
     
-    // Generate authentication message
-    const timestamp = Date.now();
-    const message = `Welcome to FutrMarket!\n\nSign this message to authenticate with your wallet.\n\nWallet: ${addressLower}\nTimestamp: ${timestamp}\n\nThis request will not trigger a blockchain transaction or cost any fees.`;
-    
-    // Request signature from wallet
-    let signature = null;
-    if (signMessageFn && typeof signMessageFn === 'function') {
-      try {
-        signature = await signMessageFn(message);
-      } catch (e) {
-        if (e?.message && (e.message.includes("cancelled") || e.message.includes("rejected"))) {
-          throw new Error("Signature request cancelled. Please sign the message to continue.");
-        }
-        throw new Error("Failed to sign message. Please try again.");
-      }
-    }
-    
-    if (checkData.linked && checkData.email) {
+    if (checkData.linked && checkData.wallet_address) {
       // Wallet is linked to existing account - login with that account
-      // Still require signature for security
-      if (!signature) {
-        throw new Error("Signature is required for authentication");
-      }
-      
-      await saveUser(checkData.email);
-      await saveSession(checkData.email);
-      return checkData.email;
+      // Use wallet_address as the identifier
+      await saveUser(checkData.wallet_address);
+      await saveSession(checkData.wallet_address);
+      return checkData.wallet_address;
     }
     
-    // Wallet is not linked - authenticate to create new account or link
+    // Wallet is not linked - authenticate to create new account
     const authRes = await fetch(getApiUrl('/api/wallet/authenticate'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         walletAddress: addressLower,
-        signature: signature,
-        message: message,
-        timestamp: timestamp
+        // TODO: Add signature verification in the future
+        // signature: signature,
+        // message: message
       })
     });
     
@@ -461,14 +452,14 @@ export async function authenticateWithWallet(walletAddress, signMessageFn) {
     
     const authData = await authRes.json().catch(() => ({}));
     
-    if (!authData.ok || !authData.email) {
+    if (!authData.ok || !authData.wallet_address) {
       throw new Error(authData.error || 'Failed to authenticate wallet');
     }
     
-    // Save session
-    await saveUser(authData.email);
-    await saveSession(authData.email);
-    return authData.email;
+    // Save session with wallet_address as identifier
+    await saveUser(authData.wallet_address);
+    await saveSession(authData.wallet_address);
+    return authData.wallet_address;
   } catch (e) {
     console.error('Wallet authentication error:', e);
     throw e;
@@ -476,34 +467,34 @@ export async function authenticateWithWallet(walletAddress, signMessageFn) {
 }
 
 // ----- Wallet link (local only) -----
-export async function getLinkedWallet(email) {
-  return (await localforage.getItem(WALLET_KEY(email))) || null
+export async function getLinkedWallet(identifier) {
+  return (await localforage.getItem(WALLET_KEY(identifier))) || null
 }
-export async function setLinkedWallet(email, wallet) {
-  await localforage.setItem(WALLET_KEY(email), wallet)
+export async function setLinkedWallet(identifier, wallet) {
+  await localforage.setItem(WALLET_KEY(identifier), wallet)
 }
-export async function unlinkWallet(email) {
-  await localforage.removeItem(WALLET_KEY(email))
+export async function unlinkWallet(identifier) {
+  await localforage.removeItem(WALLET_KEY(identifier))
 }
 
 // ----- Balances (local only) -----
-export async function ensureBalances(email) {
+export async function ensureBalances(identifier) {
   const [cash, portf] = await Promise.all([
-    localforage.getItem(CASH_KEY(email)),
-    localforage.getItem(PORTF_KEY(email)),
+    localforage.getItem(CASH_KEY(identifier)),
+    localforage.getItem(PORTF_KEY(identifier)),
   ])
-  if (cash == null) await localforage.setItem(CASH_KEY(email), 10000)
-  if (portf == null) await localforage.setItem(PORTF_KEY(email), 0)
+  if (cash == null) await localforage.setItem(CASH_KEY(identifier), 10000)
+  if (portf == null) await localforage.setItem(PORTF_KEY(identifier), 0)
   return true
 }
-export async function getBalances(email) {
+export async function getBalances(identifier) {
   const [cash, portf] = await Promise.all([
-    localforage.getItem(CASH_KEY(email)),
-    localforage.getItem(PORTF_KEY(email)),
+    localforage.getItem(CASH_KEY(identifier)),
+    localforage.getItem(PORTF_KEY(identifier)),
   ])
   return { cash: Number(cash || 0), portfolio: Number(portf || 0) }
 }
-export async function setBalances(email, { cash, portfolio }) {
-  if (cash != null) await localforage.setItem(CASH_KEY(email), Number(cash))
-  if (portfolio != null) await localforage.setItem(PORTF_KEY(email), Number(portfolio))
+export async function setBalances(identifier, { cash, portfolio }) {
+  if (cash != null) await localforage.setItem(CASH_KEY(identifier), Number(cash))
+  if (portfolio != null) await localforage.setItem(PORTF_KEY(identifier), Number(portfolio))
 }

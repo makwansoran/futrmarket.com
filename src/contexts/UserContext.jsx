@@ -16,23 +16,27 @@ import { getApiUrl } from "../api.js";
 const UserContext = React.createContext(null);
 
 export function UserProvider({ children }) {
-  const [userEmail, setUserEmail] = React.useState(null);
+  const [userIdentifier, setUserIdentifier] = React.useState(null); // wallet_address or email
   const [cash, setCash] = React.useState(0);
   const [portfolio, setPortfolio] = React.useState(0);
   const [userProfile, setUserProfile] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
 
+  // Helper: determine if identifier is wallet address
+  const isWalletAddress = (id) => id && id.startsWith('0x') && id.length === 42;
+
   // Sync balances from server (source of truth)
-  const syncBalancesFromServer = React.useCallback(async (email, signal = null) => {
-    if (!email) return;
+  const syncBalancesFromServer = React.useCallback(async (identifier, signal = null) => {
+    if (!identifier) return;
     
     try {
       const controller = signal || new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      // Fetch balances
-      const r = await fetch(getApiUrl(`/api/balances?email=${encodeURIComponent(email)}`), {
+      // Use wallet_address or email parameter based on identifier type
+      const param = isWalletAddress(identifier) ? 'wallet_address' : 'email';
+      const r = await fetch(getApiUrl(`/api/balances?${param}=${encodeURIComponent(identifier)}`), {
         signal: controller.signal,
         cache: "no-store"
       });
@@ -49,7 +53,7 @@ export function UserProvider({ children }) {
           try {
             const posController = signal || new AbortController();
             const posTimeoutId = setTimeout(() => posController.abort(), 10000);
-            const posR = await fetch(getApiUrl(`/api/positions?email=${encodeURIComponent(email)}`), {
+            const posR = await fetch(getApiUrl(`/api/positions?${param}=${encodeURIComponent(identifier)}`), {
               signal: posController.signal,
               cache: "no-store"
             });
@@ -69,10 +73,10 @@ export function UserProvider({ children }) {
           
           // Update local storage to match server
           try {
-            await ensureBalances(email);
-            const localB = await getBalances(email);
+            await ensureBalances(identifier);
+            const localB = await getBalances(identifier);
             if (Number(serverCash) !== Number(localB.cash) || portfolioValue !== Number(localB.portfolio || 0)) {
-              await setBalances(email, { cash: serverCash, portfolio: portfolioValue });
+              await setBalances(identifier, { cash: serverCash, portfolio: portfolioValue });
             }
           } catch (e) {
             console.error("Failed to update local balances:", e);
@@ -88,14 +92,16 @@ export function UserProvider({ children }) {
   }, []);
 
   // Load user profile from server
-  const loadUserProfile = React.useCallback(async (email, signal = null) => {
-    if (!email) return;
+  const loadUserProfile = React.useCallback(async (identifier, signal = null) => {
+    if (!identifier) return;
     
     try {
       const controller = signal || new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      const r = await fetch(getApiUrl(`/api/users/${encodeURIComponent(email)}`), {
+      // Use wallet_address or email based on identifier type
+      const param = isWalletAddress(identifier) ? 'wallet_address' : 'email';
+      const r = await fetch(getApiUrl(`/api/users?${param}=${encodeURIComponent(identifier)}`), {
         signal: controller.signal,
         cache: "no-store"
       });
@@ -124,11 +130,11 @@ export function UserProvider({ children }) {
         setLoading(true);
         const session = await loadSession();
         
-        if (!cancelled && session?.email) {
-          setUserEmail(session.email);
+        if (!cancelled && session?.identifier) {
+          setUserIdentifier(session.identifier);
           await Promise.all([
-            syncBalancesFromServer(session.email, controller.signal),
-            loadUserProfile(session.email, controller.signal)
+            syncBalancesFromServer(session.identifier, controller.signal),
+            loadUserProfile(session.identifier, controller.signal)
           ]);
         }
       } catch (e) {
@@ -151,12 +157,12 @@ export function UserProvider({ children }) {
 
   // Periodically sync balances when logged in
   React.useEffect(() => {
-    if (!userEmail) return;
+    if (!userIdentifier) return;
     
     let cancelled = false;
     const interval = setInterval(() => {
       if (!cancelled) {
-        syncBalancesFromServer(userEmail).catch((e) => {
+        syncBalancesFromServer(userIdentifier).catch((e) => {
           console.error("Failed to sync balances:", e);
         });
       }
@@ -166,17 +172,17 @@ export function UserProvider({ children }) {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [userEmail, syncBalancesFromServer]);
+  }, [userIdentifier, syncBalancesFromServer]);
 
-  // Login function
-  const login = React.useCallback(async (email) => {
+  // Login function (accepts wallet_address or email)
+  const login = React.useCallback(async (identifier) => {
     try {
-      setUserEmail(email);
+      setUserIdentifier(identifier);
       setError(null);
       const controller = new AbortController();
       await Promise.all([
-        syncBalancesFromServer(email, controller.signal),
-        loadUserProfile(email, controller.signal)
+        syncBalancesFromServer(identifier, controller.signal),
+        loadUserProfile(identifier, controller.signal)
       ]);
     } catch (e) {
       setError(e.message || "Failed to login");
@@ -187,7 +193,7 @@ export function UserProvider({ children }) {
   // Logout function
   const logout = React.useCallback(async () => {
     await clearSession();
-    setUserEmail(null);
+    setUserIdentifier(null);
     setCash(0);
     setPortfolio(0);
     setUserProfile(null);
@@ -199,22 +205,28 @@ export function UserProvider({ children }) {
     if (newBalance) {
       setCash(Number(newBalance.cash || 0));
       setPortfolio(Number(newBalance.portfolio || 0));
-    } else if (userEmail) {
+    } else if (userIdentifier) {
       // Refresh from server
-      await syncBalancesFromServer(userEmail);
+      await syncBalancesFromServer(userIdentifier);
     }
-  }, [userEmail, syncBalancesFromServer]);
+  }, [userIdentifier, syncBalancesFromServer]);
 
   // Refresh user profile
   const refreshProfile = React.useCallback(async () => {
-    if (userEmail) {
-      await loadUserProfile(userEmail);
+    if (userIdentifier) {
+      await loadUserProfile(userIdentifier);
     }
-  }, [userEmail, loadUserProfile]);
+  }, [userIdentifier, loadUserProfile]);
+
+  // Backward compatibility: userEmail getter
+  const userEmail = userIdentifier && !isWalletAddress(userIdentifier) ? userIdentifier : null;
+  const walletAddress = userIdentifier && isWalletAddress(userIdentifier) ? userIdentifier : null;
 
   const value = React.useMemo(() => ({
     // State
-    userEmail,
+    userEmail, // Backward compatibility (null if wallet-only)
+    walletAddress, // New primary identifier
+    userIdentifier, // wallet_address or email
     cash,
     portfolio,
     userProfile,
@@ -226,9 +238,9 @@ export function UserProvider({ children }) {
     logout,
     updateBalance,
     refreshProfile,
-    syncBalancesFromServer: () => userEmail && syncBalancesFromServer(userEmail),
-    loadUserProfile: () => userEmail && loadUserProfile(userEmail),
-  }), [userEmail, cash, portfolio, userProfile, loading, error, login, logout, updateBalance, refreshProfile, syncBalancesFromServer, loadUserProfile]);
+    syncBalancesFromServer: () => userIdentifier && syncBalancesFromServer(userIdentifier),
+    loadUserProfile: () => userIdentifier && loadUserProfile(userIdentifier),
+  }), [userEmail, walletAddress, userIdentifier, cash, portfolio, userProfile, loading, error, login, logout, updateBalance, refreshProfile, syncBalancesFromServer, loadUserProfile]);
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }

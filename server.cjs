@@ -44,6 +44,13 @@ const {
   upsertWallet,
   getUserByWalletAddress
 } = require("./lib/db.cjs");
+const {
+  getUserByWallet,
+  createUserByWallet,
+  getBalanceByWallet,
+  updateBalanceByWallet,
+  walletExists
+} = require("./lib/db-wallet-first.cjs");
 
 const app = express();
 const PORT = process.env.PORT || 8787;
@@ -3297,19 +3304,21 @@ app.post("/api/wallet/check", async (req, res) => {
       return res.status(400).json({ ok: false, error: "Invalid wallet address format" });
     }
     
-    const userEmail = await getUserByWalletAddress(addressLower);
+    // Check if user exists with this wallet address
+    const user = await getUserByWallet(addressLower);
     
-    if (userEmail) {
-      // Wallet is linked to an existing user
-      const user = await getUser(userEmail);
+    if (user) {
+      // User exists with this wallet
       return res.json({ 
         ok: true, 
         linked: true, 
-        email: userEmail,
+        wallet_address: addressLower,
+        email: user.email || null,
         user: {
-          email: userEmail,
-          username: user?.username || "",
-          profilePicture: user?.profile_picture || user?.profilePicture || ""
+          wallet_address: addressLower,
+          email: user.email || null,
+          username: user.username || "",
+          profilePicture: user.profile_picture || user.profilePicture || ""
         }
       });
     } else {
@@ -3347,82 +3356,45 @@ app.post("/api/wallet/authenticate", async (req, res) => {
     // For now, we'll skip signature verification (can add later with ethers.js)
     // In production, you should verify the signature matches the message and address
     
-    // Check if wallet is already linked
-    const existingUserEmail = await getUserByWalletAddress(addressLower);
+    // Check if user already exists with this wallet address
+    let user = await getUserByWallet(addressLower);
     
-    if (existingUserEmail) {
-      // Wallet is linked - return existing user
-      const user = await getUser(existingUserEmail);
+    if (user) {
+      // User exists - return existing user
       return res.json({ 
         ok: true, 
-        email: existingUserEmail,
+        wallet_address: addressLower,
+        email: user.email || null,
         user: {
-          email: existingUserEmail,
-          username: user?.username || "",
-          profilePicture: user?.profile_picture || user?.profilePicture || ""
+          wallet_address: addressLower,
+          email: user.email || null,
+          username: user.username || "",
+          profilePicture: user.profile_picture || user.profilePicture || ""
         }
       });
     }
     
-    // Wallet is not linked - create new account or link to existing email
-    if (email) {
-      // Link wallet to existing email account
-      const user = await getUser(email.toLowerCase());
-      if (!user) {
-        return res.status(404).json({ ok: false, error: "User account not found" });
+    // User doesn't exist - create new account with wallet address
+    // If email is provided, we can link it (optional)
+    user = await createUserByWallet(addressLower, {
+      email: email ? email.toLowerCase() : null,
+      username: "",
+      profilePicture: "",
+      passwordHash: null, // No password for wallet-only accounts
+      createdAt: Date.now()
+    });
+    
+    return res.json({ 
+      ok: true, 
+      wallet_address: addressLower,
+      email: user.email || null,
+      user: {
+        wallet_address: addressLower,
+        email: user.email || null,
+        username: user.username || "",
+        profilePicture: user.profile_picture || user.profilePicture || ""
       }
-      
-      // Link wallet to user
-      await upsertWallet(email.toLowerCase(), {
-        evm_address: addressLower,
-        created_at: Date.now()
-      });
-      
-      return res.json({ 
-        ok: true, 
-        email: email.toLowerCase(),
-        user: {
-          email: email.toLowerCase(),
-          username: user?.username || "",
-          profilePicture: user?.profile_picture || user?.profilePicture || ""
-        }
-      });
-    } else {
-      // Create new account with wallet address as identifier
-      const walletEmail = `wallet_${addressLower}@futrmarket.local`;
-      
-      // Check if user already exists
-      let user = await getUser(walletEmail);
-      if (!user) {
-        // Create new user
-        user = await createUser({
-          email: walletEmail,
-          username: "",
-          profilePicture: "",
-          passwordHash: "", // No password for wallet-only accounts
-          createdAt: Date.now()
-        });
-        
-        // Create balance entry
-        await updateBalance(walletEmail, { cash: 0, portfolio: 0 });
-      }
-      
-      // Link wallet to user
-      await upsertWallet(walletEmail, {
-        evm_address: addressLower,
-        created_at: Date.now()
-      });
-      
-      return res.json({ 
-        ok: true, 
-        email: walletEmail,
-        user: {
-          email: walletEmail,
-          username: user?.username || "",
-          profilePicture: user?.profile_picture || user?.profilePicture || ""
-        }
-      });
-    }
+    });
   } catch (error) {
     console.error("Error authenticating wallet:", error);
     res.status(500).json({ ok: false, error: error.message || "Failed to authenticate wallet" });

@@ -36,8 +36,9 @@ function LoginPageWrapper({ navigate }) {
   const { login } = useUser();
   return (
     <LoginPage
-      onLogin={async (email) => {
-        await login(email);
+      onLogin={async (identifier) => {
+        // identifier can be wallet_address or email
+        await login(identifier);
         navigate("/");
       }}
     />
@@ -48,8 +49,9 @@ function SignupPageWrapper({ navigate }) {
   const { login } = useUser();
   return (
     <SignupPage
-      onLogin={async (email) => {
-        await login(email);
+      onLogin={async (identifier) => {
+        // identifier can be wallet_address or email
+        await login(identifier);
     navigate("/");
       }}
     />
