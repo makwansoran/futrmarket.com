@@ -45,15 +45,22 @@ export default function WalletButtons({ onConnect }) {
       // Wait for address to be available, then trigger onConnect
       // Poll for address since state might not update immediately
       let attempts = 0;
-      const maxAttempts = 20; // 2 seconds max wait
+      const maxAttempts = 30; // 3 seconds max wait
       const checkAddress = setInterval(() => {
         attempts++;
-        if (address && onConnect) {
+        // Get fresh address from wallet context
+        const currentAddress = address;
+        if (currentAddress && onConnect) {
           clearInterval(checkAddress);
-          onConnect(address);
+          // Call onConnect with the address
+          try {
+            onConnect(currentAddress);
+          } catch (err) {
+            console.error("Error in onConnect callback:", err);
+          }
         } else if (attempts >= maxAttempts) {
           clearInterval(checkAddress);
-          console.warn("Wallet connected but address not available");
+          console.warn("Wallet connected but address not available after", maxAttempts, "attempts");
         }
       }, 100);
     } catch (e) {
