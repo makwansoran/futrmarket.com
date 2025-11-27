@@ -9,7 +9,7 @@ import WalletButtons from "./components/WalletButtons.jsx";
 export default function SignupPage({ onLogin }){
   const navigate = useNavigate();
   const { isLight } = useTheme();
-  const { isConnected, address } = useWallet();
+  const { isConnected, address, connectWallet } = useWallet();
   const [email, setEmail] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -136,32 +136,48 @@ export default function SignupPage({ onLogin }){
   }
 
   const [isAuthenticatingWallet, setIsAuthenticatingWallet] = React.useState(false);
+  const [hasAuthenticated, setHasAuthenticated] = React.useState(false);
 
-  // Handle wallet connection - authenticate directly when wallet connects
-  const handleWalletConnect = React.useCallback(async (walletAddress) => {
-    if (!walletAddress || isAuthenticatingWallet) {
-      return;
-    }
-
-    setIsAuthenticatingWallet(true);
-    try {
-      // Authenticate user with wallet address
-      const userIdentifier = await authenticateWithWallet(walletAddress);
-      
-      // Call onLogin callback to set user session
-      if (onLogin) {
-        await onLogin(userIdentifier);
+  // Watch for wallet connection and authenticate automatically
+  React.useEffect(() => {
+    const handleWalletAuth = async () => {
+      // Only authenticate if wallet is connected, we have an address, and we haven't authenticated yet
+      if (isConnected && address && !isAuthenticatingWallet && !hasAuthenticated && onLogin) {
+        setIsAuthenticatingWallet(true);
+        setHasAuthenticated(true); // Prevent multiple authentication attempts
+        
+        try {
+          // Authenticate user with wallet address
+          const userIdentifier = await authenticateWithWallet(address);
+          
+          // Call onLogin callback to set user session
+          if (onLogin) {
+            await onLogin(userIdentifier);
+          }
+          
+          // Navigate to home
+          navigate("/");
+        } catch (e) {
+          console.error("Wallet authentication failed:", e);
+          setErr(e?.message || "Failed to authenticate with wallet. Please try again.");
+          setHasAuthenticated(false); // Allow retry on error
+        } finally {
+          setIsAuthenticatingWallet(false);
+        }
       }
-      
-      // Navigate to home
-      navigate("/");
-    } catch (e) {
-      console.error("Wallet authentication failed:", e);
-      setErr(e?.message || "Failed to authenticate with wallet. Please try again.");
-    } finally {
-      setIsAuthenticatingWallet(false);
+    };
+
+    handleWalletAuth();
+  }, [isConnected, address, onLogin, navigate, isAuthenticatingWallet, hasAuthenticated]);
+
+  // Handle wallet connection callback (for WalletButtons component)
+  const handleWalletConnect = React.useCallback((walletAddress) => {
+    // This is called by WalletButtons, but we handle auth via useEffect above
+    // Just ensure we reset the authenticated flag when a new connection happens
+    if (walletAddress && walletAddress !== address) {
+      setHasAuthenticated(false);
     }
-  }, [onLogin, navigate, isAuthenticatingWallet]);
+  }, [address]);
 
   return (
     <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>

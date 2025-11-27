@@ -42,32 +42,28 @@ export default function WalletButtons({ onConnect }) {
     try {
       setSelectedWallet(walletType);
       await connectWallet(walletType);
-      // Wait for address to be available, then trigger onConnect
-      // Poll for address since state might not update immediately
-      let attempts = 0;
-      const maxAttempts = 30; // 3 seconds max wait
-      const checkAddress = setInterval(() => {
-        attempts++;
-        // Get fresh address from wallet context
-        const currentAddress = address;
-        if (currentAddress && onConnect) {
-          clearInterval(checkAddress);
-          // Call onConnect with the address
-          try {
-            onConnect(currentAddress);
-          } catch (err) {
-            console.error("Error in onConnect callback:", err);
-          }
-        } else if (attempts >= maxAttempts) {
-          clearInterval(checkAddress);
-          console.warn("Wallet connected but address not available after", maxAttempts, "attempts");
-        }
-      }, 100);
+      // Don't call onConnect here - let the parent component handle it via useEffect
+      // This avoids closure issues and stale references
     } catch (e) {
       console.error("Connection failed:", e);
       setSelectedWallet(null);
     }
   };
+
+  // Watch for connection and trigger onConnect when wallet connects
+  React.useEffect(() => {
+    if (isConnected && address && onConnect) {
+      // Small delay to ensure state is stable
+      const timer = setTimeout(() => {
+        try {
+          onConnect(address);
+        } catch (err) {
+          console.error("Error in onConnect callback:", err);
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, address, onConnect]);
 
   if (isConnected && address) {
     return (
