@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="flex flex-row justify-between items-start gap-12 mb-4">
           {/* Logo and Address Column - Left */}
           <div className="flex-1">
-            <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition">
+            <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition mb-2">
               <img 
                 src="/faviconlogo.png" 
                 alt="FutrMarket Logo" 
@@ -19,6 +19,7 @@ export default function Footer() {
                 FutrMarket
               </span>
             </Link>
+            <p className="text-[var(--text-footer)] text-sm">Oslo, Norway</p>
           </div>
 
           {/* Company Column - Center */}
