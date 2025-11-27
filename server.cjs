@@ -122,7 +122,9 @@ app.use((req, res, next) => {
     const isFutrmarket = origin.includes('futrmarket.com') || 
                          origin.includes('futrmarket') ||
                          origin === 'https://www.futrmarket.com' ||
-                         origin === 'https://futrmarket.com';
+                         origin === 'https://futrmarket.com' ||
+                         origin === 'http://www.futrmarket.com' ||
+                         origin === 'http://futrmarket.com';
     const isInAllowedList = allowedOrigins.includes(origin);
     
     // Log for debugging
@@ -152,6 +154,9 @@ app.use((req, res, next) => {
     // If origin is blocked, still set a wildcard to prevent browser errors (less secure but works)
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
+  
+  // Ensure CORS headers are always set for preflight
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin || '*');
   
   // Always set these headers
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
@@ -303,11 +308,6 @@ app.post("/api/balances/portfolio", requireAdmin, async (req,res)=>{
 // Health check endpoint
 app.get("/api/test", (req, res) => {
   res.json({ ok: true, message: "Server is working", timestamp: Date.now() });
-});
-
-// Test wallet endpoint (for debugging)
-app.get("/api/wallet/test", (req, res) => {
-  res.json({ ok: true, message: "Wallet endpoints are available", timestamp: Date.now() });
 });
 
 // Generate and send verification code
