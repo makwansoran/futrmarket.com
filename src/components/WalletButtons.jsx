@@ -14,27 +14,27 @@ export default function WalletButtons({ onConnect }) {
   const { isLight } = useTheme();
   const [selectedWallet, setSelectedWallet] = React.useState(null);
 
-  // Wallet options with icons
+  // Wallet options with images
   const walletOptions = [
     {
       id: "metamask",
       name: "MetaMask",
-      icon: "🦊",
+      image: "/Walletassets/MetaMask_Fox.svg.png",
     },
     {
       id: "coinbase",
       name: "Coinbase",
-      icon: "🔷",
+      image: "/Walletassets/coinbase wallet.svg",
     },
     {
       id: "phantom",
       name: "Phantom",
-      icon: "👻",
+      image: "/Walletassets/Phantom-Icon_App_60x60.png",
     },
     {
       id: "walletconnect",
       name: "WalletConnect",
-      icon: "📱",
+      image: "/Walletassets/Walletconnect.png",
     },
   ];
 
@@ -94,7 +94,11 @@ export default function WalletButtons({ onConnect }) {
               {isConnecting && selectedWallet === option.id ? (
                 <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
               ) : (
-                <span className="text-lg">{option.icon}</span>
+                <img 
+                  src={option.image} 
+                  alt={option.name}
+                  className="w-6 h-6 object-contain"
+                />
               )}
             </button>
           ))}
