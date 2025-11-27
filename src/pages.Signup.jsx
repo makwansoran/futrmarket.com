@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight, Key } from "lucide-react";
-import { sendCode, verifyCode, saveUser, saveSession, checkEmailExists, checkUsername } from "./lib.session.js";
+import { sendCode, verifyCode, saveUser, saveSession, checkEmailExists, checkUsername, authenticateWithWallet } from "./lib.session.js";
 import { useTheme } from "./contexts/ThemeContext.jsx";
 import { useWallet } from "./contexts/WalletContext.jsx";
 import WalletButtons from "./components/WalletButtons.jsx";
@@ -135,13 +135,39 @@ export default function SignupPage({ onLogin }){
     handleSend();
   }
 
-  // Handle wallet connection success
+  // Track if user explicitly connected wallet
+  const [walletJustConnected, setWalletJustConnected] = React.useState(false);
+  const [isAuthenticatingWallet, setIsAuthenticatingWallet] = React.useState(false);
+
+  // Handle wallet connection success - authenticate and login
   React.useEffect(() => {
-    if (isConnected && address && onLogin) {
-      // Wallet connected - navigate to home
-      navigate("/");
-    }
-  }, [isConnected, address, onLogin, navigate]);
+    const handleWalletAuth = async () => {
+      if (walletJustConnected && isConnected && address && onLogin && !isAuthenticatingWallet) {
+        setIsAuthenticatingWallet(true);
+        try {
+          // Authenticate user with wallet address
+          const userIdentifier = await authenticateWithWallet(address);
+          
+          // Call onLogin callback to set user session
+          if (onLogin) {
+            await onLogin(userIdentifier);
+          }
+          
+          // Navigate to home
+          setWalletJustConnected(false);
+          navigate("/");
+        } catch (e) {
+          console.error("Wallet authentication failed:", e);
+          setErr(e?.message || "Failed to authenticate with wallet. Please try again.");
+          setWalletJustConnected(false);
+        } finally {
+          setIsAuthenticatingWallet(false);
+        }
+      }
+    };
+    
+    handleWalletAuth();
+  }, [walletJustConnected, isConnected, address, onLogin, navigate, isAuthenticatingWallet]);
 
   return (
     <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
@@ -248,8 +274,8 @@ export default function SignupPage({ onLogin }){
             
             {/* Wallet Connection Buttons */}
             <WalletButtons onConnect={() => {
-              if (onLogin && address) {
-                onLogin(address);
+              if (address) {
+                setWalletJustConnected(true);
               }
             }} />
             
@@ -301,8 +327,8 @@ export default function SignupPage({ onLogin }){
             
             {/* Wallet Connection Buttons */}
             <WalletButtons onConnect={() => {
-              if (onLogin && address) {
-                onLogin(address);
+              if (address) {
+                setWalletJustConnected(true);
               }
             }} />
             <button 
