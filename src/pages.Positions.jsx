@@ -12,7 +12,6 @@ export default function PositionsPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [activeTab, setActiveTab] = React.useState("positions"); // "positions" or "orders"
-  const [chartData, setChartData] = React.useState([]);
 
   React.useEffect(() => {
     if (!userEmail) {
@@ -40,11 +39,6 @@ export default function PositionsPage() {
       
       if (positionsData.ok) {
         setPositions(positionsData.data.positions || []);
-        
-        // Generate chart data from orders (portfolio value over time)
-        if (ordersData.ok && ordersData.data) {
-          generateChartData(ordersData.data);
-        }
       } else {
         setError(positionsData.error || "Failed to load positions");
       }
@@ -58,37 +52,6 @@ export default function PositionsPage() {
     } finally {
       setLoading(false);
     }
-  }
-
-  function generateChartData(ordersList) {
-    // Sort orders by timestamp
-    const sortedOrders = [...ordersList].sort((a, b) => a.timestamp - b.timestamp);
-    
-    // Calculate cumulative portfolio value
-    let runningValue = 0;
-    const data = sortedOrders.map(order => {
-      if (order.type === "buy") {
-        runningValue += order.amountUsd;
-      } else if (order.type === "sell") {
-        runningValue -= order.amountUsd;
-      }
-      return {
-        date: new Date(order.timestamp).toLocaleDateString(),
-        timestamp: order.timestamp,
-        value: Math.max(0, runningValue)
-      };
-    });
-    
-    // Add current portfolio value as last point
-    if (data.length > 0 || portfolio > 0) {
-      data.push({
-        date: "Now",
-        timestamp: Date.now(),
-        value: portfolio
-      });
-    }
-    
-    setChartData(data);
   }
 
   function handleBuy(contractId) {
@@ -138,17 +101,6 @@ export default function PositionsPage() {
           }`}
         >
           Order History ({orders.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("chart")}
-          className={`px-4 py-2 font-medium transition ${
-            activeTab === "chart"
-              ? "text-[var(--accent-blue-text)] border-b-2 border-[var(--accent-blue)]"
-              : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
-          }`}
-        >
-          <BarChart3 size={18} className="inline mr-2" />
-          Progress Chart
         </button>
       </div>
 
@@ -290,54 +242,6 @@ export default function PositionsPage() {
                 </div>
               </div>
             ))
-          )}
-        </div>
-      ) : (
-        <div className="bg-[var(--bg-card)] border border-[var(--border-default)] rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-4">Portfolio Progress</h2>
-          {chartData.length === 0 ? (
-            <div className="text-center py-12 text-[var(--text-tertiary)]">
-              <BarChart3 size={48} className="mx-auto mb-4 opacity-50" />
-              <p>No trading data yet. Start trading to see your progress!</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Simple bar chart visualization */}
-              <div className="h-64 flex items-end justify-between gap-2">
-                {chartData.map((point, index) => {
-                  const maxValue = Math.max(...chartData.map(p => p.value), 1);
-                  const height = (point.value / maxValue) * 100;
-                  return (
-                    <div key={index} className="flex-1 flex flex-col items-center">
-                      <div
-                        className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t transition-all hover:opacity-80"
-                        style={{ height: `${Math.max(height, 5)}%` }}
-                        title={`${point.date}: $${point.value.toFixed(2)}`}
-                      />
-                      <div className="text-xs text-[var(--text-muted)] mt-2 text-center transform -rotate-45 origin-top-left whitespace-nowrap">
-                        {point.date.length > 10 ? point.date.substring(0, 10) : point.date}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mt-6">
-                <div className="bg-[var(--bg-tertiary)] rounded-lg p-4 text-center">
-                  <div className="text-[var(--text-tertiary)] text-sm mb-1">Total Trades</div>
-                  <div className="text-2xl font-bold">{orders.length}</div>
-                </div>
-                <div className="bg-[var(--bg-tertiary)] rounded-lg p-4 text-center">
-                  <div className="text-[var(--text-tertiary)] text-sm mb-1">Current Value</div>
-                  <div className="text-2xl font-bold text-[var(--accent-green-text)]">${portfolio.toFixed(2)}</div>
-                </div>
-                <div className="bg-[var(--bg-tertiary)] rounded-lg p-4 text-center">
-                  <div className="text-[var(--text-tertiary)] text-sm mb-1">Available Cash</div>
-                  <div className="text-2xl font-bold">${cash.toFixed(2)}</div>
-                </div>
-              </div>
-            </div>
           )}
         </div>
       )}
