@@ -1,6 +1,7 @@
 import localforage from 'localforage'
 import { getApiUrl } from '/src/api.js'
 import { getSessionId } from './lib/sessionId.js'
+import { generateAuthMessage } from './lib/walletAuth.js'
 
 // Use session-specific storage to ensure complete isolation per browser instance
 const sessionId = getSessionId();
@@ -394,12 +395,13 @@ export async function clearSession() {
 
 // ----- Wallet authentication -----
 /**
- * Authenticate user with wallet address
+ * Authenticate user with wallet address and signature
  * Checks if wallet is linked to existing account, or creates new account
  * @param {string} walletAddress - The wallet address (0x...)
- * @returns {Promise<string>} - The user identifier (email)
+ * @param {Object} account - The thirdweb account object for signing messages
+ * @returns {Promise<string>} - The user identifier (wallet_address)
  */
-export async function authenticateWithWallet(walletAddress) {
+export async function authenticateWithWallet(walletAddress, account = null) {
   if (!walletAddress || typeof walletAddress !== 'string') {
     throw new Error('Wallet address is required');
   }
@@ -420,8 +422,53 @@ export async function authenticateWithWallet(walletAddress) {
     
     const checkData = await checkRes.json().catch(() => ({}));
     
+    // Generate authentication message
+    const message = generateAuthMessage(addressLower);
+    let signature = null;
+    
+    // Request signature from wallet if account is available
+    if (account && typeof account.signMessage === 'function') {
+      try {
+        console.log('Requesting signature from wallet...');
+        signature = await account.signMessage({ message });
+        console.log('Signature received:', signature ? 'Yes' : 'No');
+      } catch (signError) {
+        console.error('Signature error:', signError);
+        // If user rejects signature, throw a user-friendly error
+        if (signError?.message?.includes('reject') || signError?.message?.includes('denied')) {
+          throw new Error('Signature request was cancelled. Please try again and sign the message.');
+        }
+        throw new Error('Failed to sign message. Please try again.');
+      }
+    } else {
+      console.warn('⚠️  No account provided for signature. Authentication will proceed without signature verification.');
+    }
+    
     if (checkData.linked && checkData.wallet_address) {
       // Wallet is linked to existing account - login with that account
+      // Still verify signature for security
+      if (signature) {
+        const verifyRes = await fetch(getApiUrl('/api/wallet/authenticate'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            walletAddress: addressLower,
+            signature: signature,
+            message: message
+          })
+        });
+        
+        if (!verifyRes.ok) {
+          const errorText = await verifyRes.text().catch(() => '');
+          let errorMessage = 'Failed to verify signature';
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.error || errorMessage;
+          } catch {}
+          throw new Error(errorMessage);
+        }
+      }
+      
       // Use wallet_address as the identifier
       await saveUser(checkData.wallet_address);
       await saveSession(checkData.wallet_address);
@@ -434,9 +481,8 @@ export async function authenticateWithWallet(walletAddress) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         walletAddress: addressLower,
-        // TODO: Add signature verification in the future
-        // signature: signature,
-        // message: message
+        signature: signature,
+        message: message
       })
     });
     

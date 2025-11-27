@@ -9,7 +9,7 @@ import WalletButtons from "./components/WalletButtons.jsx";
 export default function SignupPage({ onLogin }){
   const navigate = useNavigate();
   const { isLight } = useTheme();
-  const { isConnected, address, connectWallet } = useWallet();
+  const { isConnected, address, connectWallet, account } = useWallet();
   const [email, setEmail] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -147,8 +147,8 @@ export default function SignupPage({ onLogin }){
         setHasAuthenticated(true); // Prevent multiple authentication attempts
         
         try {
-          // Authenticate user with wallet address
-          const userIdentifier = await authenticateWithWallet(address);
+          // Authenticate user with wallet address and signature
+          const userIdentifier = await authenticateWithWallet(address, account);
           
           // Call onLogin callback to set user session
           if (onLogin) {

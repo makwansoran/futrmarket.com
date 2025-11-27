@@ -12,6 +12,7 @@ const express = require("express");
 const { Resend } = require("resend");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
+const { ethers } = require("ethers");
 const { supabase, isSupabaseEnabled } = require("./lib/supabase.cjs");
 const {
   createUser,
@@ -3438,8 +3439,32 @@ app.post("/api/wallet/authenticate", async (req, res) => {
       return res.status(400).json({ ok: false, error: "Invalid wallet address format" });
     }
     
-    // For now, we'll skip signature verification (can add later with ethers.js)
-    // In production, you should verify the signature matches the message and address
+    // Verify signature if provided (required for security)
+    if (signature && message) {
+      try {
+        // Recover the address from the signature
+        const recoveredAddress = ethers.verifyMessage(message, signature);
+        const recoveredAddressLower = recoveredAddress.toLowerCase();
+        
+        // Verify the recovered address matches the provided wallet address
+        if (recoveredAddressLower !== addressLower) {
+          return res.status(401).json({ 
+            ok: false, 
+            error: "Signature verification failed. The signature does not match the wallet address." 
+          });
+        }
+      } catch (verifyError) {
+        console.error("Signature verification error:", verifyError);
+        return res.status(400).json({ 
+          ok: false, 
+          error: "Invalid signature format. Please sign the message again." 
+        });
+      }
+    } else {
+      // In production, signature should be required
+      // For now, we allow wallet-only auth but warn
+      console.warn("⚠️  Wallet authentication without signature verification:", addressLower);
+    }
     
     // Check if user already exists with this wallet address
     let user = await getUserByWallet(addressLower);
