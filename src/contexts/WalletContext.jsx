@@ -1,8 +1,8 @@
 import React from "react";
-import { createThirdwebClient, connect, disconnect } from "thirdweb";
+import { createThirdwebClient } from "thirdweb";
 import { polygon } from "thirdweb/chains";
 import { createWallet, inAppWallet, walletConnect } from "thirdweb/wallets";
-import { useActiveAccount, useActiveWalletChain, useDisconnect } from "thirdweb/react";
+import { useActiveAccount, useActiveWalletChain, useDisconnect, useConnect } from "thirdweb/react";
 
 /**
  * WalletContext - Manages wallet connection state using thirdweb
@@ -34,6 +34,7 @@ export function WalletProvider({ children }) {
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
   const disconnectWallet = useDisconnect();
+  const { mutate: connect } = useConnect();
 
   // Connect wallet with a specific wallet type
   const connectWallet = React.useCallback(async (walletType = "metamask") => {
@@ -72,7 +73,7 @@ export function WalletProvider({ children }) {
 
       setWalletInstance(wallet);
 
-      // Connect to Polygon
+      // Connect to Polygon using the hook
       await connect({
         client,
         chain: polygon,
@@ -88,7 +89,7 @@ export function WalletProvider({ children }) {
     } finally {
       setIsConnecting(false);
     }
-  }, []);
+  }, [connect]);
 
   // Handle disconnect
   const handleDisconnect = React.useCallback(async () => {
