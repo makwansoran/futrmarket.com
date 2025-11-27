@@ -3,10 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Mail, Key, ArrowRight, Lock } from "lucide-react";
 import { checkEmail, checkPassword, sendCode, verifyCode, saveUser, saveSession, resetPassword } from "./lib.session.js";
 import { useTheme } from "./contexts/ThemeContext.jsx";
+import { useWallet } from "./contexts/WalletContext.jsx";
+import WalletButtons from "./components/WalletButtons.jsx";
 
 export default function LoginPage({ onLogin }){
   const navigate = useNavigate();
   const { isLight } = useTheme();
+  const { isConnected, address } = useWallet();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [code, setCode] = React.useState("");
@@ -159,9 +162,19 @@ export default function LoginPage({ onLogin }){
     setErr("");
   }
 
+  // Handle wallet connection success
+  React.useEffect(() => {
+    if (isConnected && address && onLogin) {
+      // Wallet connected - navigate to home
+      navigate("/");
+    }
+  }, [isConnected, address, onLogin, navigate]);
+
   return (
     <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
       <h1 className={`text-3xl font-bold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Login</h1>
+      
+      {/* Email/Password Login */}
       <div className={`rounded-xl p-8 border-2 ${
         isLight 
           ? 'bg-white border-gray-300' 
@@ -196,6 +209,14 @@ export default function LoginPage({ onLogin }){
               {loading ? "Loading..." : "Continue"}
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
+            
+            {/* Wallet Connection Buttons */}
+            <WalletButtons onConnect={() => {
+              if (onLogin && address) {
+                onLogin(address);
+              }
+            }} />
+            
             <div className="text-center">
               <Link to="/signup" className={`text-sm ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}>
                 Don't have an account? Create one
@@ -235,6 +256,13 @@ export default function LoginPage({ onLogin }){
               {loading ? "Verifying..." : "Continue"}
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
+            
+            {/* Wallet Connection Buttons */}
+            <WalletButtons onConnect={() => {
+              if (onLogin && address) {
+                onLogin(address);
+              }
+            }} />
             <button 
               type="button"
               onClick={handleBack}
@@ -340,6 +368,13 @@ export default function LoginPage({ onLogin }){
             >
               {loading ? "Resetting..." : "Reset Password"}
             </button>
+            
+            {/* Wallet Connection Buttons */}
+            <WalletButtons onConnect={() => {
+              if (onLogin && address) {
+                onLogin(address);
+              }
+            }} />
             <button 
               type="button"
               onClick={() => {
@@ -394,6 +429,13 @@ export default function LoginPage({ onLogin }){
             >
               {loading ? "Verifying..." : "Verify & Login"}
             </button>
+            
+            {/* Wallet Connection Buttons */}
+            <WalletButtons onConnect={() => {
+              if (onLogin && address) {
+                onLogin(address);
+              }
+            }} />
             <button 
               type="button"
               onClick={handleResend}

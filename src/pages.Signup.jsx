@@ -3,10 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight, Key } from "lucide-react";
 import { sendCode, verifyCode, saveUser, saveSession, checkEmailExists, checkUsername } from "./lib.session.js";
 import { useTheme } from "./contexts/ThemeContext.jsx";
+import { useWallet } from "./contexts/WalletContext.jsx";
+import WalletButtons from "./components/WalletButtons.jsx";
 
 export default function SignupPage({ onLogin }){
   const navigate = useNavigate();
   const { isLight } = useTheme();
+  const { isConnected, address } = useWallet();
   const [email, setEmail] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -132,9 +135,19 @@ export default function SignupPage({ onLogin }){
     handleSend();
   }
 
+  // Handle wallet connection success
+  React.useEffect(() => {
+    if (isConnected && address && onLogin) {
+      // Wallet connected - navigate to home
+      navigate("/");
+    }
+  }, [isConnected, address, onLogin, navigate]);
+
   return (
     <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
       <h1 className={`text-3xl font-bold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Create account</h1>
+      
+      {/* Email/Password Signup */}
       <div className={`rounded-xl p-8 border-2 ${
         isLight 
           ? 'bg-white border-gray-300' 
@@ -232,6 +245,14 @@ export default function SignupPage({ onLogin }){
               {loading ? "Sending..." : "Create Account"}
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
+            
+            {/* Wallet Connection Buttons */}
+            <WalletButtons onConnect={() => {
+              if (onLogin && address) {
+                onLogin(address);
+              }
+            }} />
+            
             <div className="text-center">
               <Link to="/login" className={`text-sm ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}>
                 Already have an account? Login
@@ -277,6 +298,13 @@ export default function SignupPage({ onLogin }){
             >
               {loading ? "Verifying..." : "Verify & Create Account"}
             </button>
+            
+            {/* Wallet Connection Buttons */}
+            <WalletButtons onConnect={() => {
+              if (onLogin && address) {
+                onLogin(address);
+              }
+            }} />
             <button 
               type="button"
               onClick={handleResend}

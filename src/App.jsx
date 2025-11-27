@@ -24,6 +24,8 @@ import CompanyPage from "./pages.Company.jsx";
 import { UserProvider, useUser } from "./contexts/UserContext.jsx";
 import { MarketsProvider, useMarkets } from "./contexts/MarketsContext.jsx";
 import { ThemeProvider } from "./contexts/ThemeContext.jsx";
+import { WalletProvider, client } from "./contexts/WalletContext.jsx";
+import { ThirdwebProvider } from "thirdweb/react";
 
 // Check for placeholder API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
@@ -136,12 +138,16 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <UserProvider>
-        <MarketsProvider>
-          <AppContent />
-        </MarketsProvider>
-      </UserProvider>
-    </ThemeProvider>
+    <ThirdwebProvider client={client}>
+      <ThemeProvider>
+        <WalletProvider>
+          <UserProvider>
+            <MarketsProvider>
+              <AppContent />
+            </MarketsProvider>
+          </UserProvider>
+        </WalletProvider>
+      </ThemeProvider>
+    </ThirdwebProvider>
   );
 }
