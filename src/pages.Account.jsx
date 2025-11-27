@@ -1,11 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Mail, Image as ImageIcon, Save, X, Wallet, Copy, Check, QrCode } from "lucide-react";
+import { User, Mail, Image as ImageIcon, Save, X } from "lucide-react";
 import { saveSession } from "./lib.session.js";
 import { getApiUrl } from "/src/api.js";
 import { useUser } from "./contexts/UserContext.jsx";
 import { useTheme } from "./contexts/ThemeContext.jsx";
-import WithdrawButton from "./components/WithdrawButton.jsx";
 
 export default function AccountPage() {
   const navigate = useNavigate();
@@ -19,9 +18,6 @@ export default function AccountPage() {
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
-  const [walletAddress, setWalletAddress] = React.useState("");
-  const [walletQr, setWalletQr] = React.useState("");
-  const [walletCopied, setWalletCopied] = React.useState(false);
 
   React.useEffect(() => {
     if (!userEmail) {
@@ -44,16 +40,6 @@ export default function AccountPage() {
     try {
       setLoading(true);
       setNewEmail(userEmail);
-
-      // Load wallet address
-      const walletR = await fetch(getApiUrl(`/api/wallet/address?email=${encodeURIComponent(userEmail)}&asset=USDC`));
-      if (walletR.ok) {
-        const walletJ = await walletR.json();
-        if (walletJ?.ok) {
-          setWalletAddress(walletJ.data.address);
-          setWalletQr(walletJ.data.qrDataUrl || "");
-        }
-      }
     } catch (e) {
       console.error("Failed to load account info:", e);
       setError("Failed to load account information");
@@ -115,13 +101,8 @@ export default function AccountPage() {
           syncBalancesFromServer()
         ]);
         
-        // Reload wallet if email changed
-        if (updates.email) {
-          await loadAccountInfo();
-        } else {
-          // Reload account info to get fresh data
-          await loadAccountInfo();
-        }
+        // Reload account info to get fresh data
+        await loadAccountInfo();
       } else {
         setError(j.error || "Failed to update account");
       }
@@ -252,77 +233,6 @@ export default function AccountPage() {
           <p className={`text-xs mt-2 ${isLight ? 'text-gray-500' : 'text-gray-500'}`}>
             Your current email: <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>{userEmail}</span>
           </p>
-        </div>
-
-        {/* Wallet Section */}
-        <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
-          <div className="flex items-center justify-between mb-4">
-            <label className={`block text-sm font-medium ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
-              <Wallet className="w-4 h-4 inline mr-2" />
-              Your Deposit Wallet
-            </label>
-            <WithdrawButton 
-              userEmail={userEmail} 
-              cash={cash}
-              onBalanceUpdate={syncBalancesFromServer}
-            />
-          </div>
-          
-          {walletAddress ? (
-            <div className="space-y-4">
-              <div className={`${isLight ? 'bg-gray-50 border-gray-300' : 'bg-gray-800 border-gray-700'} border rounded-lg p-4`}>
-                <div className={`text-xs mb-2 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Deposit Address</div>
-                <div className="flex items-center gap-2">
-                  <span className={`font-mono text-sm flex-1 break-all ${isLight ? 'text-gray-900' : 'text-white'}`}>{walletAddress}</span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(walletAddress);
-                      setWalletCopied(true);
-                      setTimeout(() => setWalletCopied(false), 2000);
-                    }}
-                    className={`flex-shrink-0 p-2 rounded transition ${isLight ? 'hover:bg-gray-200' : 'hover:bg-gray-700'}`}
-                    title="Copy address"
-                  >
-                    {walletCopied ? (
-                      <Check size={16} className="text-green-400" />
-                    ) : (
-                      <Copy size={16} className={isLight ? 'text-gray-600' : 'text-gray-400'} />
-                    )}
-                  </button>
-                </div>
-              </div>
-              
-              {walletQr && (
-                <div className="flex justify-center">
-                  <div className="bg-white p-2 rounded-lg">
-                    <img src={walletQr} alt="QR Code" className="w-32 h-32" />
-                  </div>
-                </div>
-              )}
-              
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                <p className="text-xs text-blue-300">
-                  <strong>How to deposit:</strong><br/>
-                  1. Send USDC or ETH to the address above<br/>
-                  2. Click "Check" in the deposit modal to scan for deposits<br/>
-                  3. Funds will be credited to your account balance (1:1 for USDC, current price for ETH)<br/>
-                  4. Minimum deposit: $10 USD (excluding gas fees)
-                </p>
-              </div>
-
-              <div className={`${isLight ? 'bg-gray-50 border-gray-300' : 'bg-gray-800 border-gray-700'} border rounded-lg p-3`}>
-                <div className="flex justify-between items-center text-sm">
-                  <span className={isLight ? 'text-gray-600' : 'text-gray-400'}>Available Balance:</span>
-                  <span className="text-green-400 font-semibold">${cash.toFixed(2)}</span>
-                </div>
-                <p className={`text-xs mt-2 ${isLight ? 'text-gray-500' : 'text-gray-500'}`}>
-                  Withdraw funds to your personal wallet using the Withdraw button above.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Loading wallet address...</div>
-          )}
         </div>
 
         {/* Error/Success Messages */}

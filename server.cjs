@@ -9,8 +9,6 @@ console.log("[STARTUP] Environment loaded");
 const fs = require("fs");
 const path = require("path");
 const express = require("express");
-const QRCode = require("qrcode");
-const { HDNodeWallet, Mnemonic, Wallet, JsonRpcProvider, Contract } = require("ethers");
 const { Resend } = require("resend");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
@@ -25,8 +23,6 @@ const {
   getVerificationCode,
   upsertVerificationCode,
   deleteVerificationCode,
-  getWallet,
-  upsertWallet,
   getAllPositions,
   getContract,
   getAllContracts,
@@ -67,11 +63,9 @@ setInterval(() => {
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "re_PX6DihAy_PBAbRtTF7jPTpRcM4GP52qK8";
 const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "FutrMarket <noreply@futrmarket.com>";
 const ETH_FALLBACK = true; // Always use ethereal fallback for email
-const RPC_URL = process.env.RPC_URL || "https://eth.llamarpc.com"; // Public RPC
 
 // Initialize Resend
 const resend = new Resend(RESEND_API_KEY);
-const USDC_ADDRESS = process.env.USDC_ADDRESS || "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // Mainnet USDC
 const DATA = path.join(process.cwd(), "data");
 // Ensure data directory exists
 if (!fs.existsSync(DATA)) {
@@ -85,11 +79,8 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   console.log("Created uploads directory:", UPLOAD_DIR);
 }
-const WALLETS_FILE = path.join(DATA, "wallets.json");
 const BALANCES_FILE = path.join(DATA, "balances.json");
-const MASTER_FILE = path.join(DATA, "master.json");
 const TRANSACTIONS_FILE = path.join(DATA, "transactions.json");
-const DEPOSITS_FILE = path.join(DATA, "deposits.json");
 const CONTRACTS_FILE = path.join(DATA, "contracts.json");
 const POSITIONS_FILE = path.join(DATA, "positions.json");
 const ORDERS_FILE = path.join(DATA, "orders.json");
@@ -220,34 +211,6 @@ function requireAdmin(req,res,next){
   next();
 }
 
-// ---- Master mnemonic for custodial addresses (EVM) ----
-function ensureMaster(){
-  let m = {};
-  if (fs.existsSync(MASTER_FILE)) m = loadJSON(MASTER_FILE);
-  if (!m.mnemonic) {
-    // DEV ONLY: generate and persist a mnemonic so addresses are stable between restarts.
-    const phrase = Mnemonic.fromEntropy(crypto.randomBytes ? crypto.randomBytes(16) : Buffer.from(Array.from({length:16},()=>Math.floor(Math.random()*256)))).phrase;
-    m.mnemonic = phrase;
-    saveJSON(MASTER_FILE, m);
-    console.log("Generated DEV mnemonic and saved to data/master.json (do NOT use in prod).");
-  }
-  return m.mnemonic;
-}
-const crypto = require("crypto"); // used above
-const MASTER_MNEMONIC = process.env.MASTER_MNEMONIC || ensureMaster();
-
-// Deterministic derivation index from email (stable, non-reversible-ish)
-function indexFromEmail(email){
-  const h = crypto.createHash("sha256").update(String(email).toLowerCase()).digest();
-  // take first 4 bytes to a 32-bit index (avoid huge indexes)
-  return (h[0]<<24 | h[1]<<16 | h[2]<<8 | h[3]) >>> 0;
-}
-function walletForEmail(email){
-  const idx = indexFromEmail(email) % 214748; // keep within sane range
-  const pathDerive = `m/44'/60'/0'/0/${idx}`;
-  const hd = HDNodeWallet.fromPhrase(MASTER_MNEMONIC, pathDerive);
-  return hd; // has .address and .privateKey (keep server-side only)
-}
 
 // ---- Simple price fetcher (CoinGecko public) ----
 async function fetchUSD(assets){
@@ -269,53 +232,6 @@ async function fetchUSD(assets){
   }
 }
 
-// ---- Wallet/address endpoints ----
-// Return the custodial EVM deposit address for this email (valid for ETH/USDC on EVM L1/L2; same address)
-app.get("/api/wallet/address", async (req,res)=>{
-  const email = String(req.query.email||"").trim().toLowerCase();
-  const asset = String(req.query.asset||"USDC").toUpperCase(); // ETH or USDC
-  if (!email) return res.status(400).json({ ok:false, error:"email required" });
-
-  const w = walletForEmail(email);
-  
-  // Check if wallet already exists in database
-  let wallet = await getWallet(email);
-  if (!wallet) {
-    // Save wallet to database (Supabase or file)
-    wallet = await upsertWallet(email, {
-      evm_address: w.address,
-      created_at: Date.now()
-    });
-  }
-
-  // Also give a QR for convenience
-  const uri = `ethereum:${w.address}`;
-  const qr = await QRCode.toDataURL(uri);
-
-  res.json({ ok:true, data:{ asset, address: w.address, qrDataUrl: qr }});
-});
-
-// Admin credits USD balance after seeing an onchain deposit (safer MVP)
-app.post("/api/wallet/credit", requireAdmin, async (req,res)=>{
-  const { email, asset="USDC", amountCrypto=0, txHash="" } = req.body||{};
-  const e = String(email||"").toLowerCase().trim();
-  if (!e) return res.status(400).json({ ok:false, error:"email required" });
-  const sym = String(asset||"USDC").toUpperCase();
-  const amt = Number(amountCrypto||0);
-  if (!(amt>0)) return res.status(400).json({ ok:false, error:"amountCrypto must be > 0" });
-
-  const prices = await fetchUSD([sym]); // USDC ~1, ETH via CG
-  const usd = (prices[sym]||0) * amt;
-
-  // Get current balance from database
-  let balance = await getBalance(e);
-  const newCash = Number((balance.cash + usd).toFixed(2));
-  
-  // Update balance in database (Supabase or file)
-  await updateBalance(e, { cash: newCash, portfolio: balance.portfolio });
-
-  res.json({ ok:true, data:{ creditedUSD: usd, newCash, txHash }});
-});
 
 // Read balances
 app.get("/api/balances", async (req,res)=>{
@@ -991,280 +907,6 @@ app.post("/api/verify-code", async (req,res)=>{
 
 // ---- Deposit tracking and monitoring ----
 
-// USDC ERC20 ABI (transfer event, balanceOf, and transfer function)
-const USDC_ABI = [
-  "event Transfer(address indexed from, address indexed to, uint256 value)",
-  "function balanceOf(address account) view returns (uint256)",
-  "function decimals() view returns (uint8)",
-  "function transfer(address to, uint256 amount) returns (bool)"
-];
-
-// Get deposit transactions for an email
-app.get("/api/deposits", (req,res)=>{
-  const email = String(req.query.email||"").trim().toLowerCase();
-  if (!email) return res.status(400).json({ ok:false, error:"email required" });
-  const deposits = loadJSON(DEPOSITS_FILE);
-  const userDeposits = (deposits[email] || []).sort((a,b) => b.timestamp - a.timestamp);
-  res.json({ ok:true, data: userDeposits });
-});
-
-// Check deposit status for a specific transaction
-app.get("/api/deposits/check", async (req,res)=>{
-  const email = String(req.query.email||"").trim().toLowerCase();
-  const txHash = String(req.query.txHash||"").trim();
-  if (!email || !txHash) return res.status(400).json({ ok:false, error:"email and txHash required" });
-  
-  try {
-    const provider = new JsonRpcProvider(RPC_URL);
-    const tx = await provider.getTransaction(txHash);
-    if (!tx) return res.json({ ok:true, data: { found: false } });
-    
-    const receipt = await provider.getTransactionReceipt(txHash);
-    const w = walletForEmail(email);
-    
-    // Check if transaction is to user's address
-    const isToAddress = tx.to && tx.to.toLowerCase() === w.address.toLowerCase();
-    const isConfirmed = receipt && receipt.status === 1;
-    
-    // Check USDC transfers
-    let usdcAmount = 0;
-    if (receipt && receipt.logs) {
-      const usdcContract = new Contract(USDC_ADDRESS, USDC_ABI, provider);
-      for (const log of receipt.logs) {
-        try {
-          const parsed = usdcContract.interface.parseLog(log);
-          if (parsed && parsed.name === "Transfer" && parsed.args.to.toLowerCase() === w.address.toLowerCase()) {
-            usdcAmount = Number(parsed.args.value) / 1e6; // USDC has 6 decimals
-            break;
-          }
-        } catch {}
-      }
-    }
-    
-    // Check ETH value
-    const ethAmount = tx.value ? Number(tx.value) / 1e18 : 0;
-    
-    res.json({ 
-      ok:true, 
-      data: { 
-        found: true,
-        confirmed: isConfirmed,
-        toAddress: tx.to,
-        isToUserAddress: isToAddress,
-        ethAmount,
-        usdcAmount,
-        blockNumber: receipt?.blockNumber || null,
-        confirmations: receipt ? (await provider.getBlockNumber()) - receipt.blockNumber : 0
-      } 
-    });
-  } catch(e) {
-    res.status(500).json({ ok:false, error: e.message });
-  }
-});
-
-// Monitor deposits for an address (called periodically from frontend)
-app.post("/api/deposits/scan", async (req,res)=>{
-  const email = String(req.body.email||"").trim().toLowerCase();
-  if (!email) return res.status(400).json({ ok:false, error:"email required" });
-  
-  try {
-    const w = walletForEmail(email);
-    const provider = new JsonRpcProvider(RPC_URL);
-    const deposits = loadJSON(DEPOSITS_FILE);
-    const balances = loadJSON(BALANCES_FILE);
-    
-    if (!deposits[email]) deposits[email] = [];
-    if (!balances[email]) balances[email] = { cash: 0, portfolio: 0 };
-    
-    // Get recent blocks (last 1000 blocks ~4 hours on mainnet)
-    const currentBlock = await provider.getBlockNumber();
-    const fromBlock = Math.max(0, currentBlock - 1000);
-    
-    // Check ETH balance
-    const ethBalance = await provider.getBalance(w.address);
-    const ethAmount = Number(ethBalance) / 1e18;
-    
-    // Check USDC balance
-    const usdcContract = new Contract(USDC_ADDRESS, USDC_ABI, provider);
-    const usdcBalance = await usdcContract.balanceOf(w.address);
-    const usdcAmount = Number(usdcBalance) / 1e6;
-    
-    // Get recent USDC transfers
-    const filter = usdcContract.filters.Transfer(null, w.address);
-    const transfers = await usdcContract.queryFilter(filter, fromBlock, currentBlock);
-    
-    let newDeposits = [];
-    const knownTxHashes = new Set(deposits[email].map(d => d.txHash));
-    
-    for (const event of transfers) {
-      if (knownTxHashes.has(event.transactionHash)) continue;
-      
-      const amount = Number(event.args.value) / 1e6;
-      const receipt = await provider.getTransactionReceipt(event.transactionHash);
-      const block = await provider.getBlock(receipt.blockNumber);
-      
-      const deposit = {
-        id: `dep_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-        txHash: event.transactionHash,
-        asset: "USDC",
-        amount,
-        amountUSD: amount, // USDC = 1:1 USD
-        status: "confirmed",
-        timestamp: block.timestamp * 1000,
-        blockNumber: receipt.blockNumber,
-        createdAt: Date.now()
-      };
-      
-      deposits[email].push(deposit);
-      newDeposits.push(deposit);
-      
-      // Auto-credit balance
-      balances[email].cash = Number((balances[email].cash + amount).toFixed(2));
-    }
-    
-    // Check for ETH deposits (native transfers)
-    // This is more complex, would need to scan all blocks for transfers to this address
-    // For now, we'll rely on manual checking or admin credit
-    
-    saveJSON(DEPOSITS_FILE, deposits);
-    saveJSON(BALANCES_FILE, balances);
-    
-    res.json({ 
-      ok:true, 
-      data: { 
-        newDeposits,
-        currentBalance: balances[email],
-        ethBalance: ethAmount,
-        usdcBalance: usdcAmount
-      } 
-    });
-  } catch(e) {
-    console.error("Deposit scan error:", e);
-    res.status(500).json({ ok:false, error: e.message });
-  }
-});
-
-// Get withdrawal transactions for an email
-app.get("/api/withdrawals", (req,res)=>{
-  const email = String(req.query.email||"").trim().toLowerCase();
-  if (!email) return res.status(400).json({ ok:false, error:"email required" });
-  const transactions = loadJSON(TRANSACTIONS_FILE);
-  const userTransactions = (transactions[email] || [])
-    .filter(t => t.type === "withdrawal")
-    .sort((a,b) => b.createdAt - a.createdAt);
-  res.json({ ok:true, data: userTransactions });
-});
-
-// User withdrawal: Send funds from custodial wallet to user's personal wallet
-app.post("/api/wallet/withdraw", async (req,res)=>{
-  const { email, toAddress, amountUSD, asset="USDC" } = req.body||{};
-  const e = String(email||"").toLowerCase().trim();
-  const to = String(toAddress||"").trim();
-  const amtUSD = Number(amountUSD||0);
-  const sym = String(asset||"USDC").toUpperCase();
-
-  if (!e) return res.status(400).json({ ok:false, error:"email required" });
-  if (!to || !/^0x[a-fA-F0-9]{40}$/.test(to)) return res.status(400).json({ ok:false, error:"valid toAddress required" });
-  if (!(amtUSD>0)) return res.status(400).json({ ok:false, error:"amountUSD must be > 0" });
-  if (amtUSD < 10) return res.status(400).json({ ok:false, error:"minimum withdrawal is $10" });
-
-  try {
-    // Check user balance
-    const b = loadJSON(BALANCES_FILE);
-    if (!b[e]) b[e] = { cash:0, portfolio:0 };
-    if (b[e].cash < amtUSD) {
-      return res.status(400).json({ ok:false, error:"Insufficient balance" });
-    }
-
-    // Get custodial wallet
-    const w = walletForEmail(e);
-    const provider = new JsonRpcProvider(RPC_URL);
-    const wallet = new Wallet(w.privateKey, provider);
-
-    let txHash = "";
-    let amountCrypto = 0;
-
-    if (sym === "USDC") {
-      // Withdraw USDC
-      const usdcContract = new Contract(USDC_ADDRESS, USDC_ABI, wallet);
-      const amountWei = BigInt(Math.floor(amtUSD * 1e6)); // USDC has 6 decimals
-      
-      // Check custodial wallet has enough USDC
-      const balance = await usdcContract.balanceOf(w.address);
-      if (balance < amountWei) {
-        return res.status(400).json({ ok:false, error:"Insufficient USDC in custodial wallet" });
-      }
-
-      const tx = await usdcContract.transfer(to, amountWei);
-      txHash = tx.hash;
-      amountCrypto = Number(amountWei) / 1e6;
-      
-      // Wait for confirmation (optional, can be async)
-      // await tx.wait();
-    } else if (sym === "ETH") {
-      // Withdraw ETH
-      const prices = await fetchUSD(["ETH"]);
-      const ethPrice = prices.ETH || 0;
-      if (ethPrice === 0) return res.status(400).json({ ok:false, error:"Could not fetch ETH price" });
-      
-      amountCrypto = amtUSD / ethPrice;
-      // Convert to wei (18 decimals)
-      const amountWei = BigInt(Math.floor(amountCrypto * 1e18));
-      
-      // Check custodial wallet has enough ETH
-      const balance = await provider.getBalance(w.address);
-      if (balance < amountWei) {
-        return res.status(400).json({ ok:false, error:"Insufficient ETH in custodial wallet" });
-      }
-
-      const tx = await wallet.sendTransaction({
-        to: to,
-        value: amountWei
-      });
-      txHash = tx.hash;
-      
-      // Wait for confirmation (optional, can be async)
-      // await tx.wait();
-    } else {
-      return res.status(400).json({ ok:false, error:"Unsupported asset. Use USDC or ETH" });
-    }
-
-    // Deduct balance
-    b[e].cash = Number((b[e].cash - amtUSD).toFixed(2));
-    saveJSON(BALANCES_FILE, b);
-
-    // Record withdrawal transaction
-    const transactions = loadJSON(TRANSACTIONS_FILE);
-    if (!transactions[e]) transactions[e] = [];
-    transactions[e].push({
-      id: `withdraw_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-      type: "withdrawal",
-      asset: sym,
-      amountUSD: amtUSD,
-      amountCrypto: amountCrypto,
-      fromAddress: w.address,
-      toAddress: to,
-      txHash: txHash,
-      status: "pending",
-      createdAt: Date.now()
-    });
-    saveJSON(TRANSACTIONS_FILE, transactions);
-
-    res.json({ 
-      ok:true, 
-      data:{ 
-        txHash,
-        amountUSD: amtUSD,
-        amountCrypto: amountCrypto,
-        asset: sym,
-        newBalance: b[e].cash
-      } 
-    });
-  } catch(e) {
-    console.error("Withdrawal error:", e);
-    res.status(500).json({ ok:false, error: e.message || "Withdrawal failed" });
-  }
-});
 
 // ---- CONTRACT TRADING SYSTEM ----
 // Every contract starts at $1, market determines if it's worth more or less
@@ -3917,8 +3559,6 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   console.log("Resend configured:", !!RESEND_API_KEY);
   console.log("Resend from email:", RESEND_FROM_EMAIL);
   console.log("Ethereal fallback:", ETH_FALLBACK ? "enabled" : "disabled");
-  console.log("Admin credit endpoint: POST /api/wallet/credit with x-admin-token");
-  console.log("Deposit monitoring enabled. RPC:", RPC_URL);
   console.log("Health check: GET /health");
   if (isSupabaseEnabled()) {
     console.log("✅ Supabase: ENABLED (using database)");
