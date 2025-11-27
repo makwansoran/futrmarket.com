@@ -7,8 +7,47 @@
 BEGIN;
 
 -- ============================================
--- STEP 1: Drop all old tables (in correct order to handle foreign keys)
+-- STEP 1: Drop all old tables and indexes (in correct order to handle foreign keys)
 -- ============================================
+
+-- Drop indexes first (if they exist)
+DROP INDEX IF EXISTS public.idx_users_email CASCADE;
+DROP INDEX IF EXISTS public.idx_users_username CASCADE;
+DROP INDEX IF EXISTS public.idx_wallets_user CASCADE;
+DROP INDEX IF EXISTS public.idx_wallets_primary CASCADE;
+DROP INDEX IF EXISTS public.idx_balances_updated CASCADE;
+DROP INDEX IF EXISTS public.idx_smart_contracts_contract_id CASCADE;
+DROP INDEX IF EXISTS public.idx_smart_contracts_chain CASCADE;
+DROP INDEX IF EXISTS public.idx_onchain_tx_wallet CASCADE;
+DROP INDEX IF EXISTS public.idx_onchain_tx_contract CASCADE;
+DROP INDEX IF EXISTS public.idx_onchain_tx_status CASCADE;
+DROP INDEX IF EXISTS public.idx_onchain_tx_block CASCADE;
+DROP INDEX IF EXISTS public.idx_onchain_tx_created CASCADE;
+DROP INDEX IF EXISTS public.idx_onchain_positions_wallet CASCADE;
+DROP INDEX IF EXISTS public.idx_onchain_positions_contract CASCADE;
+DROP INDEX IF EXISTS public.idx_positions_wallet CASCADE;
+DROP INDEX IF EXISTS public.idx_positions_contract_id CASCADE;
+DROP INDEX IF EXISTS public.idx_orders_wallet CASCADE;
+DROP INDEX IF EXISTS public.idx_orders_contract_id CASCADE;
+DROP INDEX IF EXISTS public.idx_orders_timestamp CASCADE;
+DROP INDEX IF EXISTS public.idx_orders_tx_hash CASCADE;
+DROP INDEX IF EXISTS public.idx_transactions_wallet CASCADE;
+DROP INDEX IF EXISTS public.idx_transactions_type CASCADE;
+DROP INDEX IF EXISTS public.idx_transactions_tx_hash CASCADE;
+DROP INDEX IF EXISTS public.idx_deposits_wallet CASCADE;
+DROP INDEX IF EXISTS public.idx_deposits_tx_hash CASCADE;
+DROP INDEX IF EXISTS public.idx_deposits_status CASCADE;
+DROP INDEX IF EXISTS public.idx_forum_contract_id CASCADE;
+DROP INDEX IF EXISTS public.idx_forum_parent_id CASCADE;
+DROP INDEX IF EXISTS public.idx_forum_wallet CASCADE;
+DROP INDEX IF EXISTS public.idx_contracts_category CASCADE;
+DROP INDEX IF EXISTS public.idx_contracts_status CASCADE;
+DROP INDEX IF EXISTS public.idx_contracts_live CASCADE;
+DROP INDEX IF EXISTS public.idx_contracts_featured CASCADE;
+DROP INDEX IF EXISTS public.idx_contracts_subject_id CASCADE;
+DROP INDEX IF EXISTS public.idx_contracts_contract_address CASCADE;
+DROP INDEX IF EXISTS public.idx_news_contract_id CASCADE;
+DROP INDEX IF EXISTS public.idx_subjects_slug CASCADE;
 
 -- Drop tables that reference users first
 DROP TABLE IF EXISTS public.verification_codes CASCADE;
@@ -20,10 +59,13 @@ DROP TABLE IF EXISTS public.orders CASCADE;
 DROP TABLE IF EXISTS public.positions CASCADE;
 DROP TABLE IF EXISTS public.balances CASCADE;
 DROP TABLE IF EXISTS public.wallets CASCADE;
+DROP TABLE IF EXISTS public.onchain_positions CASCADE;
+DROP TABLE IF EXISTS public.onchain_transactions CASCADE;
 
 -- Drop tables that reference contracts
 DROP TABLE IF EXISTS public.news CASCADE;
 DROP TABLE IF EXISTS public.features CASCADE;
+DROP TABLE IF EXISTS public.smart_contracts CASCADE;
 
 -- Drop main tables
 DROP TABLE IF EXISTS public.users CASCADE;
@@ -297,69 +339,69 @@ CREATE TABLE public.verification_codes (
 -- ============================================
 
 -- User indexes
-CREATE INDEX idx_users_email ON public.users(email) WHERE email IS NOT NULL;
-CREATE INDEX idx_users_username ON public.users(username) WHERE username IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email) WHERE email IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_users_username ON public.users(username) WHERE username IS NOT NULL;
 
 -- Wallet indexes
-CREATE INDEX idx_wallets_user ON public.wallets(user_wallet_address);
-CREATE INDEX idx_wallets_primary ON public.wallets(user_wallet_address, is_primary) WHERE is_primary = true;
+CREATE INDEX IF NOT EXISTS idx_wallets_user ON public.wallets(user_wallet_address);
+CREATE INDEX IF NOT EXISTS idx_wallets_primary ON public.wallets(user_wallet_address, is_primary) WHERE is_primary = true;
 
 -- Balance indexes
-CREATE INDEX idx_balances_updated ON public.balances(updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_balances_updated ON public.balances(updated_at DESC);
 
 -- Smart contract indexes
-CREATE INDEX idx_smart_contracts_contract_id ON public.smart_contracts(contract_id);
-CREATE INDEX idx_smart_contracts_chain ON public.smart_contracts(chain_id);
+CREATE INDEX IF NOT EXISTS idx_smart_contracts_contract_id ON public.smart_contracts(contract_id);
+CREATE INDEX IF NOT EXISTS idx_smart_contracts_chain ON public.smart_contracts(chain_id);
 
 -- On-chain transaction indexes
-CREATE INDEX idx_onchain_tx_wallet ON public.onchain_transactions(wallet_address);
-CREATE INDEX idx_onchain_tx_contract ON public.onchain_transactions(contract_address);
-CREATE INDEX idx_onchain_tx_status ON public.onchain_transactions(status);
-CREATE INDEX idx_onchain_tx_block ON public.onchain_transactions(block_number DESC);
-CREATE INDEX idx_onchain_tx_created ON public.onchain_transactions(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_onchain_tx_wallet ON public.onchain_transactions(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_onchain_tx_contract ON public.onchain_transactions(contract_address);
+CREATE INDEX IF NOT EXISTS idx_onchain_tx_status ON public.onchain_transactions(status);
+CREATE INDEX IF NOT EXISTS idx_onchain_tx_block ON public.onchain_transactions(block_number DESC);
+CREATE INDEX IF NOT EXISTS idx_onchain_tx_created ON public.onchain_transactions(created_at DESC);
 
 -- On-chain position indexes
-CREATE INDEX idx_onchain_positions_wallet ON public.onchain_positions(wallet_address);
-CREATE INDEX idx_onchain_positions_contract ON public.onchain_positions(contract_address);
+CREATE INDEX IF NOT EXISTS idx_onchain_positions_wallet ON public.onchain_positions(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_onchain_positions_contract ON public.onchain_positions(contract_address);
 
 -- Position indexes
-CREATE INDEX idx_positions_wallet ON public.positions(wallet_address);
-CREATE INDEX idx_positions_contract_id ON public.positions(contract_id);
+CREATE INDEX IF NOT EXISTS idx_positions_wallet ON public.positions(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_positions_contract_id ON public.positions(contract_id);
 
 -- Order indexes
-CREATE INDEX idx_orders_wallet ON public.orders(wallet_address);
-CREATE INDEX idx_orders_contract_id ON public.orders(contract_id);
-CREATE INDEX idx_orders_timestamp ON public.orders(timestamp DESC);
-CREATE INDEX idx_orders_tx_hash ON public.orders(tx_hash) WHERE tx_hash IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_orders_wallet ON public.orders(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_orders_contract_id ON public.orders(contract_id);
+CREATE INDEX IF NOT EXISTS idx_orders_timestamp ON public.orders(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_tx_hash ON public.orders(tx_hash) WHERE tx_hash IS NOT NULL;
 
 -- Transaction indexes
-CREATE INDEX idx_transactions_wallet ON public.transactions(wallet_address);
-CREATE INDEX idx_transactions_type ON public.transactions(type);
-CREATE INDEX idx_transactions_tx_hash ON public.transactions(tx_hash) WHERE tx_hash IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_transactions_wallet ON public.transactions(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_transactions_type ON public.transactions(type);
+CREATE INDEX IF NOT EXISTS idx_transactions_tx_hash ON public.transactions(tx_hash) WHERE tx_hash IS NOT NULL;
 
 -- Deposit indexes
-CREATE INDEX idx_deposits_wallet ON public.deposits(wallet_address);
-CREATE INDEX idx_deposits_tx_hash ON public.deposits(tx_hash);
-CREATE INDEX idx_deposits_status ON public.deposits(status);
+CREATE INDEX IF NOT EXISTS idx_deposits_wallet ON public.deposits(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_deposits_tx_hash ON public.deposits(tx_hash);
+CREATE INDEX IF NOT EXISTS idx_deposits_status ON public.deposits(status);
 
 -- Forum indexes
-CREATE INDEX idx_forum_contract_id ON public.forum_comments(contract_id);
-CREATE INDEX idx_forum_parent_id ON public.forum_comments(parent_id);
-CREATE INDEX idx_forum_wallet ON public.forum_comments(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_forum_contract_id ON public.forum_comments(contract_id);
+CREATE INDEX IF NOT EXISTS idx_forum_parent_id ON public.forum_comments(parent_id);
+CREATE INDEX IF NOT EXISTS idx_forum_wallet ON public.forum_comments(wallet_address);
 
 -- Contract indexes
-CREATE INDEX idx_contracts_category ON public.contracts(category);
-CREATE INDEX idx_contracts_status ON public.contracts(status);
-CREATE INDEX idx_contracts_live ON public.contracts(live);
-CREATE INDEX idx_contracts_featured ON public.contracts(featured);
-CREATE INDEX idx_contracts_subject_id ON public.contracts(subject_id);
-CREATE INDEX idx_contracts_contract_address ON public.contracts(contract_address) WHERE contract_address IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_contracts_category ON public.contracts(category);
+CREATE INDEX IF NOT EXISTS idx_contracts_status ON public.contracts(status);
+CREATE INDEX IF NOT EXISTS idx_contracts_live ON public.contracts(live);
+CREATE INDEX IF NOT EXISTS idx_contracts_featured ON public.contracts(featured);
+CREATE INDEX IF NOT EXISTS idx_contracts_subject_id ON public.contracts(subject_id);
+CREATE INDEX IF NOT EXISTS idx_contracts_contract_address ON public.contracts(contract_address) WHERE contract_address IS NOT NULL;
 
 -- News indexes
-CREATE INDEX idx_news_contract_id ON public.news(contract_id);
+CREATE INDEX IF NOT EXISTS idx_news_contract_id ON public.news(contract_id);
 
 -- Subject indexes
-CREATE INDEX idx_subjects_slug ON public.subjects(slug);
+CREATE INDEX IF NOT EXISTS idx_subjects_slug ON public.subjects(slug);
 
 -- ============================================
 -- STEP 4: Enable Row Level Security (RLS)
