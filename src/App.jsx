@@ -24,9 +24,8 @@ import CompanyPage from "./pages.Company.jsx";
 import { UserProvider, useUser } from "./contexts/UserContext.jsx";
 import { MarketsProvider, useMarkets } from "./contexts/MarketsContext.jsx";
 import { ThemeProvider } from "./contexts/ThemeContext.jsx";
-import { WalletProvider, client } from "./contexts/WalletContext.jsx";
+import { WalletProvider, client, useWallet } from "./contexts/WalletContext.jsx";
 import { ThirdwebProvider } from "thirdweb/react";
-import { useWallet } from "./contexts/WalletContext.jsx";
 
 // Check for placeholder API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
