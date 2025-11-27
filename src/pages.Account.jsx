@@ -171,7 +171,7 @@ export default function AccountPage() {
           <div className="space-y-1">
             <button
               onClick={() => setActiveTab("account")}
-              className={`w-full px-3 py-2 rounded text-sm transition text-left flex items-center gap-2 ${
+              className={`w-full px-3 py-2 text-sm transition text-left flex items-center gap-2 border-0 ${
                 activeTab === "account"
                   ? isLight 
                     ? 'bg-blue-50 text-blue-600' 
@@ -186,7 +186,7 @@ export default function AccountPage() {
             </button>
             <button
               onClick={() => setActiveTab("wallet")}
-              className={`w-full px-3 py-2 rounded text-sm transition text-left flex items-center gap-2 ${
+              className={`w-full px-3 py-2 text-sm transition text-left flex items-center gap-2 border-0 ${
                 activeTab === "wallet"
                   ? isLight 
                     ? 'bg-blue-50 text-blue-600' 
