@@ -244,7 +244,7 @@ export default function PositionsPage() {
             ))
           )}
         </div>
-      )}
+      ) : null}
     </main>
   );
 }
