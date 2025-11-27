@@ -1,14 +1,7 @@
 import React from "react";
 import { createThirdwebClient, connect, disconnect } from "thirdweb";
 import { polygon } from "thirdweb/chains";
-import { 
-  createWallet, 
-  inAppWallet,
-  coinbaseWallet,
-  metamaskWallet,
-  walletConnect,
-  phantomWallet
-} from "thirdweb/wallets";
+import { createWallet, inAppWallet, walletConnect } from "thirdweb/wallets";
 import { useActiveAccount, useActiveWalletChain, useDisconnect } from "thirdweb/react";
 
 /**
@@ -50,16 +43,16 @@ export function WalletProvider({ children }) {
     try {
       let wallet;
 
-      // Create wallet instance based on type
+      // Create wallet instance based on type using wallet IDs
       switch (walletType) {
         case "metamask":
-          wallet = metamaskWallet();
+          wallet = createWallet("io.metamask");
           break;
         case "coinbase":
-          wallet = coinbaseWallet();
+          wallet = createWallet("com.coinbase.wallet");
           break;
         case "phantom":
-          wallet = phantomWallet();
+          wallet = createWallet("app.phantom");
           break;
         case "walletconnect":
           wallet = walletConnect({
@@ -74,7 +67,7 @@ export function WalletProvider({ children }) {
           });
           break;
         default:
-          wallet = metamaskWallet();
+          wallet = createWallet("io.metamask");
       }
 
       setWalletInstance(wallet);
