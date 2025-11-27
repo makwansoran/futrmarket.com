@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="flex-1">
             <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition mb-2">
               <img 
-                src="/faviconlogo.png" 
+                src="/Group.svg" 
                 alt="FutrMarket Logo" 
                 className="h-8 w-8 object-contain"
               />
