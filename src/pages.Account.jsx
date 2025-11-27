@@ -11,7 +11,7 @@ export default function AccountPage() {
   const navigate = useNavigate();
   const { userEmail, cash, userProfile, refreshProfile, syncBalancesFromServer } = useUser();
   const { isLight } = useTheme();
-  const { isConnected, address, chain, connectWallet, disconnectWallet, isConnecting, error: walletError, needsNetworkSwitch, switchToPolygon } = useWallet();
+  const { isConnected, address, chain, connectWallet, disconnectWallet, isConnecting, error: walletError, needsNetworkSwitch, switchToPolygon, isWalletInstalled } = useWallet();
   
   const [username, setUsername] = React.useState("");
   const [profilePicture, setProfilePicture] = React.useState("");
