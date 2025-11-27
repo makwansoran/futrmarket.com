@@ -416,33 +416,44 @@ export default function AccountPage() {
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { id: "metamask", name: "MetaMask", image: "/Walletassets/MetaMask_Fox.svg.png" },
-                      { id: "coinbase", name: "Coinbase", image: "/Walletassets/coinbase wallet.svg" },
-                      { id: "phantom", name: "Phantom", image: "/Walletassets/Phantom-Icon_App_60x60.png" },
-                      { id: "walletconnect", name: "WalletConnect", image: "/Walletassets/Walletconnect.png" },
-                    ].map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => connectWallet(option.id)}
-                        disabled={isConnecting}
-                        className={`p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
-                          isLight
-                            ? 'bg-white border-gray-300 hover:border-blue-500 hover:bg-blue-50'
-                            : 'bg-gray-800 border-gray-700 hover:border-blue-500 hover:bg-gray-750'
-                        } ${
-                          isConnecting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                        }`}
-                      >
-                        <img 
-                          src={option.image} 
-                          alt={option.name}
-                          className="w-8 h-8 object-contain"
-                        />
-                        <span className={`text-xs font-medium ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
-                          {option.name}
-                        </span>
-                      </button>
-                    ))}
+                      { id: "metamask", name: "MetaMask", image: "/Walletassets/MetaMask_Fox.svg.png", walletId: "io.metamask" },
+                      { id: "coinbase", name: "Coinbase", image: "/Walletassets/coinbase wallet.svg", walletId: "com.coinbase.wallet" },
+                      { id: "phantom", name: "Phantom", image: "/Walletassets/Phantom-Icon_App_60x60.png", walletId: "app.phantom" },
+                      { id: "walletconnect", name: "WalletConnect", image: "/Walletassets/Walletconnect.png", walletId: null },
+                    ].map((option) => {
+                      const isInstalled = option.walletId ? isWalletInstalled(option.walletId) : true;
+                      return (
+                        <button
+                          key={option.id}
+                          onClick={() => connectWallet(option.id)}
+                          disabled={isConnecting}
+                          className={`p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 relative ${
+                            isLight
+                              ? 'bg-white border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                              : 'bg-gray-800 border-gray-700 hover:border-blue-500 hover:bg-gray-750'
+                          } ${
+                            isConnecting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                          } ${
+                            !isInstalled ? 'opacity-60' : ''
+                          }`}
+                          title={!isInstalled ? `${option.name} is not installed` : `Connect with ${option.name}`}
+                        >
+                          <img 
+                            src={option.image} 
+                            alt={option.name}
+                            className="w-8 h-8 object-contain"
+                          />
+                          <span className={`text-xs font-medium ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
+                            {option.name}
+                          </span>
+                          {!isInstalled && (
+                            <span className="absolute top-1 right-1 text-[8px] px-1 py-0.5 bg-yellow-500 text-white rounded">
+                              Install
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
