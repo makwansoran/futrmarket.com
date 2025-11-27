@@ -245,11 +245,22 @@ async function fetchUSD(assets){
 
 // Read balances
 app.get("/api/balances", async (req,res)=>{
+  const walletAddress = String(req.query.wallet_address||"").trim().toLowerCase();
   const email = String(req.query.email||"").trim().toLowerCase();
-  if (!email) return res.status(400).json({ ok:false, error:"email required" });
+  
+  if (!walletAddress && !email) {
+    return res.status(400).json({ ok:false, error:"wallet_address or email required" });
+  }
   
   try {
-    const balance = await getBalance(email);
+    let balance;
+    if (walletAddress) {
+      // Use wallet-first schema
+      balance = await getBalanceByWallet(walletAddress);
+    } else {
+      // Fallback to email (backward compatibility)
+      balance = await getBalance(email);
+    }
     res.json({ ok:true, data: balance });
   } catch (error) {
     console.error("Error fetching balance:", error);
@@ -1742,11 +1753,29 @@ app.post("/api/contracts/:id/order", async (req, res) => {
 // Get user positions
 app.get("/api/positions", async (req, res) => {
   try {
+    const walletAddress = String(req.query.wallet_address || "").trim().toLowerCase();
     const email = String(req.query.email || "").trim().toLowerCase();
-    if (!email) return res.status(400).json({ ok: false, error: "email required" });
+    
+    if (!walletAddress && !email) {
+      return res.status(400).json({ ok: false, error: "wallet_address or email required" });
+    }
     
     // Get user positions from database
-    const userPositions = await getAllPositions(email);
+    // Note: getAllPositions still uses email, but we'll need to update it later
+    // For now, if wallet_address is provided, we need to get the user first
+    let identifier = email;
+    if (walletAddress) {
+      const user = await getUserByWallet(walletAddress);
+      if (user && user.email) {
+        identifier = user.email;
+      } else {
+        // Wallet-only user, use wallet_address directly
+        // TODO: Update getAllPositions to support wallet_address
+        identifier = walletAddress;
+      }
+    }
+    
+    const userPositions = await getAllPositions(identifier);
     
     // Get all contracts to calculate values
     const allContracts = await getAllContracts();
@@ -3240,6 +3269,59 @@ app.get("/api/users", requireAdmin, async (req, res) => {
 });
 
 // Get user profile (single user by email)
+app.get("/api/users", async (req, res) => {
+  // Support both wallet_address and email query parameters
+  const walletAddress = String(req.query.wallet_address || "").trim().toLowerCase();
+  const email = String(req.query.email || "").trim().toLowerCase();
+  
+  if (!walletAddress && !email) {
+    return res.status(400).json({ ok: false, error: "wallet_address or email required" });
+  }
+  
+  try {
+    let user;
+    if (walletAddress) {
+      // Use wallet-first schema
+      user = await getUserByWallet(walletAddress);
+    } else {
+      // Fallback to email (backward compatibility)
+      user = await getUser(email);
+    }
+    
+    if (!user) {
+      // Return default user structure if not found
+      return res.json({ 
+        ok: true, 
+        data: { 
+          wallet_address: walletAddress || null,
+          email: email || null, 
+          username: "", 
+          profilePicture: "", 
+          createdAt: Date.now() 
+        } 
+      });
+    }
+    
+    // Convert database field names to API format
+    const usernameValue = (user.username && String(user.username).trim()) ? String(user.username).trim() : "";
+    
+    const responseData = {
+      wallet_address: user.wallet_address || walletAddress || null,
+      email: user.email || email || null,
+      username: usernameValue,
+      profilePicture: user.profile_picture || user.profilePicture || "",
+      createdAt: user.created_at || user.createdAt || Date.now()
+    };
+    
+    res.json({ ok: true, data: responseData });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch user" });
+  }
+});
+
+// Backward compatibility: /api/users/:email route
 app.get("/api/users/:email", async (req, res) => {
   const email = String(req.params.email || "").trim().toLowerCase();
   if (!email) return res.status(400).json({ ok: false, error: "Email required" });
@@ -3260,11 +3342,11 @@ app.get("/api/users/:email", async (req, res) => {
     }
     
     // Convert database field names to API format
-    // Ensure username is properly returned (empty string if null/undefined)
     const usernameValue = (user.username && String(user.username).trim()) ? String(user.username).trim() : "";
-    const userEmail = user.email || email; // Fallback to param if email field missing
+    const userEmail = user.email || email;
     
     const responseData = {
+      wallet_address: user.wallet_address || null,
       email: userEmail,
       username: usernameValue,
       profilePicture: user.profile_picture || user.profilePicture || "",
