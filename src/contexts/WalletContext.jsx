@@ -2,7 +2,7 @@ import React from "react";
 import { createThirdwebClient } from "thirdweb";
 import { polygon } from "thirdweb/chains";
 import { createWallet, walletConnect } from "thirdweb/wallets";
-import { useActiveAccount, useActiveWalletChain, useDisconnect, useConnect } from "thirdweb/react";
+import { useActiveAccount, useActiveWalletChain, useDisconnect, useConnect, useSwitchActiveWalletChain } from "thirdweb/react";
 
 /**
  * WalletContext - Manages wallet connection state using thirdweb
@@ -21,6 +21,12 @@ const WalletContext = React.createContext(null);
 // Users need to get their clientId from https://thirdweb.com/dashboard
 const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID || "";
 
+// Validate client ID
+if (!THIRDWEB_CLIENT_ID && import.meta.env.DEV) {
+  console.warn("⚠️ VITE_THIRDWEB_CLIENT_ID is not set. Wallet connections may not work properly.");
+  console.warn("   Get your Client ID from: https://thirdweb.com/dashboard");
+}
+
 export const client = createThirdwebClient({
   clientId: THIRDWEB_CLIENT_ID || "YOUR_CLIENT_ID", // Replace with your actual client ID
 });
@@ -35,6 +41,20 @@ export function WalletProvider({ children }) {
   const chain = useActiveWalletChain();
   const disconnectWallet = useDisconnect();
   const { mutate: connect } = useConnect();
+  const { mutate: switchChain } = useSwitchActiveWalletChain();
+
+  // Switch to Polygon network
+  const switchToPolygon = React.useCallback(async () => {
+    try {
+      await switchChain(polygon);
+      setError(null);
+    } catch (e) {
+      const errorMessage = e?.message || "Failed to switch network";
+      setError(errorMessage);
+      console.error("Network switch error:", e);
+      throw e;
+    }
+  }, [switchChain]);
 
   // Connect wallet with a specific wallet type
   const connectWallet = React.useCallback(async (walletType = "metamask") => {
@@ -42,6 +62,11 @@ export function WalletProvider({ children }) {
     setError(null);
 
     try {
+      // Check if client ID is set
+      if (!THIRDWEB_CLIENT_ID) {
+        throw new Error("Wallet connection is not configured. Please contact support.");
+      }
+
       let wallet;
 
       // Create wallet instance based on type using wallet IDs
@@ -56,9 +81,11 @@ export function WalletProvider({ children }) {
           wallet = createWallet("app.phantom");
           break;
         case "walletconnect":
-          wallet = walletConnect({
-            projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "",
-          });
+          const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "";
+          if (!projectId) {
+            throw new Error("WalletConnect is not configured. Project ID is missing.");
+          }
+          wallet = walletConnect({ projectId });
           break;
         default:
           wallet = createWallet("io.metamask");
@@ -75,7 +102,21 @@ export function WalletProvider({ children }) {
 
       setError(null);
     } catch (e) {
-      const errorMessage = e?.message || "Failed to connect wallet";
+      let errorMessage = "Failed to connect wallet";
+      
+      // Provide user-friendly error messages
+      if (e?.message) {
+        if (e.message.includes("User rejected")) {
+          errorMessage = "Connection cancelled. Please try again.";
+        } else if (e.message.includes("already pending")) {
+          errorMessage = "Connection request already pending. Please check your wallet.";
+        } else if (e.message.includes("not found") || e.message.includes("not installed")) {
+          errorMessage = "Wallet not found. Please install the wallet extension.";
+        } else {
+          errorMessage = e.message;
+        }
+      }
+      
       setError(errorMessage);
       console.error("Wallet connection error:", e);
       throw e;
@@ -101,6 +142,10 @@ export function WalletProvider({ children }) {
 
   // Check if wallet is connected
   const isConnected = !!account && !!address;
+  
+  // Check if connected to correct network (Polygon)
+  const isCorrectNetwork = chain?.id === polygon.id;
+  const needsNetworkSwitch = isConnected && !isCorrectNetwork;
 
   const value = React.useMemo(
     () => ({
@@ -113,12 +158,15 @@ export function WalletProvider({ children }) {
       isConnecting: isConnecting,
       error,
       client,
+      isCorrectNetwork,
+      needsNetworkSwitch,
 
       // Actions
       connectWallet,
       disconnectWallet: handleDisconnect,
+      switchToPolygon,
     }),
-    [account, address, chain, walletInstance, isConnected, isConnecting, error, client, connectWallet, handleDisconnect]
+    [account, address, chain, walletInstance, isConnected, isConnecting, error, client, isCorrectNetwork, needsNetworkSwitch, connectWallet, handleDisconnect, switchToPolygon]
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

@@ -11,7 +11,7 @@ export default function AccountPage() {
   const navigate = useNavigate();
   const { userEmail, cash, userProfile, refreshProfile, syncBalancesFromServer } = useUser();
   const { isLight } = useTheme();
-  const { isConnected, address, chain, connectWallet, disconnectWallet, isConnecting, error: walletError } = useWallet();
+  const { isConnected, address, chain, connectWallet, disconnectWallet, isConnecting, error: walletError, needsNetworkSwitch, switchToPolygon } = useWallet();
   
   const [username, setUsername] = React.useState("");
   const [profilePicture, setProfilePicture] = React.useState("");
@@ -344,30 +344,51 @@ export default function AccountPage() {
             {isConnected && address ? (
               // Wallet Connected View
               <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6 space-y-6`}>
-                <div className={`p-4 rounded-lg ${isLight ? 'bg-green-50 border border-green-200' : 'bg-green-900/20 border border-green-800'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Wallet className="w-5 h-5 text-green-600" />
-                    <span className={`font-semibold ${isLight ? 'text-green-700' : 'text-green-400'}`}>
-                      Wallet Connected
-                    </span>
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    <div>
-                      <p className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'} mb-1`}>Address</p>
-                      <p className={`font-mono text-sm ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                        {address}
-                      </p>
+                {needsNetworkSwitch ? (
+                  <div className={`p-4 rounded-lg ${isLight ? 'bg-yellow-50 border border-yellow-200' : 'bg-yellow-900/20 border border-yellow-800'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Wallet className="w-5 h-5 text-yellow-600" />
+                      <span className={`font-semibold ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
+                        Wrong Network
+                      </span>
                     </div>
-                    {chain && (
+                    <p className={`text-sm mb-3 ${isLight ? 'text-yellow-700' : 'text-yellow-400'}`}>
+                      Please switch to Polygon network to use FutrMarket.
+                    </p>
+                    <button
+                      onClick={switchToPolygon}
+                      disabled={isConnecting}
+                      className="w-full px-4 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white font-medium transition-colors disabled:opacity-50"
+                    >
+                      Switch to Polygon
+                    </button>
+                  </div>
+                ) : (
+                  <div className={`p-4 rounded-lg ${isLight ? 'bg-green-50 border border-green-200' : 'bg-green-900/20 border border-green-800'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Wallet className="w-5 h-5 text-green-600" />
+                      <span className={`font-semibold ${isLight ? 'text-green-700' : 'text-green-400'}`}>
+                        Wallet Connected
+                      </span>
+                    </div>
+                    <div className="mt-3 space-y-2">
                       <div>
-                        <p className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'} mb-1`}>Network</p>
-                        <p className={`text-sm ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                          {chain.name || "Polygon"}
+                        <p className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'} mb-1`}>Address</p>
+                        <p className={`font-mono text-sm ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                          {address}
                         </p>
                       </div>
-                    )}
+                      {chain && (
+                        <div>
+                          <p className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'} mb-1`}>Network</p>
+                          <p className={`text-sm ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                            {chain.name || "Polygon"}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <button
                   onClick={disconnectWallet}
