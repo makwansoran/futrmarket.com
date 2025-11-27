@@ -1,8 +1,8 @@
 import React from "react";
-import { createThirdwebClient } from "thirdweb";
+import { createThirdwebClient, connect } from "thirdweb";
 import { polygon } from "thirdweb/chains";
 import { createWallet, walletConnect } from "thirdweb/wallets";
-import { useActiveAccount, useActiveWalletChain, useDisconnect, useConnect, useSwitchActiveWalletChain } from "thirdweb/react";
+import { useActiveAccount, useActiveWalletChain, useDisconnect, useSwitchActiveWalletChain } from "thirdweb/react";
 import { getInstalledWallets } from "thirdweb/wallets";
 
 /**
@@ -42,7 +42,6 @@ export function WalletProvider({ children }) {
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
   const disconnectWallet = useDisconnect();
-  const { mutate: connect } = useConnect();
   const { mutate: switchChain } = useSwitchActiveWalletChain();
 
   // Detect installed wallets on mount
@@ -123,8 +122,8 @@ export function WalletProvider({ children }) {
 
       setWalletInstance(wallet);
 
-      // Connect to Polygon using the hook
-      const account = await connect({
+      // Connect to Polygon using the connect function directly
+      const connectedAccount = await connect({
         client,
         chain: polygon,
         wallet: wallet,
@@ -132,9 +131,9 @@ export function WalletProvider({ children }) {
 
       // After connection, check if we need to switch networks
       // The connection might have succeeded but on wrong network
-      if (account) {
+      if (connectedAccount) {
         // Check network and switch if needed (this will be handled by the chain state)
-        console.log("Wallet connected successfully:", account.address);
+        console.log("Wallet connected successfully:", connectedAccount.address);
       }
 
       setError(null);
@@ -162,7 +161,7 @@ export function WalletProvider({ children }) {
     } finally {
       setIsConnecting(false);
     }
-  }, [connect, isWalletInstalled]);
+  }, [isWalletInstalled]);
 
   // Handle disconnect
   const handleDisconnect = React.useCallback(async () => {
