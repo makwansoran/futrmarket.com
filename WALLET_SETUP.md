@@ -22,9 +22,11 @@ FutrMarket now supports wallet-based login using thirdweb. Users can connect wit
 Create a `.env` file in the root of your project (or add to your existing `.env`):
 
 ```env
-VITE_THIRDWEB_CLIENT_ID=your_client_id_here
+VITE_THIRDWEB_CLIENT_ID=5b975454d4c6084108bf7343978c93be
 VITE_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id_here  # Optional, only if using WalletConnect
 ```
+
+**✅ Your Client ID is already configured!**
 
 **For Vercel/Production:**
 - Go to your Vercel project → Settings → Environment Variables
