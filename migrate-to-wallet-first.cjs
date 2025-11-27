@@ -24,10 +24,42 @@ if (!isSupabaseEnabled()) {
 async function migrateUsers() {
   console.log("🔄 Migrating users...");
   
-  // Get all existing users
-  const { data: oldUsers, error: fetchError } = await supabase
-    .from("users")
-    .select("*");
+  console.log("⚠️  Note: This script expects old data to be in backup tables.");
+  console.log("   If you've already run the SQL migration, old tables are deleted.");
+  console.log("   This script will create new users from any existing wallet data.\n");
+  
+  // Try to get users from old tables (if they still exist)
+  // If tables are already dropped, this will fail gracefully
+  let oldUsers = [];
+  try {
+    const { data, error: fetchError } = await supabase
+      .from("users")
+      .select("*");
+    
+    if (!fetchError && data) {
+      oldUsers = data;
+    } else {
+      console.log("   ℹ️  Old users table not found (already migrated or empty).");
+      console.log("   Creating users from wallet data if available...\n");
+      
+      // Try to get wallets if they exist
+      const { data: oldWallets } = await supabase
+        .from("wallets")
+        .select("*");
+      
+      if (oldWallets && oldWallets.length > 0) {
+        // Create users from wallet data
+        for (const wallet of oldWallets) {
+          oldUsers.push({
+            email: wallet.email,
+            wallet_address: wallet.evm_address
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.log("   ℹ️  Old tables already dropped. Starting fresh.\n");
+  }
   
   if (fetchError) {
     console.error("❌ Error fetching users:", fetchError);
@@ -60,7 +92,7 @@ async function migrateUsers() {
         walletAddress = `0x${hash.slice(0, 40)}`; // First 40 chars = 20 bytes = address length
       }
       
-      // Create new user record
+      // Create new user record (using new table name)
       const newUser = {
         wallet_address: walletAddress,
         email: oldUser.email || null,
@@ -72,7 +104,7 @@ async function migrateUsers() {
       };
       
       const { error: insertError } = await supabase
-        .from("users_v2")
+        .from("users")
         .insert(newUser);
       
       if (insertError) {
@@ -85,10 +117,10 @@ async function migrateUsers() {
         throw insertError;
       }
       
-      // Create wallet record
+      // Create wallet record (using new table name)
       if (wallet && wallet.evm_address) {
         await supabase
-          .from("wallets_v2")
+          .from("wallets")
           .insert({
             wallet_address: walletAddress,
             user_wallet_address: walletAddress,
@@ -98,16 +130,22 @@ async function migrateUsers() {
           });
       }
       
-      // Migrate balance
-      const { data: balance } = await supabase
-        .from("balances")
-        .select("*")
-        .eq("email", oldUser.email)
-        .single();
+      // Migrate balance (using new table name)
+      let balance = null;
+      try {
+        const { data: balanceData } = await supabase
+          .from("balances")
+          .select("*")
+          .eq("email", oldUser.email)
+          .single();
+        balance = balanceData;
+      } catch (e) {
+        // Old balances table might not exist
+      }
       
       if (balance) {
         await supabase
-          .from("balances_v2")
+          .from("balances")
           .insert({
             wallet_address: walletAddress,
             cash: balance.cash || 0,
@@ -117,7 +155,7 @@ async function migrateUsers() {
       } else {
         // Create default balance
         await supabase
-          .from("balances_v2")
+          .from("balances")
           .insert({
             wallet_address: walletAddress,
             cash: 0,
@@ -150,9 +188,9 @@ async function migrateUsers() {
 async function migratePositions() {
   console.log("\n🔄 Migrating positions...");
   
-  // Get email to wallet_address mapping
+  // Get email to wallet_address mapping (using new table name)
   const { data: users } = await supabase
-    .from("users_v2")
+    .from("users")
     .select("wallet_address, email");
   
   const emailToWallet = {};
@@ -187,7 +225,7 @@ async function migratePositions() {
     
     try {
       await supabase
-        .from("positions_v2")
+        .from("positions")
         .insert({
           wallet_address: walletAddress,
           contract_id: oldPos.contract_id,
@@ -212,7 +250,7 @@ async function migrateOrders() {
   console.log("\n🔄 Migrating orders...");
   
   const { data: users } = await supabase
-    .from("users_v2")
+    .from("users")
     .select("wallet_address, email");
   
   const emailToWallet = {};
@@ -246,7 +284,7 @@ async function migrateOrders() {
     
     try {
       await supabase
-        .from("orders_v2")
+        .from("orders")
         .insert({
           wallet_address: walletAddress,
           contract_id: oldOrder.contract_id,
@@ -278,10 +316,10 @@ async function main() {
     
     console.log("\n✅ Migration complete!");
     console.log("\nNext steps:");
-    console.log("1. Verify data in users_v2, positions_v2, orders_v2 tables");
-    console.log("2. Update backend code to use new tables");
+    console.log("1. Verify data in users, positions, orders tables");
+    console.log("2. Update backend code to use wallet_address instead of email");
     console.log("3. Test authentication and trading");
-    console.log("4. Once verified, rename tables (users_v2 → users, etc.)");
+    console.log("4. All tables are now using wallet-first schema!");
     
   } catch (error) {
     console.error("\n❌ Migration failed:", error);
