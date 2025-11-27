@@ -162,48 +162,33 @@ export default function LoginPage({ onLogin }){
     setErr("");
   }
 
-  // Track if user explicitly connected wallet (not just detected existing connection)
-  const [walletJustConnected, setWalletJustConnected] = React.useState(false);
   const [isAuthenticatingWallet, setIsAuthenticatingWallet] = React.useState(false);
-  const [connectingWalletAddress, setConnectingWalletAddress] = React.useState(null);
-  
-  // Get signAuthMessage function from wallet context
-  const { signAuthMessage } = useWallet();
 
-  // Handle wallet connection success - authenticate and login
-  React.useEffect(() => {
-    const handleWalletAuth = async () => {
-      // Use connectingWalletAddress if available, otherwise fall back to address from context
-      const walletAddr = connectingWalletAddress || address;
+  // Handle wallet connection - authenticate directly when wallet connects
+  const handleWalletConnect = React.useCallback(async (walletAddress) => {
+    if (!walletAddress || isAuthenticatingWallet) {
+      return;
+    }
+
+    setIsAuthenticatingWallet(true);
+    try {
+      // Authenticate user with wallet address
+      const userIdentifier = await authenticateWithWallet(walletAddress);
       
-      if (walletJustConnected && walletAddr && onLogin && !isAuthenticatingWallet && signAuthMessage) {
-        setIsAuthenticatingWallet(true);
-        try {
-          // Authenticate user with wallet address and signature
-          const userIdentifier = await authenticateWithWallet(walletAddr, signAuthMessage);
-          
-          // Call onLogin callback to set user session
-          if (onLogin) {
-            await onLogin(userIdentifier);
-          }
-          
-          // Navigate to home
-          setWalletJustConnected(false);
-          setConnectingWalletAddress(null);
-          navigate("/");
-        } catch (e) {
-          console.error("Wallet authentication failed:", e);
-          setErr(e?.message || "Failed to authenticate with wallet. Please try again.");
-          setWalletJustConnected(false);
-          setConnectingWalletAddress(null);
-        } finally {
-          setIsAuthenticatingWallet(false);
-        }
+      // Call onLogin callback to set user session
+      if (onLogin) {
+        await onLogin(userIdentifier);
       }
-    };
-    
-    handleWalletAuth();
-  }, [walletJustConnected, connectingWalletAddress, address, onLogin, navigate, isAuthenticatingWallet, signAuthMessage]);
+      
+      // Navigate to home
+      navigate("/");
+    } catch (e) {
+      console.error("Wallet authentication failed:", e);
+      setErr(e?.message || "Failed to authenticate with wallet. Please try again.");
+    } finally {
+      setIsAuthenticatingWallet(false);
+    }
+  }, [onLogin, navigate, isAuthenticatingWallet]);
 
   return (
     <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>

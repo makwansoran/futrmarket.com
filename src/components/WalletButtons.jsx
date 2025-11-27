@@ -42,11 +42,18 @@ export default function WalletButtons({ onConnect }) {
     try {
       setSelectedWallet(walletType);
       await connectWallet(walletType);
-      // Wait a bit for wallet state to update, then trigger onConnect with address
-      // Use a small delay to ensure state is updated
-      setTimeout(() => {
-        if (onConnect && address) {
+      // Wait for address to be available, then trigger onConnect
+      // Poll for address since state might not update immediately
+      let attempts = 0;
+      const maxAttempts = 20; // 2 seconds max wait
+      const checkAddress = setInterval(() => {
+        attempts++;
+        if (address && onConnect) {
+          clearInterval(checkAddress);
           onConnect(address);
+        } else if (attempts >= maxAttempts) {
+          clearInterval(checkAddress);
+          console.warn("Wallet connected but address not available");
         }
       }, 100);
     } catch (e) {
@@ -54,17 +61,6 @@ export default function WalletButtons({ onConnect }) {
       setSelectedWallet(null);
     }
   };
-
-  // If already connected, show connected state and trigger onConnect if provided
-  React.useEffect(() => {
-    if (isConnected && address && onConnect) {
-      // Small delay to ensure this only triggers after connection
-      const timer = setTimeout(() => {
-        onConnect(address);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isConnected, address, onConnect]);
 
   if (isConnected && address) {
     return (
