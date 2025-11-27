@@ -5,11 +5,13 @@ import { saveSession } from "./lib.session.js";
 import { getApiUrl } from "/src/api.js";
 import { useUser } from "./contexts/UserContext.jsx";
 import { useTheme } from "./contexts/ThemeContext.jsx";
+import { useWallet } from "./contexts/WalletContext.jsx";
 
 export default function AccountPage() {
   const navigate = useNavigate();
   const { userEmail, cash, userProfile, refreshProfile, syncBalancesFromServer } = useUser();
   const { isLight } = useTheme();
+  const { isConnected, address, chain, connectWallet, disconnectWallet, isConnecting, error: walletError } = useWallet();
   
   const [username, setUsername] = React.useState("");
   const [profilePicture, setProfilePicture] = React.useState("");
@@ -338,11 +340,103 @@ export default function AccountPage() {
               <Wallet className={`w-6 h-6 ${isLight ? 'text-blue-600' : 'text-blue-400'}`} />
               <h1 className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>Wallet</h1>
             </div>
-            <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
-              <p className={`${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
-                Wallet management coming soon...
-              </p>
-            </div>
+
+            {isConnected && address ? (
+              // Wallet Connected View
+              <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6 space-y-6`}>
+                <div className={`p-4 rounded-lg ${isLight ? 'bg-green-50 border border-green-200' : 'bg-green-900/20 border border-green-800'}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wallet className="w-5 h-5 text-green-600" />
+                    <span className={`font-semibold ${isLight ? 'text-green-700' : 'text-green-400'}`}>
+                      Wallet Connected
+                    </span>
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    <div>
+                      <p className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'} mb-1`}>Address</p>
+                      <p className={`font-mono text-sm ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                        {address}
+                      </p>
+                    </div>
+                    {chain && (
+                      <div>
+                        <p className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-400'} mb-1`}>Network</p>
+                        <p className={`text-sm ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                          {chain.name || "Polygon"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  onClick={disconnectWallet}
+                  className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium transition-colors"
+                >
+                  Disconnect Wallet
+                </button>
+              </div>
+            ) : (
+              // No Wallet Connected View
+              <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
+                <div className="text-center mb-6">
+                  <Wallet className={`w-12 h-12 mx-auto mb-3 ${isLight ? 'text-gray-400' : 'text-gray-600'}`} />
+                  <h2 className={`text-lg font-semibold mb-2 ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                    No Wallet Connected
+                  </h2>
+                  <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                    Connect your wallet to start using FutrMarket with Web3
+                  </p>
+                </div>
+
+                <div className="mb-4">
+                  <p className={`text-sm mb-3 text-center ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                    Choose a wallet to connect
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { id: "metamask", name: "MetaMask", image: "/Walletassets/MetaMask_Fox.svg.png" },
+                      { id: "coinbase", name: "Coinbase", image: "/Walletassets/coinbase wallet.svg" },
+                      { id: "phantom", name: "Phantom", image: "/Walletassets/Phantom-Icon_App_60x60.png" },
+                      { id: "walletconnect", name: "WalletConnect", image: "/Walletassets/Walletconnect.png" },
+                    ].map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => connectWallet(option.id)}
+                        disabled={isConnecting}
+                        className={`p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                          isLight
+                            ? 'bg-white border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                            : 'bg-gray-800 border-gray-700 hover:border-blue-500 hover:bg-gray-750'
+                        } ${
+                          isConnecting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                        }`}
+                      >
+                        <img 
+                          src={option.image} 
+                          alt={option.name}
+                          className="w-8 h-8 object-contain"
+                        />
+                        <span className={`text-xs font-medium ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
+                          {option.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {walletError && (
+                  <div className="mt-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
+                    <p className="text-red-400 text-sm text-center">{walletError}</p>
+                  </div>
+                )}
+
+                <div className={`mt-6 p-3 rounded-lg text-xs ${isLight ? 'bg-blue-50 text-blue-700' : 'bg-blue-900/30 text-blue-300'}`}>
+                  <p className="font-medium mb-1">🔒 Non-Custodial</p>
+                  <p>Your funds stay in your wallet. We never have access to your private keys.</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
