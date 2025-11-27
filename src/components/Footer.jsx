@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Twitter, Linkedin, MessageCircle, Facebook, Instagram, Reddit, Music2, MessageSquare } from "lucide-react";
+import { Twitter, Linkedin, MessageCircle, Facebook, Instagram, Circle, Music2, MessageSquare } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -83,7 +83,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="https://reddit.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  <Reddit size={16} />
+                  <Circle size={16} />
                   Reddit
                 </a>
               </li>
