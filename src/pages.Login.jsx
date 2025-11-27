@@ -162,13 +162,17 @@ export default function LoginPage({ onLogin }){
     setErr("");
   }
 
-  // Handle wallet connection success
+  // Track if user explicitly connected wallet (not just detected existing connection)
+  const [walletJustConnected, setWalletJustConnected] = React.useState(false);
+
+  // Handle wallet connection success - only navigate if wallet was just connected
   React.useEffect(() => {
-    if (isConnected && address && onLogin) {
-      // Wallet connected - navigate to home
+    if (walletJustConnected && isConnected && address && onLogin) {
+      // Wallet was just connected - navigate to home
+      setWalletJustConnected(false);
       navigate("/");
     }
-  }, [isConnected, address, onLogin, navigate]);
+  }, [walletJustConnected, isConnected, address, onLogin, navigate]);
 
   return (
     <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
@@ -212,6 +216,7 @@ export default function LoginPage({ onLogin }){
             
             {/* Wallet Connection Buttons */}
             <WalletButtons onConnect={() => {
+              setWalletJustConnected(true);
               if (onLogin && address) {
                 onLogin(address);
               }
@@ -259,6 +264,7 @@ export default function LoginPage({ onLogin }){
             
             {/* Wallet Connection Buttons */}
             <WalletButtons onConnect={() => {
+              setWalletJustConnected(true);
               if (onLogin && address) {
                 onLogin(address);
               }
@@ -371,6 +377,7 @@ export default function LoginPage({ onLogin }){
             
             {/* Wallet Connection Buttons */}
             <WalletButtons onConnect={() => {
+              setWalletJustConnected(true);
               if (onLogin && address) {
                 onLogin(address);
               }
@@ -432,6 +439,7 @@ export default function LoginPage({ onLogin }){
             
             {/* Wallet Connection Buttons */}
             <WalletButtons onConnect={() => {
+              setWalletJustConnected(true);
               if (onLogin && address) {
                 onLogin(address);
               }

@@ -26,6 +26,7 @@ import { MarketsProvider, useMarkets } from "./contexts/MarketsContext.jsx";
 import { ThemeProvider } from "./contexts/ThemeContext.jsx";
 import { WalletProvider, client } from "./contexts/WalletContext.jsx";
 import { ThirdwebProvider } from "thirdweb/react";
+import { useWallet } from "./contexts/WalletContext.jsx";
 
 // Check for placeholder API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
@@ -60,6 +61,7 @@ function AppContent() {
   const navigate = useNavigate();
   const { userEmail, cash, portfolio, logout, updateBalance } = useUser();
   const { markets } = useMarkets();
+  const { disconnectWallet } = useWallet();
 
   function handleSearch(q) {
     // stub hook for search
@@ -78,6 +80,12 @@ function AppContent() {
       <Header
         userEmail={userEmail}
         onLogout={async () => {
+          // Disconnect wallet on logout
+          try {
+            await disconnectWallet();
+          } catch (e) {
+            console.error("Failed to disconnect wallet on logout:", e);
+          }
           await logout();
           navigate("/");
         }}
