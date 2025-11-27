@@ -5,8 +5,8 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install all dependencies (lock file includes devDependencies)
-RUN npm ci --no-audit --no-fund
+# Install all dependencies (using npm install to handle lock file sync issues)
+RUN npm install --no-audit --no-fund
 
 # Copy application files
 COPY . .
