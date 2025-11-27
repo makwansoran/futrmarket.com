@@ -82,22 +82,20 @@ export default function WalletButtons({ onConnect }) {
               key={option.id}
               onClick={() => handleConnect(option.id)}
               disabled={isConnecting}
-              className={`p-2 rounded-lg border-2 transition-all flex flex-col items-center gap-0.5 ${
+              className={`p-2 rounded-lg border-2 transition-all flex items-center justify-center ${
                 isLight
                   ? 'bg-white border-gray-300 hover:border-blue-500 hover:bg-blue-50'
                   : 'bg-gray-800 border-gray-700 hover:border-blue-500 hover:bg-gray-750'
               } ${
                 isConnecting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
               }`}
+              title={option.name}
             >
               {isConnecting && selectedWallet === option.id ? (
                 <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
               ) : (
-                <span className="text-base">{option.icon}</span>
+                <span className="text-lg">{option.icon}</span>
               )}
-              <span className={`text-[10px] font-medium leading-tight ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
-                {option.name}
-              </span>
             </button>
           ))}
         </div>
