@@ -107,7 +107,7 @@ async function migrateUsers() {
       
       if (balance) {
         await supabase
-          .from("balancs_v2")
+          .from("balances_v2")
           .insert({
             wallet_address: walletAddress,
             cash: balance.cash || 0,
@@ -117,7 +117,7 @@ async function migrateUsers() {
       } else {
         // Create default balance
         await supabase
-          .from("balancs_v2")
+          .from("balances_v2")
           .insert({
             wallet_address: walletAddress,
             cash: 0,
