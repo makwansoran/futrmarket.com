@@ -5,8 +5,8 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install dependencies (without cache to avoid lock issues)
-RUN npm ci --no-audit --no-fund --prefer-offline=false
+# Install all dependencies (lock file includes devDependencies)
+RUN npm ci --no-audit --no-fund
 
 # Copy application files
 COPY . .
