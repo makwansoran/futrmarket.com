@@ -170,14 +170,6 @@ export default function SignupPage({ onLogin }){
     handleWalletAuth();
   }, [isConnected, address, onLogin, navigate, isAuthenticatingWallet, hasAuthenticated]);
 
-  // Handle wallet connection callback (for WalletButtons component)
-  const handleWalletConnect = React.useCallback((walletAddress) => {
-    // This is called by WalletButtons, but we handle auth via useEffect above
-    // Just ensure we reset the authenticated flag when a new connection happens
-    if (walletAddress && walletAddress !== address) {
-      setHasAuthenticated(false);
-    }
-  }, [address]);
 
   return (
     <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
@@ -283,7 +275,7 @@ export default function SignupPage({ onLogin }){
             </button>
             
             {/* Wallet Connection Buttons */}
-            <WalletButtons onConnect={handleWalletConnect} />
+            <WalletButtons />
             
             <div className="text-center">
               <Link to="/login" className={`text-sm ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}>
@@ -332,7 +324,7 @@ export default function SignupPage({ onLogin }){
             </button>
             
             {/* Wallet Connection Buttons */}
-            <WalletButtons onConnect={handleWalletConnect} />
+            <WalletButtons />
             <button 
               type="button"
               onClick={handleResend}

@@ -9,7 +9,7 @@ import { useTheme } from "../contexts/ThemeContext.jsx";
  * Compact inline wallet connection buttons
  * Shows individual buttons for each wallet option
  */
-export default function WalletButtons({ onConnect }) {
+export default function WalletButtons() {
   const { connectWallet, isConnecting, error, isConnected, address } = useWallet();
   const { isLight } = useTheme();
   const [selectedWallet, setSelectedWallet] = React.useState(null);
@@ -42,28 +42,12 @@ export default function WalletButtons({ onConnect }) {
     try {
       setSelectedWallet(walletType);
       await connectWallet(walletType);
-      // Don't call onConnect here - let the parent component handle it via useEffect
-      // This avoids closure issues and stale references
+      // Connection state will be handled by parent component via useEffect
     } catch (e) {
       console.error("Connection failed:", e);
       setSelectedWallet(null);
     }
   };
-
-  // Watch for connection and trigger onConnect when wallet connects
-  React.useEffect(() => {
-    if (isConnected && address && onConnect) {
-      // Small delay to ensure state is stable
-      const timer = setTimeout(() => {
-        try {
-          onConnect(address);
-        } catch (err) {
-          console.error("Error in onConnect callback:", err);
-        }
-      }, 200);
-      return () => clearTimeout(timer);
-    }
-  }, [isConnected, address, onConnect]);
 
   if (isConnected && address) {
     return (
