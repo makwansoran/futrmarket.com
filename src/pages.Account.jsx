@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Mail, Image as ImageIcon, Save, X } from "lucide-react";
+import { User, Mail, Image as ImageIcon, Save, X, Wallet } from "lucide-react";
 import { saveSession } from "./lib.session.js";
 import { getApiUrl } from "/src/api.js";
 import { useUser } from "./contexts/UserContext.jsx";
@@ -143,14 +143,76 @@ export default function AccountPage() {
     );
   }
 
-  return (
-    <main className="max-w-3xl mx-auto px-6 py-10">
-      <div className="flex items-center gap-3 mb-6">
-        <User className={`w-6 h-6 ${isLight ? 'text-blue-600' : 'text-blue-400'}`} />
-        <h1 className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>Account</h1>
-      </div>
+  const [activeTab, setActiveTab] = React.useState("account");
 
-      <form onSubmit={handleSave} className="space-y-6">
+  return (
+    <main className={`flex gap-4 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
+      {/* Sidebar */}
+      <aside className={`w-64 flex-shrink-0 ${isLight ? 'text-black' : 'text-white'}`}>
+        <div className={`sticky top-24 rounded-xl p-4 overflow-hidden ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
+          {/* Information Center Icon */}
+          <div className="mb-6 pb-4 border-b border-gray-300 dark:border-gray-700">
+            <div className="flex items-center justify-start">
+              <User 
+                className={`${isLight ? 'text-gray-600' : 'text-gray-400'} text-blue-500`}
+                size={24}
+              />
+              <span className="ml-2 text-sm font-semibold" style={{
+                background: 'linear-gradient(135deg, #c0c0c0 0%, #808080 50%, #a0a0a0 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                Account Center
+              </span>
+            </div>
+          </div>
+          
+          <div className="space-y-1">
+            <button
+              onClick={() => setActiveTab("account")}
+              className={`w-full px-3 py-2 rounded text-sm transition text-left flex items-center gap-2 ${
+                activeTab === "account"
+                  ? isLight 
+                    ? 'bg-blue-50 text-blue-600' 
+                    : 'bg-blue-900/30 text-blue-400'
+                  : isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              Account
+            </button>
+            <button
+              onClick={() => setActiveTab("wallet")}
+              className={`w-full px-3 py-2 rounded text-sm transition text-left flex items-center gap-2 ${
+                activeTab === "wallet"
+                  ? isLight 
+                    ? 'bg-blue-50 text-blue-600' 
+                    : 'bg-blue-900/30 text-blue-400'
+                  : isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              <Wallet className="w-4 h-4" />
+              Wallet
+            </button>
+          </div>
+        </div>
+      </aside>
+      
+      {/* Main Content */}
+      <div className="flex-1">
+        {activeTab === "account" ? (
+          <>
+            <div className="flex items-center gap-3 mb-6">
+              <User className={`w-6 h-6 ${isLight ? 'text-blue-600' : 'text-blue-400'}`} />
+              <h1 className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>Account</h1>
+            </div>
+
+            <form onSubmit={handleSave} className="space-y-6">
         {/* Profile Picture */}
         <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
           <label className={`block text-sm font-medium mb-4 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
@@ -266,6 +328,21 @@ export default function AccountPage() {
           </button>
         </div>
       </form>
+          </>
+        ) : (
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <Wallet className={`w-6 h-6 ${isLight ? 'text-blue-600' : 'text-blue-400'}`} />
+              <h1 className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>Wallet</h1>
+            </div>
+            <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
+              <p className={`${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                Wallet management coming soon...
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
