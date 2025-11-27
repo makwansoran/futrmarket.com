@@ -2,7 +2,7 @@ import React from "react";
 import { createThirdwebClient, connect, disconnect } from "thirdweb";
 import { polygon } from "thirdweb/chains";
 import { inAppWallet, coinbase, metamask, walletConnect, phantom } from "thirdweb/wallets";
-import { useActiveAccount, useActiveWalletChain, useDisconnect, useConnectionStatus } from "thirdweb/react";
+import { useActiveAccount, useActiveWalletChain, useDisconnect } from "thirdweb/react";
 
 /**
  * WalletContext - Manages wallet connection state using thirdweb
@@ -34,7 +34,6 @@ export function WalletProvider({ children }) {
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
   const disconnectWallet = useDisconnect();
-  const connectionStatus = useConnectionStatus();
 
   // Connect wallet with a specific wallet type
   const connectWallet = React.useCallback(async (walletType = "metamask") => {
@@ -107,7 +106,7 @@ export function WalletProvider({ children }) {
   const address = account?.address || null;
 
   // Check if wallet is connected
-  const isConnected = connectionStatus === "connected" && !!account && !!address;
+  const isConnected = !!account && !!address;
 
   const value = React.useMemo(
     () => ({
@@ -117,7 +116,7 @@ export function WalletProvider({ children }) {
       chain,
       wallet: walletInstance,
       isConnected,
-      isConnecting: isConnecting || connectionStatus === "connecting",
+      isConnecting: isConnecting,
       error,
       client,
 
@@ -125,7 +124,7 @@ export function WalletProvider({ children }) {
       connectWallet,
       disconnectWallet: handleDisconnect,
     }),
-    [account, address, chain, walletInstance, isConnected, isConnecting, connectionStatus, error, client, connectWallet, handleDisconnect]
+    [account, address, chain, walletInstance, isConnected, isConnecting, error, client, connectWallet, handleDisconnect]
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
