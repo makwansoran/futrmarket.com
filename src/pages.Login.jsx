@@ -231,12 +231,7 @@ export default function LoginPage({ onLogin }){
             </button>
             
             {/* Wallet Connection Buttons */}
-            <WalletButtons onConnect={(walletAddress) => {
-              if (walletAddress) {
-                setConnectingWalletAddress(walletAddress);
-                setWalletJustConnected(true);
-              }
-            }} />
+            <WalletButtons onConnect={handleWalletConnect} />
             
             <div className="text-center">
               <Link to="/signup" className={`text-sm ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}>
@@ -279,12 +274,7 @@ export default function LoginPage({ onLogin }){
             </button>
             
             {/* Wallet Connection Buttons */}
-            <WalletButtons onConnect={(walletAddress) => {
-              if (walletAddress) {
-                setConnectingWalletAddress(walletAddress);
-                setWalletJustConnected(true);
-              }
-            }} />
+            <WalletButtons onConnect={handleWalletConnect} />
             <button 
               type="button"
               onClick={handleBack}
@@ -392,12 +382,7 @@ export default function LoginPage({ onLogin }){
             </button>
             
             {/* Wallet Connection Buttons */}
-            <WalletButtons onConnect={(walletAddress) => {
-              if (walletAddress) {
-                setConnectingWalletAddress(walletAddress);
-                setWalletJustConnected(true);
-              }
-            }} />
+            <WalletButtons onConnect={handleWalletConnect} />
             <button 
               type="button"
               onClick={() => {
@@ -454,12 +439,7 @@ export default function LoginPage({ onLogin }){
             </button>
             
             {/* Wallet Connection Buttons */}
-            <WalletButtons onConnect={(walletAddress) => {
-              if (walletAddress) {
-                setConnectingWalletAddress(walletAddress);
-                setWalletJustConnected(true);
-              }
-            }} />
+            <WalletButtons onConnect={handleWalletConnect} />
             <button 
               type="button"
               onClick={handleResend}
