@@ -37,11 +37,10 @@ export default function AccountPage() {
   React.useEffect(() => {
     if (!userEmail) {
       navigate("/login");
-      return;
+    } else {
+      loadAccountInfo();
     }
-    loadAccountInfo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userEmail]);
+  }, [userEmail, navigate, loadAccountInfo]);
 
   React.useEffect(() => {
     if (userProfile) {
