@@ -145,6 +145,7 @@ app.use((req, res, next) => {
   }
   
   // ALWAYS set CORS headers - even if origin is blocked, set headers to avoid browser errors
+  // Set Access-Control-Allow-Origin first
   if (allowedOrigin) {
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     if (allowedOrigin !== '*') {
@@ -155,15 +156,12 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
   
-  // Ensure CORS headers are always set for preflight
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin || '*');
-  
-  // Always set these headers
+  // Always set these headers (required for preflight)
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
   res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
   
-  // Handle preflight requests
+  // Handle preflight requests (OPTIONS) - MUST return early with 200
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
