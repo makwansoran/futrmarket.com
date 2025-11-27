@@ -141,16 +141,18 @@ export default function SignupPage({ onLogin }){
   const [connectingWalletAddress, setConnectingWalletAddress] = React.useState(null);
 
   // Handle wallet connection success - authenticate and login
+  const { signAuthMessage } = useWallet();
+  
   React.useEffect(() => {
     const handleWalletAuth = async () => {
       // Use connectingWalletAddress if available, otherwise fall back to address from context
       const walletAddr = connectingWalletAddress || address;
       
-      if (walletJustConnected && walletAddr && onLogin && !isAuthenticatingWallet) {
+      if (walletJustConnected && walletAddr && onLogin && !isAuthenticatingWallet && signAuthMessage) {
         setIsAuthenticatingWallet(true);
         try {
-          // Authenticate user with wallet address
-          const userIdentifier = await authenticateWithWallet(walletAddr);
+          // Authenticate user with wallet address and signature
+          const userIdentifier = await authenticateWithWallet(walletAddr, signAuthMessage);
           
           // Call onLogin callback to set user session
           if (onLogin) {
@@ -173,7 +175,7 @@ export default function SignupPage({ onLogin }){
     };
     
     handleWalletAuth();
-  }, [walletJustConnected, connectingWalletAddress, address, onLogin, navigate, isAuthenticatingWallet]);
+  }, [walletJustConnected, connectingWalletAddress, address, onLogin, navigate, isAuthenticatingWallet, signAuthMessage]);
 
   return (
     <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>

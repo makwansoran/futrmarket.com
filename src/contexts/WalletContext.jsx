@@ -4,6 +4,7 @@ import { polygon } from "thirdweb/chains";
 import { createWallet, walletConnect } from "thirdweb/wallets";
 import { useActiveAccount, useActiveWalletChain, useDisconnect, useConnect, useSwitchActiveWalletChain } from "thirdweb/react";
 import { getInstalledWallets } from "thirdweb/wallets";
+import { signMessage } from "thirdweb/wallet";
 
 /**
  * WalletContext - Manages wallet connection state using thirdweb
@@ -176,6 +177,29 @@ export function WalletProvider({ children }) {
     }
   }, [disconnectWallet]);
 
+  // Sign message for authentication
+  const signAuthMessage = React.useCallback(async (message) => {
+    if (!account || !walletInstance) {
+      throw new Error("Wallet not connected");
+    }
+
+    try {
+      setError(null);
+      const signature = await signMessage({
+        account,
+        message,
+      });
+      return signature;
+    } catch (e) {
+      const errorMessage = e?.message || "Failed to sign message";
+      if (errorMessage.includes("User rejected") || errorMessage.includes("user rejected")) {
+        throw new Error("Signature request cancelled. Please try again.");
+      }
+      setError(errorMessage);
+      throw e;
+    }
+  }, [account, walletInstance]);
+
   // Get wallet address
   const address = account?.address || null;
 
@@ -206,8 +230,9 @@ export function WalletProvider({ children }) {
       disconnectWallet: handleDisconnect,
       switchToPolygon,
       isWalletInstalled,
+      signAuthMessage,
     }),
-    [account, address, chain, walletInstance, isConnected, isConnecting, error, client, isCorrectNetwork, needsNetworkSwitch, availableWallets, connectWallet, handleDisconnect, switchToPolygon, isWalletInstalled]
+    [account, address, chain, walletInstance, isConnected, isConnecting, error, client, isCorrectNetwork, needsNetworkSwitch, availableWallets, connectWallet, handleDisconnect, switchToPolygon, isWalletInstalled, signAuthMessage]
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

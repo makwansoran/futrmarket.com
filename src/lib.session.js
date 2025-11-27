@@ -381,12 +381,13 @@ export async function clearSession() {
 
 // ----- Wallet authentication -----
 /**
- * Authenticate user with wallet address
+ * Authenticate user with wallet address and signature
  * Checks if wallet is linked to existing account, or creates new account
  * @param {string} walletAddress - The wallet address (0x...)
+ * @param {Function} signMessageFn - Function to sign authentication message
  * @returns {Promise<string>} - The user identifier (email)
  */
-export async function authenticateWithWallet(walletAddress) {
+export async function authenticateWithWallet(walletAddress, signMessageFn) {
   if (!walletAddress || typeof walletAddress !== 'string') {
     throw new Error('Wallet address is required');
   }
@@ -407,8 +408,30 @@ export async function authenticateWithWallet(walletAddress) {
     
     const checkData = await checkRes.json().catch(() => ({}));
     
+    // Generate authentication message
+    const timestamp = Date.now();
+    const message = `Welcome to FutrMarket!\n\nSign this message to authenticate with your wallet.\n\nWallet: ${addressLower}\nTimestamp: ${timestamp}\n\nThis request will not trigger a blockchain transaction or cost any fees.`;
+    
+    // Request signature from wallet
+    let signature = null;
+    if (signMessageFn && typeof signMessageFn === 'function') {
+      try {
+        signature = await signMessageFn(message);
+      } catch (e) {
+        if (e?.message && (e.message.includes("cancelled") || e.message.includes("rejected"))) {
+          throw new Error("Signature request cancelled. Please sign the message to continue.");
+        }
+        throw new Error("Failed to sign message. Please try again.");
+      }
+    }
+    
     if (checkData.linked && checkData.email) {
       // Wallet is linked to existing account - login with that account
+      // Still require signature for security
+      if (!signature) {
+        throw new Error("Signature is required for authentication");
+      }
+      
       await saveUser(checkData.email);
       await saveSession(checkData.email);
       return checkData.email;
@@ -420,9 +443,9 @@ export async function authenticateWithWallet(walletAddress) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         walletAddress: addressLower,
-        // TODO: Add signature verification in the future
-        // signature: signature,
-        // message: message
+        signature: signature,
+        message: message,
+        timestamp: timestamp
       })
     });
     
