@@ -237,8 +237,9 @@ export default function LoginPage({ onLogin }){
             </button>
             
             {/* Wallet Connection Buttons */}
-            <WalletButtons onConnect={() => {
-              if (address) {
+            <WalletButtons onConnect={(walletAddress) => {
+              if (walletAddress) {
+                setConnectingWalletAddress(walletAddress);
                 setWalletJustConnected(true);
               }
             }} />
@@ -284,8 +285,9 @@ export default function LoginPage({ onLogin }){
             </button>
             
             {/* Wallet Connection Buttons */}
-            <WalletButtons onConnect={() => {
-              if (address) {
+            <WalletButtons onConnect={(walletAddress) => {
+              if (walletAddress) {
+                setConnectingWalletAddress(walletAddress);
                 setWalletJustConnected(true);
               }
             }} />
@@ -396,8 +398,9 @@ export default function LoginPage({ onLogin }){
             </button>
             
             {/* Wallet Connection Buttons */}
-            <WalletButtons onConnect={() => {
-              if (address) {
+            <WalletButtons onConnect={(walletAddress) => {
+              if (walletAddress) {
+                setConnectingWalletAddress(walletAddress);
                 setWalletJustConnected(true);
               }
             }} />
@@ -457,8 +460,9 @@ export default function LoginPage({ onLogin }){
             </button>
             
             {/* Wallet Connection Buttons */}
-            <WalletButtons onConnect={() => {
-              if (address) {
+            <WalletButtons onConnect={(walletAddress) => {
+              if (walletAddress) {
+                setConnectingWalletAddress(walletAddress);
                 setWalletJustConnected(true);
               }
             }} />

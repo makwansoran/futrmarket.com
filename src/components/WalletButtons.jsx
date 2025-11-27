@@ -42,15 +42,30 @@ export default function WalletButtons({ onConnect }) {
     try {
       setSelectedWallet(walletType);
       await connectWallet(walletType);
-      if (onConnect) {
-        onConnect();
-      }
+      // Wait a bit for wallet state to update, then trigger onConnect with address
+      // Use a small delay to ensure state is updated
+      setTimeout(() => {
+        if (onConnect && address) {
+          onConnect(address);
+        }
+      }, 100);
     } catch (e) {
       console.error("Connection failed:", e);
+      setSelectedWallet(null);
     }
   };
 
-  // If already connected, show connected state
+  // If already connected, show connected state and trigger onConnect if provided
+  React.useEffect(() => {
+    if (isConnected && address && onConnect) {
+      // Small delay to ensure this only triggers after connection
+      const timer = setTimeout(() => {
+        onConnect(address);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, address, onConnect]);
+
   if (isConnected && address) {
     return (
       <div className={`p-3 rounded-lg mb-4 ${isLight ? 'bg-green-50 border border-green-200' : 'bg-green-900/20 border border-green-800'}`}>
