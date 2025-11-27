@@ -18,6 +18,7 @@ export default function AccountPage() {
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
+  const [activeTab, setActiveTab] = React.useState("account");
 
   React.useEffect(() => {
     if (!userEmail) {
@@ -142,8 +143,6 @@ export default function AccountPage() {
       </main>
     );
   }
-
-  const [activeTab, setActiveTab] = React.useState("account");
 
   return (
     <main className={`flex gap-4 max-w-7xl mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
