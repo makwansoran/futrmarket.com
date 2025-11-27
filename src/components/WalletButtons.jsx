@@ -36,11 +36,6 @@ export default function WalletButtons({ onConnect }) {
       name: "WalletConnect",
       icon: "📱",
     },
-    {
-      id: "inApp",
-      name: "Email",
-      icon: "✉️",
-    },
   ];
 
   const handleConnect = async (walletType) => {
@@ -78,16 +73,16 @@ export default function WalletButtons({ onConnect }) {
       </div>
 
       <div className="mb-4">
-        <p className={`text-xs mb-3 text-center ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+        <p className={`text-xs mb-2 text-center ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
           Connect with a wallet
         </p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="flex items-center justify-center gap-2">
           {walletOptions.map((option) => (
             <button
               key={option.id}
               onClick={() => handleConnect(option.id)}
               disabled={isConnecting}
-              className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${
+              className={`p-2 rounded-lg border-2 transition-all flex flex-col items-center gap-0.5 ${
                 isLight
                   ? 'bg-white border-gray-300 hover:border-blue-500 hover:bg-blue-50'
                   : 'bg-gray-800 border-gray-700 hover:border-blue-500 hover:bg-gray-750'
@@ -96,11 +91,11 @@ export default function WalletButtons({ onConnect }) {
               }`}
             >
               {isConnecting && selectedWallet === option.id ? (
-                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
               ) : (
-                <span className="text-xl">{option.icon}</span>
+                <span className="text-base">{option.icon}</span>
               )}
-              <span className={`text-xs font-medium ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
+              <span className={`text-[10px] font-medium leading-tight ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
                 {option.name}
               </span>
             </button>

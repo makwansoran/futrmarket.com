@@ -1,7 +1,7 @@
 import React from "react";
 import { createThirdwebClient } from "thirdweb";
 import { polygon } from "thirdweb/chains";
-import { createWallet, inAppWallet, walletConnect } from "thirdweb/wallets";
+import { createWallet, walletConnect } from "thirdweb/wallets";
 import { useActiveAccount, useActiveWalletChain, useDisconnect, useConnect } from "thirdweb/react";
 
 /**
@@ -58,13 +58,6 @@ export function WalletProvider({ children }) {
         case "walletconnect":
           wallet = walletConnect({
             projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "",
-          });
-          break;
-        case "inApp":
-          wallet = inAppWallet({
-            auth: {
-              options: ["email", "google", "apple", "facebook"],
-            },
           });
           break;
         default:
