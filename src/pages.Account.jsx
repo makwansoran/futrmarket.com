@@ -20,22 +20,7 @@ export default function AccountPage() {
   const [success, setSuccess] = React.useState("");
   const [activeTab, setActiveTab] = React.useState("account");
 
-  React.useEffect(() => {
-    if (!userEmail) {
-      navigate("/login");
-      return;
-    }
-    loadAccountInfo();
-  }, [userEmail, navigate]);
-
-  React.useEffect(() => {
-    if (userProfile) {
-      setUsername(userProfile.username || "");
-      setProfilePicture(userProfile.profilePicture || "");
-    }
-  }, [userProfile]);
-
-  async function loadAccountInfo() {
+  const loadAccountInfo = React.useCallback(async () => {
     if (!userEmail) return;
     
     try {
@@ -47,7 +32,22 @@ export default function AccountPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [userEmail]);
+
+  React.useEffect(() => {
+    if (!userEmail) {
+      navigate("/login");
+      return;
+    }
+    loadAccountInfo();
+  }, [userEmail, navigate, loadAccountInfo]);
+
+  React.useEffect(() => {
+    if (userProfile) {
+      setUsername(userProfile.username || "");
+      setProfilePicture(userProfile.profilePicture || "");
+    }
+  }, [userProfile]);
 
   async function handleSave(e) {
     e.preventDefault();
