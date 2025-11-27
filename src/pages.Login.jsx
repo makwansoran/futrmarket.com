@@ -165,15 +165,22 @@ export default function LoginPage({ onLogin }){
   // Track if user explicitly connected wallet (not just detected existing connection)
   const [walletJustConnected, setWalletJustConnected] = React.useState(false);
   const [isAuthenticatingWallet, setIsAuthenticatingWallet] = React.useState(false);
+  const [connectingWalletAddress, setConnectingWalletAddress] = React.useState(null);
+  
+  // Get signAuthMessage function from wallet context
+  const { signAuthMessage } = useWallet();
 
   // Handle wallet connection success - authenticate and login
   React.useEffect(() => {
     const handleWalletAuth = async () => {
-      if (walletJustConnected && isConnected && address && onLogin && !isAuthenticatingWallet) {
+      // Use connectingWalletAddress if available, otherwise fall back to address from context
+      const walletAddr = connectingWalletAddress || address;
+      
+      if (walletJustConnected && walletAddr && onLogin && !isAuthenticatingWallet && signAuthMessage) {
         setIsAuthenticatingWallet(true);
         try {
-          // Authenticate user with wallet address
-          const userIdentifier = await authenticateWithWallet(address);
+          // Authenticate user with wallet address and signature
+          const userIdentifier = await authenticateWithWallet(walletAddr, signAuthMessage);
           
           // Call onLogin callback to set user session
           if (onLogin) {
@@ -182,11 +189,13 @@ export default function LoginPage({ onLogin }){
           
           // Navigate to home
           setWalletJustConnected(false);
+          setConnectingWalletAddress(null);
           navigate("/");
         } catch (e) {
           console.error("Wallet authentication failed:", e);
           setErr(e?.message || "Failed to authenticate with wallet. Please try again.");
           setWalletJustConnected(false);
+          setConnectingWalletAddress(null);
         } finally {
           setIsAuthenticatingWallet(false);
         }
@@ -194,7 +203,7 @@ export default function LoginPage({ onLogin }){
     };
     
     handleWalletAuth();
-  }, [walletJustConnected, isConnected, address, onLogin, navigate, isAuthenticatingWallet]);
+  }, [walletJustConnected, connectingWalletAddress, address, onLogin, navigate, isAuthenticatingWallet, signAuthMessage]);
 
   return (
     <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
