@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, TrendingUp, TrendingDown, Plus, Minus, BarChart3, Clock, DollarSign } from "lucide-react";
+import { Plus, Minus, BarChart3, Clock } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import { useUser } from "./contexts/UserContext.jsx";
 
@@ -105,13 +105,6 @@ export default function PositionsPage() {
     <main className="max-w-7xl mx-auto px-6 py-8 text-[var(--text-primary)]">
       {/* Header */}
       <div className="mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] mb-4 transition"
-        >
-          <ArrowLeft size={20} />
-          Back
-        </button>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">My Positions</h1>
