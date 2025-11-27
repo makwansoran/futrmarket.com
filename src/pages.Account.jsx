@@ -40,7 +40,8 @@ export default function AccountPage() {
       return;
     }
     loadAccountInfo();
-  }, [userEmail, navigate, loadAccountInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userEmail]);
 
   React.useEffect(() => {
     if (userProfile) {
@@ -134,6 +135,10 @@ export default function AccountPage() {
       setProfilePicture(event.target.result);
     };
     reader.readAsDataURL(file);
+  }
+
+  if (!userEmail) {
+    return null;
   }
 
   if (loading) {
