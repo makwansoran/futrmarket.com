@@ -39,7 +39,10 @@ const {
   deleteForumComment,
   getAllFeatures,
   createFeature,
-  deleteFeature
+  deleteFeature,
+  getWallet,
+  upsertWallet,
+  getUserByWalletAddress
 } = require("./lib/db.cjs");
 
 const app = express();
@@ -3266,6 +3269,163 @@ app.get("/api/users/:email", async (req, res) => {
     console.error("Error fetching user:", error);
     console.error("Error stack:", error.stack);
     res.status(500).json({ ok: false, error: error.message || "Failed to fetch user" });
+  }
+});
+
+// ============================================
+// WALLET AUTHENTICATION ENDPOINTS
+// ============================================
+
+// Check if wallet address is linked to a user
+app.post("/api/wallet/check", async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  try {
+    const { walletAddress } = req.body || {};
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      return res.status(400).json({ ok: false, error: "Wallet address is required" });
+    }
+    
+    const addressLower = walletAddress.trim().toLowerCase();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(addressLower)) {
+      return res.status(400).json({ ok: false, error: "Invalid wallet address format" });
+    }
+    
+    const userEmail = await getUserByWalletAddress(addressLower);
+    
+    if (userEmail) {
+      // Wallet is linked to an existing user
+      const user = await getUser(userEmail);
+      return res.json({ 
+        ok: true, 
+        linked: true, 
+        email: userEmail,
+        user: {
+          email: userEmail,
+          username: user?.username || "",
+          profilePicture: user?.profile_picture || user?.profilePicture || ""
+        }
+      });
+    } else {
+      // Wallet is not linked to any user
+      return res.json({ ok: true, linked: false });
+    }
+  } catch (error) {
+    console.error("Error checking wallet:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to check wallet" });
+  }
+});
+
+// Authenticate with wallet (create or login)
+app.post("/api/wallet/authenticate", async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  try {
+    const { walletAddress, signature, message, email } = req.body || {};
+    
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      return res.status(400).json({ ok: false, error: "Wallet address is required" });
+    }
+    
+    const addressLower = walletAddress.trim().toLowerCase();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(addressLower)) {
+      return res.status(400).json({ ok: false, error: "Invalid wallet address format" });
+    }
+    
+    // For now, we'll skip signature verification (can add later with ethers.js)
+    // In production, you should verify the signature matches the message and address
+    
+    // Check if wallet is already linked
+    const existingUserEmail = await getUserByWalletAddress(addressLower);
+    
+    if (existingUserEmail) {
+      // Wallet is linked - return existing user
+      const user = await getUser(existingUserEmail);
+      return res.json({ 
+        ok: true, 
+        email: existingUserEmail,
+        user: {
+          email: existingUserEmail,
+          username: user?.username || "",
+          profilePicture: user?.profile_picture || user?.profilePicture || ""
+        }
+      });
+    }
+    
+    // Wallet is not linked - create new account or link to existing email
+    if (email) {
+      // Link wallet to existing email account
+      const user = await getUser(email.toLowerCase());
+      if (!user) {
+        return res.status(404).json({ ok: false, error: "User account not found" });
+      }
+      
+      // Link wallet to user
+      await upsertWallet(email.toLowerCase(), {
+        evm_address: addressLower,
+        created_at: Date.now()
+      });
+      
+      return res.json({ 
+        ok: true, 
+        email: email.toLowerCase(),
+        user: {
+          email: email.toLowerCase(),
+          username: user?.username || "",
+          profilePicture: user?.profile_picture || user?.profilePicture || ""
+        }
+      });
+    } else {
+      // Create new account with wallet address as identifier
+      const walletEmail = `wallet_${addressLower}@futrmarket.local`;
+      
+      // Check if user already exists
+      let user = await getUser(walletEmail);
+      if (!user) {
+        // Create new user
+        user = await createUser({
+          email: walletEmail,
+          username: "",
+          profilePicture: "",
+          passwordHash: "", // No password for wallet-only accounts
+          createdAt: Date.now()
+        });
+        
+        // Create balance entry
+        await updateBalance(walletEmail, { cash: 0, portfolio: 0 });
+      }
+      
+      // Link wallet to user
+      await upsertWallet(walletEmail, {
+        evm_address: addressLower,
+        created_at: Date.now()
+      });
+      
+      return res.json({ 
+        ok: true, 
+        email: walletEmail,
+        user: {
+          email: walletEmail,
+          username: user?.username || "",
+          profilePicture: user?.profile_picture || user?.profilePicture || ""
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error authenticating wallet:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to authenticate wallet" });
   }
 });
 

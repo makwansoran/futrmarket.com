@@ -382,80 +382,73 @@ export async function clearSession() {
 // ----- Wallet authentication -----
 /**
  * Authenticate user with wallet address
- * Creates a user account if it doesn't exist and logs them in
+ * Checks if wallet is linked to existing account, or creates new account
  * @param {string} walletAddress - The wallet address (0x...)
- * @returns {Promise<string>} - The user identifier (email format)
+ * @returns {Promise<string>} - The user identifier (email)
  */
 export async function authenticateWithWallet(walletAddress) {
   if (!walletAddress || typeof walletAddress !== 'string') {
     throw new Error('Wallet address is required');
   }
   
-  // Format wallet address as valid email identifier
-  // Use format: wallet_0x1234...@futrmarket.local (valid email format)
-  const walletEmail = `wallet_${walletAddress.toLowerCase()}@futrmarket.local`;
+  const addressLower = walletAddress.trim().toLowerCase();
   
   try {
-    // Check if user exists
-    const r = await fetch(getApiUrl('/api/check-email-exists'), {
+    // First, check if wallet is linked to an existing user
+    const checkRes = await fetch(getApiUrl('/api/wallet/check'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: walletEmail })
+      body: JSON.stringify({ walletAddress: addressLower })
     });
     
-    if (!r.ok) {
+    if (!checkRes.ok) {
       throw new Error('Failed to check wallet account');
     }
     
-    const j = await r.json().catch(() => ({}));
-    const userExists = j.exists || false;
+    const checkData = await checkRes.json().catch(() => ({}));
     
-    // If user doesn't exist, create one by calling send-code then verify-code
-    // This will create the user account in the backend
-    if (!userExists) {
-      // Send code to create user (this creates placeholder user)
-      const sendCodeRes = await fetch(getApiUrl('/api/send-code'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: walletEmail })
-      });
-      
-      if (!sendCodeRes.ok) {
-        const errorText = await sendCodeRes.text().catch(() => '');
-        let errorMessage = 'Failed to create wallet account';
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.error || errorMessage;
-        } catch {}
-        throw new Error(errorMessage);
-      }
-      
-      const sendCodeJson = await sendCodeRes.json().catch(() => ({}));
-      if (!sendCodeJson.ok) {
-        throw new Error(sendCodeJson.error || 'Failed to create wallet account');
-      }
-      
-      // Get the code from response (for wallet auth, we'll use a special code)
-      // Actually, for wallet auth we don't need email verification
-      // Let's create the user directly via verify-code with a bypass
-      // Or better: just save locally and the backend will create on first API call
-      
-      // For now, save locally - backend will create user on first interaction
-      await saveUser(walletEmail);
-      await saveSession(walletEmail);
-      return walletEmail;
-    } else {
-      // User exists, just save session
-      await saveUser(walletEmail);
-      await saveSession(walletEmail);
-      return walletEmail;
+    if (checkData.linked && checkData.email) {
+      // Wallet is linked to existing account - login with that account
+      await saveUser(checkData.email);
+      await saveSession(checkData.email);
+      return checkData.email;
     }
+    
+    // Wallet is not linked - authenticate to create new account or link
+    const authRes = await fetch(getApiUrl('/api/wallet/authenticate'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        walletAddress: addressLower,
+        // TODO: Add signature verification in the future
+        // signature: signature,
+        // message: message
+      })
+    });
+    
+    if (!authRes.ok) {
+      const errorText = await authRes.text().catch(() => '');
+      let errorMessage = 'Failed to authenticate wallet';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorMessage;
+      } catch {}
+      throw new Error(errorMessage);
+    }
+    
+    const authData = await authRes.json().catch(() => ({}));
+    
+    if (!authData.ok || !authData.email) {
+      throw new Error(authData.error || 'Failed to authenticate wallet');
+    }
+    
+    // Save session
+    await saveUser(authData.email);
+    await saveSession(authData.email);
+    return authData.email;
   } catch (e) {
-    // If API fails, still save locally for offline use
-    console.warn('Wallet authentication API error, using local session:', e);
-    await saveUser(walletEmail);
-    await saveSession(walletEmail);
-    return walletEmail;
+    console.error('Wallet authentication error:', e);
+    throw e;
   }
 }
 
