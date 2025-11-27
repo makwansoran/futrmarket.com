@@ -24,3 +24,6 @@ data/
 # Test files
 test-*.cjs
 check-*.cjs
+
+# Migration backups
+migration-backup/
