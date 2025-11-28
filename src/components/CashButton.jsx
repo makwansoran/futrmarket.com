@@ -1,5 +1,6 @@
 import React from "react";
-import { Wallet } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Wallet, ExternalLink } from "lucide-react";
 import { readBalance, getTokenBalance, formatTokenAmount } from "../lib/contractMarketplace.js";
 import { useTheme } from "../contexts/ThemeContext.jsx";
 
@@ -15,6 +16,7 @@ export default function CashButton({
   useBlockchain = false
 }) {
   const { isLight } = useTheme();
+  const navigate = useNavigate();
   const [open, setOpen] = React.useState(false);
   const [isClosing, setIsClosing] = React.useState(false);
   const [blockchainBalance, setBlockchainBalance] = React.useState("0");
@@ -203,6 +205,26 @@ export default function CashButton({
                   }
                 </div>
               </div>
+
+              {/* Wallet Button */}
+              <button
+                onClick={() => {
+                  handleClose();
+                  navigate("/account");
+                }}
+                className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${
+                  isLight
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+                style={{
+                  animation: `menuItemSlideIn 0.2s ease-out ${!useBlockchain ? '0.3s' : '0.15s'} forwards`
+                }}
+              >
+                <Wallet className="w-4 h-4" />
+                <span>Go to Wallet</span>
+                <ExternalLink className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </>
