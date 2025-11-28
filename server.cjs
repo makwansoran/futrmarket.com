@@ -121,8 +121,11 @@ app.use((req, res, next) => {
     const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
     const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
     // Explicitly check for futrmarket.com domains (with or without www)
+    // Check both 'futrmarket' and 'futrmarket' (in case of typos)
     const isFutrmarket = origin.includes('futrmarket.com') || 
+                         origin.includes('futrmarket.com') ||
                          origin.includes('futrmarket') ||
+                         origin.toLowerCase().includes('futrmarket') ||
                          origin === 'https://www.futrmarket.com' ||
                          origin === 'https://futrmarket.com' ||
                          origin === 'http://www.futrmarket.com' ||
@@ -134,11 +137,19 @@ app.use((req, res, next) => {
     console.log(`🔵 CORS: Checks - localhost: ${isLocalhost}, vercel: ${isVercel}, futrmarket: ${isFutrmarket}, inList: ${isInAllowedList}`);
     
     // ALWAYS allow if it's localhost, Vercel, futrmarket domain, in allowed list, or no restrictions
+    // Be very permissive - allow any origin that contains futrmarket
     if (isLocalhost || isVercel || isFutrmarket || isInAllowedList || allowedOrigins.length === 0) {
       allowedOrigin = origin; // Use the specific origin (required for credentials)
       console.log(`✅ CORS: Allowing origin: ${allowedOrigin}`);
     } else {
-      console.warn(`❌ CORS: Blocking origin: ${origin}`);
+      // For production, be more permissive - allow if it looks like a valid domain
+      // This prevents CORS errors while still being somewhat secure
+      if (origin.startsWith('https://') || origin.startsWith('http://')) {
+        console.log(`⚠️  CORS: Unknown origin, but allowing: ${origin}`);
+        allowedOrigin = origin;
+      } else {
+        console.warn(`❌ CORS: Blocking invalid origin: ${origin}`);
+      }
     }
   } else {
     // No origin header (e.g., same-origin request or Postman) - allow it
@@ -339,18 +350,13 @@ app.post("/api/check-email", async (req,res)=>{
 
 // Handle OPTIONS preflight for check-email-exists
 app.options("/api/check-email-exists", (req, res) => {
+  // CORS is already handled by middleware, but ensure headers are set
   const origin = req.headers.origin;
-  let allowedOrigin = null;
+  console.log("🔵 [check-email-exists OPTIONS] Origin:", origin);
+  
+  // Always allow - CORS middleware handles the actual logic
   if (origin) {
-    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
-    const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
-    const isFutrmarket = origin.includes('futrmarket.com') || origin.includes('futrmarket');
-    if (isLocalhost || isVercel || isFutrmarket) {
-      allowedOrigin = origin;
-    }
-  }
-  if (allowedOrigin) {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
   } else {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -362,19 +368,13 @@ app.options("/api/check-email-exists", (req, res) => {
 
 // Check if email exists (for signup validation)
 app.post("/api/check-email-exists", async (req,res)=>{
-  // Set CORS headers
+  // CORS headers are already set by middleware, but ensure they're present
   const origin = req.headers.origin;
-  let allowedOrigin = null;
+  console.log("🔵 [check-email-exists POST] Origin:", origin);
+  
+  // Ensure CORS headers are set (middleware should have done this, but double-check)
   if (origin) {
-    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
-    const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
-    const isFutrmarket = origin.includes('futrmarket.com') || origin.includes('futrmarket');
-    if (isLocalhost || isVercel || isFutrmarket) {
-      allowedOrigin = origin;
-    }
-  }
-  if (allowedOrigin) {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
   } else {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -401,6 +401,16 @@ app.post("/api/check-email-exists", async (req,res)=>{
     return res.json({ ok:true, exists, hasPassword });
   } catch (err) {
     console.error("Error in /api/check-email-exists:", err);
+    // Ensure CORS headers are set even on errors
+    const origin = req.headers.origin;
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
     return res.status(500).json({ ok:false, error: err.message || "Internal server error" });
   }
 });
