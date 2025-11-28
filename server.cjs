@@ -47,6 +47,7 @@ const {
 } = require("./lib/db.cjs");
 const {
   getUserByWallet,
+  getUserByEmail,
   createUserByWallet,
   getBalanceByWallet,
   updateBalanceByWallet,
@@ -336,6 +337,29 @@ app.post("/api/check-email", async (req,res)=>{
   }
 });
 
+// Handle OPTIONS preflight for check-email-exists
+app.options("/api/check-email-exists", (req, res) => {
+  const origin = req.headers.origin;
+  let allowedOrigin = null;
+  if (origin) {
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+    const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
+    const isFutrmarket = origin.includes('futrmarket.com') || origin.includes('futrmarket');
+    if (isLocalhost || isVercel || isFutrmarket) {
+      allowedOrigin = origin;
+    }
+  }
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  res.status(200).end();
+});
+
 // Check if email exists (for signup validation)
 app.post("/api/check-email-exists", async (req,res)=>{
   // Set CORS headers
@@ -369,7 +393,8 @@ app.post("/api/check-email-exists", async (req,res)=>{
       return res.status(400).json({ ok:false, error:"Invalid email format" });
     }
     
-    const user = await getUser(emailLower);
+    // Use wallet-first database function
+    const user = await getUserByEmail(emailLower);
     const exists = !!user;
     const hasPassword = user && (user.password_hash || user.passwordHash);
     
@@ -773,7 +798,8 @@ app.post("/api/verify-code", async (req,res)=>{
     const codeStr = String(code).trim();
 
     // Check if this is a new user (signup) or existing user (login)
-    const existingUser = await getUser(emailLower);
+    // Use wallet-first database function
+    const existingUser = await getUserByEmail(emailLower);
     // A user is considered "new" if they don't exist OR if they exist but have no password_hash
     // This handles cases where old accounts were created without passwords
     const hasPassword = existingUser && (existingUser.password_hash || existingUser.passwordHash);
@@ -871,10 +897,16 @@ app.post("/api/verify-code", async (req,res)=>{
     }
 
     // Ensure user exists in database (Supabase or file)
-    let user = await getUser(emailLower);
+    // Use wallet-first database function
+    let user = await getUserByEmail(emailLower);
     if (!user) {
-      // Create new user
+      // Create new user - for email-based signup, we need to create a user
+      // Since wallet-first schema requires wallet_address, we'll create a placeholder wallet
+      // or use the email as a temporary identifier
       const usernameValue = username || "";
+      // For email-based users without wallet, we'll use a generated wallet address
+      // or create them with email as primary identifier
+      // Note: This is a temporary solution until we fully migrate to wallet-first
       user = await createUser({
         email: emailLower,
         username: usernameValue.trim(),
@@ -891,7 +923,7 @@ app.post("/api/verify-code", async (req,res)=>{
         passwordHash: passwordHash
       });
       console.log("✅ User password set in database:", emailLower);
-      user = await getUser(emailLower); // Refresh user data
+      user = await getUserByEmail(emailLower); // Refresh user data
     }
 
     // Ensure balances exist in database (Supabase or file)
@@ -2494,97 +2526,134 @@ app.delete("/api/forum/:contractId/:commentId", async (req, res) => {
 
 // ---- Ideas endpoints (Forum) ----
 // Get all ideas
-app.get("/api/ideas", (req, res) => {
-  const ideas = loadJSON(IDEAS_FILE);
-  const ideasList = Object.values(ideas);
-  const sorted = ideasList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  res.json({ ok: true, data: sorted });
+app.get("/api/ideas", async (req, res) => {
+  try {
+    const ideas = await getAllIdeas();
+    res.json({ ok: true, data: ideas });
+  } catch (error) {
+    console.error("Error fetching ideas:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch ideas" });
+  }
 });
 
 // Post a new idea
-app.post("/api/ideas", (req, res) => {
-  const email = String(req.body.email || "").trim().toLowerCase();
-  const title = String(req.body.title || "").trim();
-  const description = String(req.body.description || "").trim();
-  const category = String(req.body.category || "General").trim();
-  
-  if (!email) return res.status(400).json({ ok: false, error: "email required" });
-  if (!title) return res.status(400).json({ ok: false, error: "title required" });
-  if (!description) return res.status(400).json({ ok: false, error: "description required" });
-  if (title.length > 200) return res.status(400).json({ ok: false, error: "Title too long (max 200 chars)" });
-  if (description.length > 2000) return res.status(400).json({ ok: false, error: "Description too long (max 2000 chars)" });
-  
-  const ideas = loadJSON(IDEAS_FILE);
-  const ideaId = `idea_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  const idea = {
-    id: ideaId,
-    email,
-    title,
-    description,
-    category,
-    createdAt: Date.now(),
-    likes: 0,
-    likedBy: []
-  };
-  
-  ideas[ideaId] = idea;
-  saveJSON(IDEAS_FILE, ideas);
-  
-  res.json({ ok: true, data: idea });
+app.post("/api/ideas", async (req, res) => {
+  try {
+    const email = String(req.body.email || "").trim().toLowerCase();
+    const title = String(req.body.title || "").trim();
+    const description = String(req.body.description || "").trim();
+    const category = String(req.body.category || "General").trim();
+    
+    if (!email) return res.status(400).json({ ok: false, error: "email required" });
+    if (!title) return res.status(400).json({ ok: false, error: "title required" });
+    if (!description) return res.status(400).json({ ok: false, error: "description required" });
+    if (title.length > 200) return res.status(400).json({ ok: false, error: "Title too long (max 200 chars)" });
+    if (description.length > 2000) return res.status(400).json({ ok: false, error: "Description too long (max 2000 chars)" });
+    
+    const ideaId = `idea_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const ideaData = {
+      id: ideaId,
+      email,
+      title,
+      description,
+      category,
+      created_at: Date.now(),
+      likes: 0,
+      liked_by: []
+    };
+    
+    const created = await createIdea(ideaData);
+    
+    // Convert back to API format
+    const responseData = {
+      id: created.id,
+      email: created.email,
+      title: created.title,
+      description: created.description,
+      category: created.category,
+      createdAt: created.created_at || created.createdAt,
+      likes: created.likes || 0,
+      likedBy: created.liked_by || created.likedBy || []
+    };
+    
+    res.json({ ok: true, data: responseData });
+  } catch (error) {
+    console.error("Error creating idea:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to create idea" });
+  }
 });
 
 // Like/unlike an idea
-app.post("/api/ideas/:id/like", (req, res) => {
-  const ideaId = String(req.params.id || "").trim();
-  const email = String(req.body.email || "").trim().toLowerCase();
-  
-  if (!ideaId || !email) {
-    return res.status(400).json({ ok: false, error: "ideaId and email required" });
+app.post("/api/ideas/:id/like", async (req, res) => {
+  try {
+    const ideaId = String(req.params.id || "").trim();
+    const email = String(req.body.email || "").trim().toLowerCase();
+    
+    if (!ideaId || !email) {
+      return res.status(400).json({ ok: false, error: "ideaId and email required" });
+    }
+    
+    // Get the idea first
+    const ideas = await getAllIdeas();
+    const idea = ideas.find(i => i.id === ideaId);
+    
+    if (!idea) return res.status(404).json({ ok: false, error: "Idea not found" });
+    
+    const likedBy = idea.liked_by || idea.likedBy || [];
+    const index = likedBy.indexOf(email);
+    
+    let newLikes = idea.likes || 0;
+    let newLikedBy = [...likedBy];
+    
+    if (index > -1) {
+      newLikedBy.splice(index, 1);
+      newLikes = Math.max(0, newLikes - 1);
+    } else {
+      newLikedBy.push(email);
+      newLikes = newLikes + 1;
+    }
+    
+    // Update the idea
+    await updateIdea(ideaId, {
+      likes: newLikes,
+      liked_by: newLikedBy
+    });
+    
+    res.json({ ok: true, data: { likes: newLikes, liked: newLikedBy.includes(email) } });
+  } catch (error) {
+    console.error("Error updating idea like:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to update idea like" });
   }
-  
-  const ideas = loadJSON(IDEAS_FILE);
-  const idea = ideas[ideaId];
-  
-  if (!idea) return res.status(404).json({ ok: false, error: "Idea not found" });
-  
-  if (!idea.likedBy) idea.likedBy = [];
-  const index = idea.likedBy.indexOf(email);
-  
-  if (index > -1) {
-    idea.likedBy.splice(index, 1);
-    idea.likes = Math.max(0, (idea.likes || 0) - 1);
-  } else {
-    idea.likedBy.push(email);
-    idea.likes = (idea.likes || 0) + 1;
-  }
-  
-  saveJSON(IDEAS_FILE, ideas);
-  res.json({ ok: true, data: { likes: idea.likes, liked: idea.likedBy.includes(email) } });
 });
 
 // Delete an idea (only by author or admin)
-app.delete("/api/ideas/:id", (req, res) => {
-  const ideaId = String(req.params.id || "").trim();
-  const email = String(req.query.email || "").trim().toLowerCase();
-  const isAdmin = req.headers["x-admin-token"] === ADMIN_TOKEN;
-  
-  if (!ideaId) {
-    return res.status(400).json({ ok: false, error: "ideaId required" });
+app.delete("/api/ideas/:id", async (req, res) => {
+  try {
+    const ideaId = String(req.params.id || "").trim();
+    const email = String(req.query.email || "").trim().toLowerCase();
+    const isAdmin = req.headers["x-admin-token"] === ADMIN_TOKEN;
+    
+    if (!ideaId) {
+      return res.status(400).json({ ok: false, error: "ideaId required" });
+    }
+    
+    // Get the idea first to check ownership
+    const ideas = await getAllIdeas();
+    const idea = ideas.find(i => i.id === ideaId);
+    
+    if (!idea) return res.status(404).json({ ok: false, error: "Idea not found" });
+    
+    if (!isAdmin && idea.email !== email) {
+      return res.status(403).json({ ok: false, error: "Not authorized to delete this idea" });
+    }
+    
+    await deleteIdea(ideaId);
+    res.json({ ok: true, message: "Idea deleted" });
+  } catch (error) {
+    console.error("Error deleting idea:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to delete idea" });
   }
-  
-  const ideas = loadJSON(IDEAS_FILE);
-  const idea = ideas[ideaId];
-  
-  if (!idea) return res.status(404).json({ ok: false, error: "Idea not found" });
-  
-  if (!isAdmin && idea.email !== email) {
-    return res.status(403).json({ ok: false, error: "Not authorized to delete this idea" });
-  }
-  
-  delete ideas[ideaId];
-  saveJSON(IDEAS_FILE, ideas);
-  res.json({ ok: true, message: "Idea deleted" });
 });
 
 // ---- News endpoints ----
@@ -2648,23 +2717,41 @@ app.post("/api/news", requireAdmin, async (req, res) => {
 });
 
 // Update news (admin only)
-app.patch("/api/news/:id", requireAdmin, (req, res) => {
-  const newsId = String(req.params.id || "").trim();
-  const news = loadJSON(NEWS_FILE);
-  const newsItem = news[newsId];
-  
-  if (!newsItem) return res.status(404).json({ ok: false, error: "News not found" });
-  
-  if (req.body.title !== undefined) newsItem.title = String(req.body.title || "").trim();
-  if (req.body.summary !== undefined) newsItem.summary = String(req.body.summary || "").trim();
-  if (req.body.url !== undefined) newsItem.url = String(req.body.url || "").trim();
-  if (req.body.imageUrl !== undefined) newsItem.imageUrl = req.body.imageUrl ? String(req.body.imageUrl).trim() : null;
-  if (req.body.category !== undefined) newsItem.category = String(req.body.category || "News").trim();
-  if (req.body.contractId !== undefined) newsItem.contractId = req.body.contractId ? String(req.body.contractId).trim() : null;
-  if (req.body.source !== undefined) newsItem.source = req.body.source ? String(req.body.source).trim() : null;
-  
-  saveJSON(NEWS_FILE, news);
-  res.json({ ok: true, data: newsItem });
+app.patch("/api/news/:id", requireAdmin, async (req, res) => {
+  try {
+    const newsId = String(req.params.id || "").trim();
+    
+    const updates = {};
+    if (req.body.title !== undefined) updates.title = String(req.body.title || "").trim();
+    if (req.body.summary !== undefined) updates.summary = String(req.body.summary || "").trim();
+    if (req.body.url !== undefined) updates.url = String(req.body.url || "").trim();
+    if (req.body.imageUrl !== undefined) updates.image_url = req.body.imageUrl ? String(req.body.imageUrl).trim() : null;
+    if (req.body.category !== undefined) updates.category = String(req.body.category || "News").trim();
+    if (req.body.contractId !== undefined) updates.contract_id = req.body.contractId ? String(req.body.contractId).trim() : null;
+    if (req.body.source !== undefined) updates.source = req.body.source ? String(req.body.source).trim() : null;
+    
+    const updated = await updateNews(newsId, updates);
+    
+    if (!updated) return res.status(404).json({ ok: false, error: "News not found" });
+    
+    // Convert back to API format
+    const responseData = {
+      id: updated.id,
+      title: updated.title,
+      summary: updated.summary,
+      url: updated.url,
+      imageUrl: updated.image_url || updated.imageUrl,
+      category: updated.category,
+      contractId: updated.contract_id || updated.contractId,
+      source: updated.source,
+      createdAt: updated.created_at || updated.createdAt
+    };
+    
+    res.json({ ok: true, data: responseData });
+  } catch (error) {
+    console.error("Error updating news:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to update news" });
+  }
 });
 
 // Delete news (admin only)
@@ -2786,7 +2873,10 @@ app.get("/api/features", async (req, res) => {
   try {
     // Check if we should filter for active features only (for public display)
     const activeOnly = req.query.active === "true" || req.query.active === "1";
+    console.log(`[API /api/features] Request - activeOnly: ${activeOnly}, query:`, req.query);
+    
     const features = await getAllFeatures(activeOnly);
+    console.log(`[API /api/features] Found ${features.length} features from database`);
     
     // Map database fields (snake_case) to API format (camelCase)
     // Also fetch subjects to include subject slug for linking
@@ -2809,6 +2899,14 @@ app.get("/api/features", async (req, res) => {
         createdAt: feature.created_at || feature.createdAt || Date.now()
       };
     });
+    
+    console.log(`[API /api/features] Returning ${mappedFeatures.length} mapped features`);
+    if (mappedFeatures.length > 0) {
+      console.log(`[API /api/features] Feature details:`, mappedFeatures.map(f => ({ id: f.id, title: f.title, status: f.status, hasImage: !!f.imageUrl })));
+    } else if (activeOnly) {
+      console.warn(`[API /api/features] ⚠️ No active features found! Check Supabase - status must be 'Active'`);
+    }
+    
     res.json({ ok: true, data: mappedFeatures });
   } catch (error) {
     console.error("Error fetching features:", error);
@@ -2877,6 +2975,70 @@ app.post("/api/features/create", requireAdmin, async (req, res) => {
   } catch (error) {
     console.error("Error creating feature:", error);
     res.status(500).json({ ok: false, error: error.message || "Failed to create feature" });
+  }
+});
+
+// Update feature (admin only)
+app.patch("/api/features/:id", requireAdmin, async (req, res) => {
+  try {
+    const featureId = String(req.params.id || "").trim();
+    if (!featureId) return res.status(400).json({ ok: false, error: "Feature ID required" });
+    
+    // Check if feature exists
+    const allFeatures = await getAllFeatures(false);
+    const featureExists = allFeatures.find(f => f.id === featureId);
+    
+    if (!featureExists) {
+      return res.status(404).json({ ok: false, error: "Feature not found" });
+    }
+    
+    // Prepare updates from request body
+    const updates = {};
+    if (req.body.title !== undefined) updates.title = req.body.title;
+    if (req.body.description !== undefined) updates.description = req.body.description;
+    if (req.body.type !== undefined) updates.type = req.body.type;
+    if (req.body.status !== undefined) updates.status = req.body.status;
+    if (req.body.imageUrl !== undefined) updates.imageUrl = req.body.imageUrl;
+    if (req.body.url !== undefined) updates.url = req.body.url;
+    if (req.body.subjectId !== undefined) updates.subjectId = req.body.subjectId;
+    
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ ok: false, error: "No updates provided" });
+    }
+    
+    const { updateFeature } = require("./lib/db.cjs");
+    const updatedFeature = await updateFeature(featureId, updates);
+    
+    // Fetch subject to include slug (if subject_id exists)
+    let subject = null;
+    if (updatedFeature.subject_id) {
+      try {
+        const { getAllSubjects } = require("./lib/db.cjs");
+        const allSubjects = await getAllSubjects();
+        subject = allSubjects.find(s => s.id === updatedFeature.subject_id) || null;
+      } catch (error) {
+        console.warn("[FEATURES] Could not fetch subjects for slug lookup:", error.message);
+      }
+    }
+    
+    // Map database response to API format
+    const mappedFeature = {
+      id: updatedFeature.id,
+      title: updatedFeature.title,
+      description: updatedFeature.description,
+      type: updatedFeature.type,
+      status: updatedFeature.status,
+      imageUrl: updatedFeature.image_url || updatedFeature.imageUrl || null,
+      url: updatedFeature.url || null,
+      subjectId: updatedFeature.subject_id || null,
+      subjectSlug: subject ? subject.slug : null,
+      createdAt: updatedFeature.created_at || updatedFeature.createdAt || Date.now()
+    };
+    
+    res.json({ ok: true, data: mappedFeature });
+  } catch (error) {
+    console.error("Error updating feature:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to update feature" });
   }
 });
 
@@ -3656,26 +3818,31 @@ app.patch("/api/users/:email", async (req, res) => {
 // ---- Statistics endpoint (admin only) ----
 app.get("/api/stats", requireAdmin, async (req, res) => {
   try {
-    const contracts = loadJSON(CONTRACTS_FILE);
-    const news = loadJSON(NEWS_FILE);
-    const orders = loadJSON(ORDERS_FILE);
-    const users = loadJSON(USERS_FILE);
-    const competitions = loadJSON(COMPETITIONS_FILE);
-    const ideas = loadJSON(IDEAS_FILE);
-    const positions = loadJSON(POSITIONS_FILE);
-    const balances = loadJSON(BALANCES_FILE);
+    // Use database functions when available
+    const contracts = await getAllContracts();
+    const news = await getAllNews();
+    const ideas = await getAllIdeas();
+    const competitions = await getAllCompetitions();
+    const users = await getAllUsers();
+    
+    // For orders, positions, and balances, we still need to use JSON files
+    // as there may not be database functions for these yet
+    const orders = isSupabaseEnabled() ? {} : loadJSON(ORDERS_FILE);
+    const positions = isSupabaseEnabled() ? [] : Object.values(loadJSON(POSITIONS_FILE));
+    const balances = isSupabaseEnabled() ? {} : loadJSON(BALANCES_FILE);
     
     // Count contracts
-    const contractsCount = Object.keys(contracts).length;
-    const sportsContractsCount = Object.values(contracts).filter(c => 
+    const contractsCount = Array.isArray(contracts) ? contracts.length : Object.keys(contracts).length;
+    const contractsArray = Array.isArray(contracts) ? contracts : Object.values(contracts);
+    const sportsContractsCount = contractsArray.filter(c => 
       (c.category || "").toLowerCase() === "sports"
     ).length;
-    const resolvedContractsCount = Object.values(contracts).filter(c => 
+    const resolvedContractsCount = contractsArray.filter(c => 
       c.resolution !== null && c.resolution !== undefined
     ).length;
     
     // Count news articles
-    const newsCount = Object.keys(news).length;
+    const newsCount = Array.isArray(news) ? news.length : Object.keys(news).length;
     
     // Count total orders/bets (sum across all users)
     let totalOrders = 0;
@@ -3713,20 +3880,26 @@ app.get("/api/stats", requireAdmin, async (req, res) => {
     ).length;
     
     // Count competitions
-    const competitionsCount = Object.keys(competitions).length;
+    const competitionsCount = Array.isArray(competitions) ? competitions.length : Object.keys(competitions).length;
     
     // Count forum ideas
-    const ideasCount = Object.keys(ideas).length;
+    const ideasCount = Array.isArray(ideas) ? ideas.length : Object.keys(ideas).length;
     
     // Count active positions (users with positions)
-    const activePositionsCount = Object.keys(positions).filter(email => {
-      const userPositions = positions[email];
-      return userPositions && Object.keys(userPositions).length > 0;
-    }).length;
+    let activePositionsCount = 0;
+    if (Array.isArray(positions)) {
+      activePositionsCount = positions.length;
+    } else {
+      activePositionsCount = Object.keys(positions).filter(email => {
+        const userPositions = positions[email];
+        return userPositions && Object.keys(userPositions).length > 0;
+      }).length;
+    }
     
     // Calculate total volume across all contracts
     let totalContractVolume = 0;
-    Object.values(contracts).forEach(contract => {
+    const contractsArray = Array.isArray(contracts) ? contracts : Object.values(contracts);
+    contractsArray.forEach(contract => {
       totalContractVolume += Number(contract.volume || 0);
     });
     

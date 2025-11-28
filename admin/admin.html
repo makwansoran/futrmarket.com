@@ -1679,15 +1679,83 @@
     title.appendChild(document.createTextNode(f.title||"Untitled"));
     top.appendChild(title);
     var meta=document.createElement("div"); meta.className="meta";
-    meta.textContent=(f.type||"Campaign")+" · "+(f.status||"Draft")+(f.url ? " · "+f.url : "");
+    var statusText = f.status||"Draft";
+    var statusColor = statusText === "Active" ? "#10b981" : (statusText === "Draft" ? "#9ca3af" : "#f59e0b");
+    meta.innerHTML = (f.type||"Campaign")+" · <span style='color:"+statusColor+";font-weight:500'>"+statusText+"</span>"+(f.url ? " · "+f.url : "");
+    if(statusText === "Active"){
+      meta.innerHTML += " <span style='color:#10b981;font-size:11px'>✓ Visible on website</span>";
+    }else{
+      meta.innerHTML += " <span style='color:#ef4444;font-size:11px'>⚠ Not visible (set to Active to show)</span>";
+    }
     L.appendChild(top); L.appendChild(meta);
 
-    var R=document.createElement("div"); R.className="flex";
+    var R=document.createElement("div"); R.className="flex"; R.style.gap="8px";
+    
+    // Status dropdown
+    var statusSelect=document.createElement("select");
+    statusSelect.style.padding="4px 8px";
+    statusSelect.style.borderRadius="4px";
+    statusSelect.value=f.status||"Draft";
+    var statuses=["Draft","Active","Paused","Completed"];
+    statuses.forEach(function(s){
+      var opt=document.createElement("option");
+      opt.value=s;
+      opt.textContent=s;
+      statusSelect.appendChild(opt);
+    });
+    statusSelect.onchange=function(){
+      updateFeatureStatus(f.id,statusSelect.value);
+    };
+    R.appendChild(statusSelect);
+    
     var del=document.createElement("button"); del.className="danger"; del.textContent="Delete";
     del.onclick=function(){removeFeature(f.id)};
     R.appendChild(del);
 
     w.appendChild(L); w.appendChild(R); return w;
+  }
+
+  async function updateFeatureStatus(id, newStatus){
+    try{
+      var token = getT();
+      if (!token) {
+        alert("Please set admin token first (default: 'changeme')");
+        return;
+      }
+      token = String(token).trim();
+      console.log("🔵 Updating feature status:", { id: id, newStatus: newStatus });
+      var r=await fetch(apiEndpoint("/api/features/"+encodeURIComponent(id)),{ 
+        method:"PATCH", 
+        headers: { "Content-Type":"application/json","x-admin-token":token },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if(!r.ok){
+        var j = await r.json().catch(()=>({}));
+        console.error("❌ Update failed:", { status: r.status, error: j.error });
+        if(r.status===401){
+          alert("Unauthorized. Check your admin token (default: 'changeme')");
+        }else{
+          alert("Update failed: "+(j.error||r.status));
+        }
+        return;
+      }
+      var j=await r.json(); 
+      if(!j.ok){
+        console.error("❌ Response not ok:", j);
+        alert("Update failed: "+(j.error||"unknown"));
+        return;
+      }
+      console.log("✅ Update successful:", j.data);
+      loadFeatures();
+      if(newStatus==="Active"){
+        alert("✅ Feature is now Active! It will appear on the website. Refresh the homepage to see it.");
+      }else{
+        alert("✅ Feature status updated to: "+newStatus);
+      }
+    }catch(e){ 
+      console.error("❌ Error updating feature:", e);
+      alert(e.message || "Could not update feature"); 
+    }
   }
 
   async function removeFeature(id){
