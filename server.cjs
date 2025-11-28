@@ -405,6 +405,29 @@ app.post("/api/check-email-exists", async (req,res)=>{
   }
 });
 
+// Handle OPTIONS preflight for check-username
+app.options("/api/check-username", (req, res) => {
+  const origin = req.headers.origin;
+  let allowedOrigin = null;
+  if (origin) {
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+    const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
+    const isFutrmarket = origin.includes('futrmarket.com') || origin.includes('futrmarket');
+    if (isLocalhost || isVercel || isFutrmarket) {
+      allowedOrigin = origin;
+    }
+  }
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  res.status(200).end();
+});
+
 // Check if username is available
 app.post("/api/check-username", async (req,res)=>{
   // Set CORS headers
@@ -571,6 +594,29 @@ app.post("/api/reset-password", async (req,res)=>{
     console.error("Error in /api/reset-password:", err);
     return res.status(500).json({ ok:false, error: err.message || "Internal server error" });
   }
+});
+
+// Handle OPTIONS preflight for send-code
+app.options("/api/send-code", (req, res) => {
+  const origin = req.headers.origin;
+  let allowedOrigin = null;
+  if (origin) {
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+    const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
+    const isFutrmarket = origin.includes('futrmarket.com') || origin.includes('futrmarket');
+    if (isLocalhost || isVercel || isFutrmarket) {
+      allowedOrigin = origin;
+    }
+  }
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  res.status(200).end();
 });
 
 app.post("/api/send-code", async (req,res)=>{
@@ -766,6 +812,29 @@ app.post("/api/send-code", async (req,res)=>{
   }
 });
 
+// Handle OPTIONS preflight for verify-code
+app.options("/api/verify-code", (req, res) => {
+  const origin = req.headers.origin;
+  let allowedOrigin = null;
+  if (origin) {
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+    const isVercel = origin.includes('.vercel.app') || origin.includes('.vercel.com');
+    const isFutrmarket = origin.includes('futrmarket.com') || origin.includes('futrmarket');
+    if (isLocalhost || isVercel || isFutrmarket) {
+      allowedOrigin = origin;
+    }
+  }
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  res.status(200).end();
+});
+
 // Verify code and create account (with password)
 app.post("/api/verify-code", async (req,res)=>{
   // Set CORS headers immediately to ensure they're always set
@@ -798,8 +867,8 @@ app.post("/api/verify-code", async (req,res)=>{
     const codeStr = String(code).trim();
 
     // Check if this is a new user (signup) or existing user (login)
-    // Use wallet-first database function
-    const existingUser = await getUserByEmail(emailLower);
+    // Use getUser which now uses getUserByEmail internally for Supabase
+    const existingUser = await getUser(emailLower);
     // A user is considered "new" if they don't exist OR if they exist but have no password_hash
     // This handles cases where old accounts were created without passwords
     const hasPassword = existingUser && (existingUser.password_hash || existingUser.passwordHash);
@@ -897,16 +966,11 @@ app.post("/api/verify-code", async (req,res)=>{
     }
 
     // Ensure user exists in database (Supabase or file)
-    // Use wallet-first database function
-    let user = await getUserByEmail(emailLower);
+    // Use getUser which now uses getUserByEmail internally for Supabase
+    let user = await getUser(emailLower);
     if (!user) {
-      // Create new user - for email-based signup, we need to create a user
-      // Since wallet-first schema requires wallet_address, we'll create a placeholder wallet
-      // or use the email as a temporary identifier
+      // Create new user - createUser now handles wallet_address generation for email-based users
       const usernameValue = username || "";
-      // For email-based users without wallet, we'll use a generated wallet address
-      // or create them with email as primary identifier
-      // Note: This is a temporary solution until we fully migrate to wallet-first
       user = await createUser({
         email: emailLower,
         username: usernameValue.trim(),
@@ -923,7 +987,7 @@ app.post("/api/verify-code", async (req,res)=>{
         passwordHash: passwordHash
       });
       console.log("✅ User password set in database:", emailLower);
-      user = await getUserByEmail(emailLower); // Refresh user data
+      user = await getUser(emailLower); // Refresh user data
     }
 
     // Ensure balances exist in database (Supabase or file)
