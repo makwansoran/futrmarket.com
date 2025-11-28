@@ -3579,8 +3579,8 @@ app.get("/api/leaderboard", async (req, res) => {
   }
 });
 
-// Get all users (admin only) - MUST come before /api/users/:email
-app.get("/api/users", requireAdmin, async (req, res) => {
+// Get all users (admin only) - Use different path to avoid conflict
+app.get("/api/users/all", requireAdmin, async (req, res) => {
   try {
     let users = {};
     const balances = loadJSON(BALANCES_FILE);
