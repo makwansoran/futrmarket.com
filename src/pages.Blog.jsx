@@ -8,7 +8,6 @@ import { Info } from "lucide-react";
 const phrases = [
   "Politics",
   "Crypto",
-  "Climate",
   "Economics",
   "Sports",
   "Mentions",

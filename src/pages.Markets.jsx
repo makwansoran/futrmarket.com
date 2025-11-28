@@ -272,7 +272,6 @@ const CATEGORY_MAP = {
   "politics": "Politics",
   "culture": "Culture",
   "crypto": "Crypto",
-  "climate": "Climate",
   "economics": "Economics",
   "mentions": "Mentions",
   "companies": "Companies",
@@ -757,7 +756,6 @@ export default function MarketsPage({ markets=[], limit, category }){
         const allowedCategories = [
           { name: "Politics", slug: "politics" },
           { name: "Crypto", slug: "crypto" },
-          { name: "Climate", slug: "climate" },
           { name: "Economics", slug: "economics" },
           { name: "Sports", slug: "sports" },
           { name: "Mentions", slug: "mentions" },
