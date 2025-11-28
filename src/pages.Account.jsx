@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Mail, Image as ImageIcon, Save, X, Wallet } from "lucide-react";
+import { User, Mail, Image as ImageIcon, Save, X, Wallet, Shield, Lock } from "lucide-react";
 import { saveSession } from "./lib.session.js";
 import { getApiUrl } from "/src/api.js";
 import { useUser } from "./contexts/UserContext.jsx";
@@ -204,6 +204,36 @@ export default function AccountPage() {
               <Wallet className="w-4 h-4" />
               Wallet
             </button>
+            <button
+              onClick={() => setActiveTab("security")}
+              className={`w-full px-3 py-2 text-sm transition text-left flex items-center gap-2 border-0 ${
+                activeTab === "security"
+                  ? isLight 
+                    ? 'bg-blue-50 text-blue-600' 
+                    : 'bg-blue-900/30 text-blue-400'
+                  : isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              <Shield className="w-4 h-4" />
+              Security
+            </button>
+            <button
+              onClick={() => setActiveTab("privacy")}
+              className={`w-full px-3 py-2 text-sm transition text-left flex items-center gap-2 border-0 ${
+                activeTab === "privacy"
+                  ? isLight 
+                    ? 'bg-blue-50 text-blue-600' 
+                    : 'bg-blue-900/30 text-blue-400'
+                  : isLight 
+                    ? 'hover:bg-gray-100 text-gray-700' 
+                    : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              <Lock className="w-4 h-4" />
+              Privacy
+            </button>
           </div>
         </div>
       </aside>
@@ -334,11 +364,25 @@ export default function AccountPage() {
         </div>
       </form>
           </>
-        ) : (
+        ) : activeTab === "wallet" ? (
           <div>
             <div className="flex items-center gap-3 mb-6">
               <Wallet className={`w-6 h-6 ${isLight ? 'text-blue-600' : 'text-blue-400'}`} />
               <h1 className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>Wallet</h1>
+            </div>
+          </div>
+        ) : activeTab === "security" ? (
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <Shield className={`w-6 h-6 ${isLight ? 'text-blue-600' : 'text-blue-400'}`} />
+              <h1 className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>Security</h1>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <Lock className={`w-6 h-6 ${isLight ? 'text-blue-600' : 'text-blue-400'}`} />
+              <h1 className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>Privacy</h1>
             </div>
           </div>
         )}
