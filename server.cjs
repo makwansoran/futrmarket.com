@@ -700,9 +700,9 @@ app.post("/api/send-code", async (req,res)=>{
           createdAt: Date.now()
         });
         console.log("✅ [send-code] Placeholder user created in Supabase:", emailLower);
-        // Also create a balance entry for the new user
-        await updateBalance(emailLower, { cash: 0, portfolio: 0 });
-        console.log("✅ [send-code] Balance initialized in Supabase:", emailLower);
+        // Balance is already created in createUser(), no need to call updateBalance here
+        // This prevents foreign key constraint violations
+        console.log("✅ [send-code] Balance should already be initialized by createUser()");
       } catch (err) {
         // If user already exists (race condition), that's fine
         if (err.message && (err.message.includes('duplicate') || err.message.includes('unique') || err.code === '23505')) {
