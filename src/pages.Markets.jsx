@@ -757,7 +757,6 @@ export default function MarketsPage({ markets=[], limit, category }){
           { name: "Politics", slug: "politics" },
           { name: "Crypto", slug: "crypto" },
           { name: "Economics", slug: "economics" },
-          { name: "Sports", slug: "sports" },
           { name: "Mentions", slug: "mentions" },
           { name: "Companies", slug: "companies" },
           { name: "Financials", slug: "financials" },
