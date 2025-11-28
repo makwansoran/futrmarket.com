@@ -38,6 +38,11 @@ const storage = multer.diskStorage({
 const fileFilter = (req,file,cb)=> cb(["image/jpeg","image/png","image/webp","image/gif"].includes(file.mimetype)? null : new Error("Invalid file type"), true);
 const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
 
+// Root route redirects to /admin
+app.get("/", (req,res)=>{
+  res.redirect("/admin");
+});
+
 app.get("/admin", (req,res)=>{
   res.setHeader("Content-Type","text/html; charset=utf-8");
   res.send(fs.readFileSync(path.join(__dirname,"admin.html"),"utf8"));

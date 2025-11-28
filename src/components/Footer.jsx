@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Twitter, Linkedin, MessageCircle, Facebook, Instagram, Circle, Music2, MessageSquare } from "lucide-react";
+import { Twitter, MessageCircle, Instagram, Circle, Music2, MessageSquare } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -68,21 +68,9 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  <Linkedin size={16} />
-                  LinkedIn
-                </a>
-              </li>
-              <li>
                 <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
                   <MessageCircle size={16} />
                   Discord
-                </a>
-              </li>
-              <li>
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--text-footer)] hover:text-[var(--text-footer-hover)] transition text-sm">
-                  <Facebook size={16} />
-                  Facebook
                 </a>
               </li>
               <li>
