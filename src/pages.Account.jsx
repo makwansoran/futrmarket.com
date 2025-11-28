@@ -585,7 +585,7 @@ export default function AccountPage() {
                 )}
 
                 {/* Balance Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
                     <div className="flex items-center gap-3 mb-2">
                       <DollarSign className={`w-5 h-5 ${isLight ? 'text-green-600' : 'text-green-400'}`} />
@@ -607,18 +607,6 @@ export default function AccountPage() {
                     </div>
                     <p className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>
                       ${portfolio.toFixed(2)}
-                    </p>
-                  </div>
-
-                  <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
-                    <div className="flex items-center gap-3 mb-2">
-                      <Wallet className={`w-5 h-5 ${isLight ? 'text-purple-600' : 'text-purple-400'}`} />
-                      <span className={`text-sm font-medium ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
-                        On-Chain Balance
-                      </span>
-                    </div>
-                    <p className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                      ${onChainBalance.toFixed(2)}
                     </p>
                   </div>
                 </div>

@@ -718,7 +718,7 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
             <div>
               <div className="text-blue-400 font-semibold text-sm mb-1">Grow your entire portfolio</div>
-              <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>Trade on the election, Sports, Bitcoin, and more</div>
+              <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>Trade on the Election. Politics. Bitcoin, and more</div>
             </div>
           </div>
 
@@ -943,7 +943,7 @@ export default function MarketsPage({ markets=[], limit, category }){
             </div>
             <div>
               <div className="text-blue-400 font-semibold text-sm mb-1">Grow your entire portfolio</div>
-              <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>Trade on the election, Sports, Bitcoin, and more</div>
+              <div className={`text-xs ${isLight ? 'text-black' : 'text-white'}`}>Trade on the Election. Politics. Bitcoin, and more</div>
             </div>
           </div>
 
