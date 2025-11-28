@@ -1478,8 +1478,33 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
   }
 });
 
+// Handle OPTIONS preflight for contracts
+app.options("/api/contracts", (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('futrmarket.com') || origin.includes('localhost') || origin.includes('vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  res.status(200).end();
+});
+
 // Get all contracts
 app.get("/api/contracts", async (req, res) => {
+  // Ensure CORS headers are set
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('futrmarket.com') || origin.includes('localhost') || origin.includes('vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  
   try {
     // Set cache-control headers to prevent caching
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -2932,8 +2957,33 @@ app.delete("/api/blog/:id", requireAdmin, (req, res) => {
 });
 
 // ---- Features endpoints ----
+// Handle OPTIONS preflight for features
+app.options("/api/features", (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('futrmarket.com') || origin.includes('localhost') || origin.includes('vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  res.status(200).end();
+});
+
 // Get all features
 app.get("/api/features", async (req, res) => {
+  // Ensure CORS headers are set
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('futrmarket.com') || origin.includes('localhost') || origin.includes('vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  
   try {
     // Check if we should filter for active features only (for public display)
     const activeOnly = req.query.active === "true" || req.query.active === "1";
@@ -3261,8 +3311,33 @@ app.delete("/api/competitions/:id", requireAdmin, async (req, res) => {
 });
 
 // ---- Subjects endpoints ----
+// Handle OPTIONS preflight for subjects
+app.options("/api/subjects", (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('futrmarket.com') || origin.includes('localhost') || origin.includes('vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  res.status(200).end();
+});
+
 // Get all subjects
 app.get("/api/subjects", async (req, res) => {
+  // Ensure CORS headers are set
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('futrmarket.com') || origin.includes('localhost') || origin.includes('vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  
   try {
     console.log("[API] GET /api/subjects - Fetching all subjects...");
     const { getAllSubjects } = require("./lib/db.cjs");
