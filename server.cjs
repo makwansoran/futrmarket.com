@@ -3371,13 +3371,17 @@ app.get("/api/users/:email", async (req, res) => {
 
 // Check if wallet address is linked to a user
 app.post("/api/wallet/check", async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  try {
+    // Set CORS headers first
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+    
+    console.log(`[WALLET CHECK] ${req.method} ${req.path}`, { 
+      method: req.method,
+      path: req.path,
+      body: req.body 
+    });
   
   try {
     const { walletAddress } = req.body || {};
