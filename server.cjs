@@ -4037,7 +4037,7 @@ app.get("/api/stats", requireAdmin, async (req, res) => {
     
     // Calculate total volume across all contracts
     let totalContractVolume = 0;
-    const contractsArray = Array.isArray(contracts) ? contracts : Object.values(contracts);
+    // contractsArray already declared above, reuse it
     contractsArray.forEach(contract => {
       totalContractVolume += Number(contract.volume || 0);
     });
