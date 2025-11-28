@@ -139,12 +139,26 @@ export async function fetchMarkets() {
     } else {
       const errorText = await res.text().catch(() => "");
       console.error("🔵 Contracts API error:", res.status, errorText);
+      
+      // Check if we got HTML instead of JSON (common when API URL is wrong)
+      if (errorText && errorText.trim().startsWith('<!DOCTYPE')) {
+        console.error("❌ API returned HTML instead of JSON! This means:");
+        console.error("   1. VITE_API_URL is not set correctly in Vercel");
+        console.error("   2. Or the Railway backend URL is wrong");
+        console.error("   3. Current API URL:", apiUrl);
+        console.error("   Fix: Set VITE_API_URL in Vercel → Settings → Environment Variables");
+        console.error("   Should be: https://futrmarket-api-production-15ea.up.railway.app");
+      }
+      
       // Don't fallback - API is the source of truth
       // If API fails, return empty array (admin-created contracts won't show until API is fixed)
       return [];
     }
   } catch (e) {
     console.error("🔵 Error fetching markets:", e);
+    if (e.message && e.message.includes("Unexpected token '<'")) {
+      console.error("❌ Got HTML instead of JSON! Check VITE_API_URL in Vercel environment variables.");
+    }
     return [];
   }
 }

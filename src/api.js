@@ -1,10 +1,12 @@
 // API base URL configuration
-// In production, this should be your Render backend URL
+// In production, this should be your Railway backend URL
 // In development, it uses the Vite proxy (empty string = relative path)
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 // Check if API URL is still the placeholder
-const isPlaceholder = API_BASE_URL.includes('your-render-backend.onrender.com');
+const isPlaceholder = API_BASE_URL.includes('your-render-backend.onrender.com') || 
+                      API_BASE_URL.includes('your-railway-url') ||
+                      API_BASE_URL.includes('your-railway-app.up.railway.app');
 
 // Always log the API configuration in production to help debug
 if (!import.meta.env.DEV) {
@@ -14,9 +16,9 @@ if (!import.meta.env.DEV) {
 }
 
 if (isPlaceholder) {
-  console.error("❌ VITE_API_URL is set to placeholder! Please set it to your actual Render backend URL.");
+  console.error("❌ VITE_API_URL is set to placeholder! Please set it to your actual Railway backend URL.");
   console.error("   Go to Vercel → Settings → Environment Variables");
-  console.error("   Set VITE_API_URL to: https://your-actual-backend.onrender.com");
+  console.error("   Set VITE_API_URL to: https://futrmarket-api-production-15ea.up.railway.app");
   console.error("   Current value:", API_BASE_URL);
 }
 
@@ -26,9 +28,9 @@ if (!API_BASE_URL) {
     console.warn("⚠️ VITE_API_URL not set. API calls will use relative paths. This won't work if frontend and backend are on different domains.");
   } else {
     console.error("❌ CRITICAL: VITE_API_URL is not set in production!");
-    console.error("   API calls will fail because frontend (Vercel) and backend (Render) are on different domains.");
+    console.error("   API calls will fail because frontend (Vercel) and backend (Railway) are on different domains.");
     console.error("   Fix: Go to Vercel → Settings → Environment Variables → Add VITE_API_URL");
-    console.error("   Value should be your Render backend URL (e.g., https://futrmarket-api.onrender.com)");
+    console.error("   Value should be your Railway backend URL (e.g., https://futrmarket-api-production-15ea.up.railway.app)");
   }
 }
 
