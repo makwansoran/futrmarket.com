@@ -2597,38 +2597,54 @@ app.get("/api/news", (req, res) => {
 });
 
 // Post a new news article (admin only)
-app.post("/api/news", requireAdmin, (req, res) => {
-  const title = String(req.body.title || "").trim();
-  const summary = String(req.body.summary || "").trim();
-  const url = String(req.body.url || "").trim();
-  const imageUrl = req.body.imageUrl ? String(req.body.imageUrl).trim() : null;
-  const category = String(req.body.category || "News").trim();
-  const contractId = req.body.contractId ? String(req.body.contractId).trim() : null;
-  const source = req.body.source ? String(req.body.source).trim() : null;
-  
-  if (!title) return res.status(400).json({ ok: false, error: "title required" });
-  if (!summary) return res.status(400).json({ ok: false, error: "summary required" });
-  if (!url) return res.status(400).json({ ok: false, error: "url required" });
-  
-  const news = loadJSON(NEWS_FILE);
-  const newsId = `news_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  const newsItem = {
-    id: newsId,
-    title,
-    summary,
-    url,
-    imageUrl,
-    category,
-    contractId,
-    source,
-    createdAt: Date.now()
-  };
-  
-  news[newsId] = newsItem;
-  saveJSON(NEWS_FILE, news);
-  
-  res.json({ ok: true, data: newsItem });
+app.post("/api/news", requireAdmin, async (req, res) => {
+  try {
+    const title = String(req.body.title || "").trim();
+    const summary = String(req.body.summary || "").trim();
+    const url = String(req.body.url || "").trim();
+    const imageUrl = req.body.imageUrl ? String(req.body.imageUrl).trim() : null;
+    const category = String(req.body.category || "News").trim();
+    const contractId = req.body.contractId ? String(req.body.contractId).trim() : null;
+    const source = req.body.source ? String(req.body.source).trim() : null;
+    
+    if (!title) return res.status(400).json({ ok: false, error: "title required" });
+    if (!summary) return res.status(400).json({ ok: false, error: "summary required" });
+    if (!url) return res.status(400).json({ ok: false, error: "url required" });
+    
+    const newsId = `news_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const newsItem = {
+      id: newsId,
+      title,
+      summary,
+      url,
+      image_url: imageUrl,
+      category,
+      contract_id: contractId,
+      source,
+      created_at: Date.now()
+    };
+    
+    const created = await createNews(newsItem);
+    
+    // Convert back to API format
+    const responseData = {
+      id: created.id,
+      title: created.title,
+      summary: created.summary,
+      url: created.url,
+      imageUrl: created.image_url || created.imageUrl,
+      category: created.category,
+      contractId: created.contract_id || created.contractId,
+      source: created.source,
+      createdAt: created.created_at || created.createdAt
+    };
+    
+    res.json({ ok: true, data: responseData });
+  } catch (error) {
+    console.error("Error creating news:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to create news" });
+  }
 });
 
 // Update news (admin only)
@@ -3369,6 +3385,14 @@ app.get("/api/users/:email", async (req, res) => {
 // WALLET AUTHENTICATION ENDPOINTS
 // ============================================
 
+// Handle OPTIONS preflight for wallet check
+app.options("/api/wallet/check", (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  res.status(200).end();
+});
+
 // Check if wallet address is linked to a user
 app.post("/api/wallet/check", async (req, res) => {
   // Set CORS headers first
@@ -3424,6 +3448,14 @@ app.post("/api/wallet/check", async (req, res) => {
     console.error("Error checking wallet:", error);
     res.status(500).json({ ok: false, error: error.message || "Failed to check wallet" });
   }
+});
+
+// Handle OPTIONS preflight for wallet authenticate
+app.options("/api/wallet/authenticate", (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-token, Cache-Control, Pragma');
+  res.status(200).end();
 });
 
 // Authenticate with wallet (create or login)
