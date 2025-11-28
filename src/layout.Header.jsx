@@ -294,14 +294,6 @@ export default function Header({ userEmail, onLogout, cash, portfolio, onSearch,
         {/* NAV: navigation links */}
         <nav className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
           <Link 
-            to="/live" 
-            className={`transition text-sm font-medium whitespace-nowrap ${
-              isActive("/live") ? "text-red-400 font-semibold" : "text-red-400/80 hover:text-red-400"
-            }`}
-          >
-            Live
-          </Link>
-          <Link 
             to="/news" 
             className={`transition text-sm font-medium whitespace-nowrap ${
               isActive("/news") 
