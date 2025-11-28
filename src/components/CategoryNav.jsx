@@ -8,7 +8,6 @@ const CATEGORIES = [
   { id: "all", label: "All", path: "/markets" },
   { id: "politics", label: "Politics", path: "/markets/politics" },
   { id: "crypto", label: "Crypto", path: "/markets/crypto" },
-  { id: "climate", label: "Climate", path: "/markets/climate" },
   { id: "economics", label: "Economics", path: "/markets/economics" },
   { id: "mentions", label: "Mentions", path: "/markets/mentions" },
   { id: "companies", label: "Companies", path: "/markets/companies" },
