@@ -9,7 +9,6 @@ const phrases = [
   "Politics",
   "Crypto",
   "Economics",
-  "Sports",
   "Mentions",
   "Companies",
   "Financials",
