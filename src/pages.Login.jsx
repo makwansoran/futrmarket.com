@@ -1,15 +1,12 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Key, ArrowRight, Lock } from "lucide-react";
-import { checkEmail, checkPassword, sendCode, verifyCode, saveUser, saveSession, resetPassword, authenticateWithWallet } from "./lib.session.js";
+import { checkEmail, checkPassword, sendCode, verifyCode, saveUser, saveSession, resetPassword } from "./lib.session.js";
 import { useTheme } from "./contexts/ThemeContext.jsx";
-import { useWallet } from "./contexts/WalletContext.jsx";
-import WalletButtons from "./components/WalletButtons.jsx";
 
 export default function LoginPage({ onLogin }){
   const navigate = useNavigate();
   const { isLight } = useTheme();
-  const { isConnected, address, account } = useWallet();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [code, setCode] = React.useState("");
@@ -162,41 +159,6 @@ export default function LoginPage({ onLogin }){
     setErr("");
   }
 
-  const [isAuthenticatingWallet, setIsAuthenticatingWallet] = React.useState(false);
-  const [hasAuthenticated, setHasAuthenticated] = React.useState(false);
-
-  // Watch for wallet connection and authenticate automatically
-  React.useEffect(() => {
-    const handleWalletAuth = async () => {
-      // Only authenticate if wallet is connected, we have an address, and we haven't authenticated yet
-      if (isConnected && address && !isAuthenticatingWallet && !hasAuthenticated && onLogin) {
-        setIsAuthenticatingWallet(true);
-        setHasAuthenticated(true); // Prevent multiple authentication attempts
-        
-        try {
-          // Authenticate user with wallet address and signature
-          const userIdentifier = await authenticateWithWallet(address, account);
-          
-          // Call onLogin callback to set user session
-          if (onLogin) {
-            await onLogin(userIdentifier);
-          }
-          
-          // Navigate to home
-          navigate("/");
-        } catch (e) {
-          console.error("Wallet authentication failed:", e);
-          setErr(e?.message || "Failed to authenticate with wallet. Please try again.");
-          setHasAuthenticated(false); // Allow retry on error
-        } finally {
-          setIsAuthenticatingWallet(false);
-        }
-      }
-    };
-
-    handleWalletAuth();
-  }, [isConnected, address, onLogin, navigate, isAuthenticatingWallet, hasAuthenticated]);
-
 
   return (
     <main className={`max-w-md mx-auto px-6 py-10 ${isLight ? 'text-black' : 'text-white'}`}>
@@ -238,9 +200,6 @@ export default function LoginPage({ onLogin }){
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
             
-            {/* Wallet Connection Buttons */}
-            <WalletButtons />
-            
             <div className="text-center">
               <Link to="/signup" className={`text-sm ${isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-gray-300'}`}>
                 Don't have an account? Create one
@@ -281,8 +240,6 @@ export default function LoginPage({ onLogin }){
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
             
-            {/* Wallet Connection Buttons */}
-            <WalletButtons />
             <button 
               type="button"
               onClick={handleBack}
@@ -389,8 +346,6 @@ export default function LoginPage({ onLogin }){
               {loading ? "Resetting..." : "Reset Password"}
             </button>
             
-            {/* Wallet Connection Buttons */}
-            <WalletButtons />
             <button 
               type="button"
               onClick={() => {
@@ -446,8 +401,6 @@ export default function LoginPage({ onLogin }){
               {loading ? "Verifying..." : "Verify & Login"}
             </button>
             
-            {/* Wallet Connection Buttons */}
-            <WalletButtons />
             <button 
               type="button"
               onClick={handleResend}
