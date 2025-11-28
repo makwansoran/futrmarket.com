@@ -674,7 +674,9 @@ app.post("/api/send-code", async (req,res)=>{
     
     // If user doesn't exist (signup), create a placeholder user first
     // This is required because verification_codes has a foreign key to users
+    // ONLY use Supabase - no file fallback
     if (isNewUser) {
+      console.log("🔵 [send-code] Creating placeholder user in Supabase for:", emailLower);
       try {
         await createUser({
           email: emailLower,
@@ -683,12 +685,17 @@ app.post("/api/send-code", async (req,res)=>{
           passwordHash: "", // Will be set during verification
           createdAt: Date.now()
         });
+        console.log("✅ [send-code] Placeholder user created in Supabase:", emailLower);
         // Also create a balance entry for the new user
         await updateBalance(emailLower, { cash: 0, portfolio: 0 });
+        console.log("✅ [send-code] Balance initialized in Supabase:", emailLower);
       } catch (err) {
         // If user already exists (race condition), that's fine
-        if (!err.message || !err.message.includes('duplicate') && !err.message.includes('unique')) {
-          console.error("Error creating placeholder user:", err);
+        if (err.message && (err.message.includes('duplicate') || err.message.includes('unique') || err.code === '23505')) {
+          console.log("ℹ️  [send-code] User already exists (race condition), continuing...");
+        } else {
+          console.error("❌ [send-code] FAILED to create placeholder user in Supabase:", err);
+          console.error("❌ [send-code] Error details:", JSON.stringify(err, null, 2));
           throw err;
         }
       }
@@ -965,29 +972,43 @@ app.post("/api/verify-code", async (req,res)=>{
       }
     }
 
-    // Ensure user exists in database (Supabase or file)
-    // Use getUser which now uses getUserByEmail internally for Supabase
+    // Ensure user exists in database - ONLY Supabase, no file fallback
+    console.log("🔵 [verify-code] Checking if user exists:", emailLower);
     let user = await getUser(emailLower);
+    
     if (!user) {
-      // Create new user - createUser now handles wallet_address generation for email-based users
+      // Create new user - ONLY in Supabase
+      console.log("🔵 [verify-code] User does not exist, creating new user in Supabase...");
       const usernameValue = username || "";
-      user = await createUser({
-        email: emailLower,
-        username: usernameValue.trim(),
-        profilePicture: "",
-        passwordHash: passwordHash,
-        createdAt: Date.now()
-      });
-      console.log("✅ New user created in database:", emailLower);
+      try {
+        user = await createUser({
+          email: emailLower,
+          username: usernameValue.trim(),
+          profilePicture: "",
+          passwordHash: passwordHash,
+          createdAt: Date.now()
+        });
+        console.log("✅ [verify-code] New user created successfully in Supabase:", emailLower);
+      } catch (createError) {
+        console.error("❌ [verify-code] FAILED to create user in Supabase:", createError);
+        console.error("❌ [verify-code] Error details:", JSON.stringify(createError, null, 2));
+        throw new Error(`Failed to create user account: ${createError.message || 'Unknown error'}`);
+      }
     } else if (isNewUser && !hasPassword) {
       // User exists but has no password - update with password and username
+      console.log("🔵 [verify-code] User exists but has no password, updating...");
       const usernameValue = username || user.username || "";
-      await updateUser(emailLower, {
-        username: usernameValue.trim() || user.username || "",
-        passwordHash: passwordHash
-      });
-      console.log("✅ User password set in database:", emailLower);
-      user = await getUser(emailLower); // Refresh user data
+      try {
+        await updateUser(emailLower, {
+          username: usernameValue.trim() || user.username || "",
+          passwordHash: passwordHash
+        });
+        console.log("✅ [verify-code] User password set in Supabase:", emailLower);
+        user = await getUser(emailLower); // Refresh user data
+      } catch (updateError) {
+        console.error("❌ [verify-code] FAILED to update user in Supabase:", updateError);
+        throw new Error(`Failed to update user account: ${updateError.message || 'Unknown error'}`);
+      }
     }
 
     // Ensure balances exist in database (Supabase or file)
@@ -4157,8 +4178,12 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   console.log("Health check: GET /health");
   if (isSupabaseEnabled()) {
     console.log("✅ Supabase: ENABLED (using database)");
+    console.log("   SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "NOT SET");
+    console.log("   SUPABASE_SERVICE_ROLE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "SET" : "NOT SET");
+    console.log("   ⚠️  CRITICAL: Account creation will ONLY use Supabase - file storage disabled");
   } else {
-    console.log("⚠️  Supabase: DISABLED (using file-based storage)");
+    console.log("❌ CRITICAL ERROR: Supabase: DISABLED");
+    console.log("   Account creation will FAIL without Supabase!");
     console.log("   Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env to enable");
     console.log("   DEBUG - SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "NOT SET");
     console.log("   DEBUG - SUPABASE_SERVICE_ROLE_KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "SET" : "NOT SET");
