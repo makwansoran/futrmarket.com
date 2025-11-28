@@ -41,7 +41,8 @@ export function WalletProvider({ children }) {
   // Use thirdweb hooks for wallet state
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
-  const disconnectWallet = useDisconnect();
+  // useDisconnect returns a function directly
+  const disconnectWalletFn = useDisconnect();
   const { connect: connectWalletHook } = useConnect();
   const { mutate: switchChain } = useSwitchActiveWalletChain();
 
@@ -167,14 +168,23 @@ export function WalletProvider({ children }) {
   // Handle disconnect
   const handleDisconnect = React.useCallback(async () => {
     try {
-      await disconnectWallet();
+      // useDisconnect returns a function that can be called directly
+      // Check if it's available and is a function before calling
+      if (disconnectWalletFn && typeof disconnectWalletFn === 'function') {
+        disconnectWalletFn();
+      } else {
+        console.warn("Disconnect function not available");
+      }
+      // Clear local state regardless
       setWalletInstance(null);
       setError(null);
     } catch (e) {
       console.error("Failed to disconnect wallet:", e);
       setError(e?.message || "Failed to disconnect wallet");
+      // Even if disconnect fails, clear local state
+      setWalletInstance(null);
     }
-  }, [disconnectWallet]);
+  }, [disconnectWalletFn]);
 
   // Get wallet address
   const address = account?.address || null;

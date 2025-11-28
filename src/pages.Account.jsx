@@ -9,7 +9,7 @@ import { useWallet } from "./contexts/WalletContext.jsx";
 
 export default function AccountPage() {
   const navigate = useNavigate();
-  const { userEmail, cash, userProfile, refreshProfile, syncBalancesFromServer } = useUser();
+  const { userEmail, cash, portfolio, userProfile, refreshProfile, syncBalancesFromServer } = useUser();
   const { isLight } = useTheme();
   const { isConnected, address, chain, connectWallet, disconnectWallet, isConnecting, error: walletError, needsNetworkSwitch, switchToPolygon, isWalletInstalled } = useWallet();
   
