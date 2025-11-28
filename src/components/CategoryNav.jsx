@@ -10,7 +10,6 @@ const CATEGORIES = [
   { id: "crypto", label: "Crypto", path: "/markets/crypto" },
   { id: "climate", label: "Climate", path: "/markets/climate" },
   { id: "economics", label: "Economics", path: "/markets/economics" },
-  { id: "sports", label: "Sports", path: "/markets/sports" },
   { id: "mentions", label: "Mentions", path: "/markets/mentions" },
   { id: "companies", label: "Companies", path: "/markets/companies" },
   { id: "financials", label: "Financials", path: "/markets/financials" },

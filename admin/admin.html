@@ -30,14 +30,6 @@
   .tab-content{display:none}
   .tab-content.active{display:block}
   
-  /* Sports Sub Navigation */
-  .sports-nav{display:flex;gap:8px;border-bottom:2px solid #1f2937;margin-bottom:24px;padding-bottom:0;position:relative;z-index:10}
-  .sports-nav-btn{background:transparent;border:none;padding:10px 20px;cursor:pointer !important;color:#9ca3af;border-bottom:2px solid transparent;margin-bottom:-2px;font-size:14px;font-weight:500;position:relative;z-index:11;pointer-events:auto !important;user-select:none;-webkit-user-select:none}
-  .sports-nav-btn:hover{color:#e5e7eb;background:#1f2937}
-  .sports-nav-btn.active{color:#3b82f6;border-bottom-color:#3b82f6}
-  .sports-section{display:none}
-  .sports-section.active{display:block}
-  
   /* Auth section always visible */
   .auth-section{margin-bottom:24px}
 </style>
@@ -69,7 +61,6 @@
     <button class="tab" data-tab="blog">Blog</button>
     <button class="tab" data-tab="contracts">Contracts</button>
     <button class="tab" data-tab="subjects">Subjects</button>
-    <button class="tab" data-tab="sports">Sports</button>
     <button class="tab" data-tab="features">Features</button>
     <button class="tab" data-tab="footer">Footer Content</button>
     <button class="tab" data-tab="accounts">Accounts</button>
@@ -199,14 +190,13 @@
             <option>Crypto</option>
             <option>Climate</option>
             <option>Economics</option>
-            <option>Sports</option>
             <option>Mentions</option>
             <option>Companies</option>
             <option>Financials</option>
             <option>Tech & Science</option>
             <option>General</option>
           </select>
-          <div class="mt4 meta">Select a category to appear on homepage. Categories: Politics, Crypto, Climate, Economics, Sports, Mentions, Companies, Financials, Tech & Science</div>
+          <div class="mt4 meta">Select a category to appear on homepage. Categories: Politics, Crypto, Climate, Economics, Mentions, Companies, Financials, Tech & Science</div>
         </div>
         <div><label>Expiration Date</label><input id="contractExp" type="date"></div>
       </div>
@@ -229,7 +219,7 @@
       </div>
 
       <div class="mt16"><button id="createContract">Create Contract</button></div>
-      <div class="mt8 meta">Creates a new tradeable contract. Prices start at $1 and adjust based on trading activity. Note: Sports contracts (bets) are created in the Sports section.</div>
+      <div class="mt8 meta">Creates a new tradeable contract. Prices start at $1 and adjust based on trading activity.</div>
     </div>
 
     <div class="card mt16">
@@ -317,83 +307,6 @@
     </div>
   </div>
 
-  <!-- Sports Tab -->
-  <div id="tab-sports" class="tab-content">
-    <!-- Sports Sub Navigation -->
-    <div class="sports-nav">
-      <button class="sports-nav-btn active" data-section="competitions">Competitions</button>
-      <button class="sports-nav-btn" data-section="contracts">Create Sports Bet</button>
-    </div>
-
-    <!-- Competitions Section -->
-    <div id="sports-section-competitions" class="sports-section active">
-      <div class="card">
-        <h2>Create Competition</h2>
-        <label>Competition Name</label>
-        <input id="competitionName" placeholder="e.g., Champions League, NBA, Premier League">
-        <div class="mt16">
-          <label>Logo Image (circular, will appear in navbar)</label>
-          <input id="competitionImg" type="file" accept="image/*">
-          <div id="competitionPreview" class="mt8"></div>
-        </div>
-        <div class="mt16"><button id="createCompetition">Create Competition</button></div>
-        <div class="mt8 meta">Create competition types that will appear in the sports navigation. Upload a circular logo for each competition.</div>
-      </div>
-
-      <div class="card mt16">
-        <h2>Existing Competitions</h2>
-        <div id="competitionsList"></div>
-        <div class="mt8 meta">All competition types. These will appear in the sports navigation bar.</div>
-      </div>
-    </div>
-
-    <!-- Create Sports Contract Section -->
-    <div id="sports-section-contracts" class="sports-section">
-      <div class="card">
-        <h2>Create Sports Bet</h2>
-        <label>Question</label>
-        <input id="sportsContractQ" placeholder="Will the Lakers win the NBA championship?">
-        <label class="mt16">Description (optional)</label>
-        <textarea id="sportsContractDesc" placeholder="Additional details about this sports bet..." style="min-height:80px;resize:vertical"></textarea>
-
-        <div class="row mt16">
-          <div><label>Competition</label>
-            <select id="sportsContractCompetition">
-              <option value="">Select Competition</option>
-            </select>
-          </div>
-          <div><label>Status</label>
-            <select id="sportsContractStatus">
-              <option value="upcoming">Upcoming</option>
-              <option value="live">Live</option>
-              <option value="finished">Finished</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row mt16">
-          <div><label>Expiration Date</label><input id="sportsContractExp" type="date"></div>
-        </div>
-
-        <div class="mt16">
-          <label>Image (optional)</label>
-          <input id="sportsContractImg" type="file" accept="image/*">
-          <div id="sportsContractPreview" class="mt8"></div>
-        </div>
-
-        <div class="mt16"><button id="createSportsContract">Create Sports Bet</button></div>
-        <div class="mt8 meta">Creates a new tradeable sports bet. Prices start at $1 and adjust based on trading activity.</div>
-      </div>
-
-      <div class="card mt16">
-        <h2>Existing Sports Bets</h2>
-        <div id="sportsContractsList"></div>
-        <div class="mt8 meta">All sports bets. These are contracts with category "Sports".</div>
-      </div>
-    </div>
-  </div>
-
   <!-- Footer Content Tab -->
   <div id="tab-footer" class="tab-content">
     <div class="card">
@@ -475,7 +388,6 @@
       else if(targetTab === "news") loadNews();
       else if(targetTab === "blog") loadBlog();
       else if(targetTab === "features") loadFeatures();
-      else if(targetTab === "sports") loadSports();
       else if(targetTab === "subjects") loadSubjects();
       else if(targetTab === "footer") loadFooterContent();
     };
@@ -650,7 +562,6 @@
       html += "<div class='meta' style='margin-top:8px'>";
       html += "<div>Active: <strong>"+stats.contracts.active+"</strong></div>";
       html += "<div>Resolved: <strong>"+stats.contracts.resolved+"</strong></div>";
-      html += "<div>Sports: <strong>"+stats.contracts.sports+"</strong></div>";
       html += "<div>Total Volume: <strong>$"+stats.contracts.totalVolume.toFixed(2)+"</strong></div>";
       html += "</div></div>";
       
@@ -680,13 +591,6 @@
       html += "<div>Online Users: <strong style='color:#10b981'>"+stats.users.online+"</strong> <span style='color:#6b7280;font-size:11px'>(last 5 min)</span></div>";
       html += "<div>With Positions: <strong>"+stats.users.withPositions+"</strong></div>";
       html += "</div></div>";
-      
-      // Competitions Stats
-      html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
-      html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>Competitions</h3>";
-      html += "<div style='font-size:32px;font-weight:bold;color:#fff;margin-bottom:8px'>"+stats.competitions.total+"</div>";
-      html += "<div class='meta' style='margin-top:8px'>Sports competitions</div>";
-      html += "</div>";
       
       // Ideas Stats
       html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
@@ -1519,7 +1423,7 @@
       console.log("✅ Update successful:", j.data);
       console.log("🔵 Reloading contracts...");
       // Reload both lists
-      await Promise.all([loadContracts(), loadSportsContracts()]);
+      await Promise.all([loadContracts()]);
       // Small delay to ensure UI updates
       await new Promise(resolve => setTimeout(resolve, 100));
       var message = liveValue ? "✅ Contract marked as LIVE! It will now appear on the /live page." : "✅ Contract un-marked as live. It will no longer appear on the /live page.";
@@ -1848,544 +1752,9 @@
   var cleanupDuplicatesBtn = document.getElementById("cleanupDuplicates");
   if(cleanupDuplicatesBtn) cleanupDuplicatesBtn.onclick=function(){ cleanupDuplicates(); };
 
-  // Sports elements
-  var competitionName = document.getElementById("competitionName"),
-      competitionImg = document.getElementById("competitionImg"),
-      competitionPreview = document.getElementById("competitionPreview"),
-      createCompetitionBtn = document.getElementById("createCompetition"),
-      competitionsList = document.getElementById("competitionsList");
+  // Sports elements removed - sports section deleted
 
-  if(competitionImg && competitionPreview) {
-    competitionImg.onchange = function(){
-      competitionPreview.innerHTML = "";
-      if (competitionImg.files && competitionImg.files[0]) {
-        var url = URL.createObjectURL(competitionImg.files[0]);
-        var el = document.createElement("img");
-        el.src = url; el.className = "logo";
-        competitionPreview.appendChild(el);
-      }
-    };
-  }
-
-  function competitionRow(c){
-    var w = document.createElement("div"); w.className = "list-item";
-    var L = document.createElement("div");
-    var top = document.createElement("div"); top.style.display = "flex"; top.style.gap = "10px"; top.style.alignItems = "center";
-    if (c.imageUrl) { 
-      var im = document.createElement("img"); 
-      im.src = c.imageUrl; 
-      im.className = "logo"; 
-      top.appendChild(im); 
-    }
-    var title = document.createElement("div"); 
-    title.textContent = c.name; 
-    title.style.fontWeight = "500";
-    top.appendChild(title);
-    L.appendChild(top);
-
-    var R = document.createElement("div"); R.className = "flex";
-    var code = document.createElement("code"); code.textContent = c.id; code.style.fontSize = "11px";
-    var del = document.createElement("button"); del.className = "danger"; del.textContent = "Delete";
-    del.onclick = function(){ removeCompetition(c.id); };
-    R.appendChild(code); R.appendChild(del);
-
-    w.appendChild(L); w.appendChild(R); return w;
-  }
-
-  async function loadSports(){
-    var token = getT();
-    if (!competitionsList) {
-      console.error("competitionsList element not found");
-      return;
-    }
-    if (!token) {
-      competitionsList.innerHTML = "<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
-      return;
-    }
-    var r = await fetch(apiEndpoint("/api/competitions"), { headers: { "x-admin-token": token } });
-    if (!r.ok) {
-      if (r.status === 401) {
-        competitionsList.innerHTML = "<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
-      } else {
-        competitionsList.innerHTML = "<div class='meta'>Failed to load competitions: " + r.status + "</div>";
-      }
-      return;
-    }
-    var j = await r.json();
-    if (!j.ok) {
-      competitionsList.innerHTML = "<div class='meta'>Failed: " + (j.error || "unknown") + "</div>";
-      return;
-    }
-    competitionsList.innerHTML = "";
-    if (!j.data || !j.data.length) {
-      var e = document.createElement("div");
-      e.className = "meta";
-      e.textContent = "No competitions yet. Create one above.";
-      competitionsList.appendChild(e);
-      return;
-    }
-    for (var i = 0; i < j.data.length; i++) {
-      competitionsList.appendChild(competitionRow(j.data[i]));
-    }
-    
-    // Initialize sports nav after loading
-    setTimeout(function(){
-      sportsNavInitialized = false; // Reset flag
-      initSportsNav();
-    }, 100);
-  }
-
-  async function uploadCompetitionImage(){
-    if (!competitionImg.files || !competitionImg.files[0]) return null;
-    try {
-      var fd = new FormData();
-      fd.append("image", competitionImg.files[0]);
-      var r = await fetch(apiEndpoint("/api/upload"), { 
-        method: "POST", 
-        headers: { "x-admin-token": getT() }, 
-        body: fd 
-      });
-      if (!r.ok) { 
-        var errorText = await r.text();
-        throw new Error("Upload failed: " + r.status + " - " + errorText); 
-      }
-      var j = await r.json();
-      if (!j.ok) { throw new Error("Upload failed: " + (j.error || "unknown")); }
-      // Return the full URL path that will work on the main server
-      return j.url;
-    } catch (e) {
-      console.error("Upload error:", e);
-      throw e;
-    }
-  }
-
-  async function createCompetition(){
-    try {
-      var token = getT();
-      if (!token) {
-        alert("Please set admin token first (default: 'changeme')");
-        return;
-      }
-      token = String(token).trim();
-      if (!competitionName.value.trim()) {
-        alert("Competition name required");
-        return;
-      }
-      
-      var imageUrl = await uploadCompetitionImage();
-      
-      var payload = {
-        name: competitionName.value.trim(),
-        imageUrl: imageUrl
-      };
-      
-      var r = await fetch(apiEndpoint("/api/competitions"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-token": token },
-        body: JSON.stringify(payload)
-      });
-      if (!r.ok) {
-        if (r.status === 401) {
-          alert("Unauthorized. Check your admin token (default: 'changeme')");
-        } else {
-          var errorText = await r.text().catch(() => "");
-          var j;
-          try { j = JSON.parse(errorText); } catch { j = {}; }
-          console.error("Competition creation failed:", r.status, errorText);
-          alert("Create failed: " + (j.error || r.status || "Unknown error") + "\n\nMake sure the main server (port 8787) is running and has been restarted after the latest changes.");
-        }
-        return;
-      }
-      var j = await r.json();
-      if (!j.ok) {
-        alert("Create failed: " + (j.error || "unknown"));
-        return;
-      }
-      competitionName.value = "";
-      competitionImg.value = "";
-      competitionPreview.innerHTML = "";
-      loadSports();
-      alert("Competition created successfully!\n\nCreated on: " + getApiUrl() + "\nCompetition ID: " + (j.data?.id || "N/A") + "\n\nRefresh your website to see it.");
-    } catch (e) {
-      alert(e.message || "Could not create competition");
-    }
-  }
-
-  async function removeCompetition(id){
-    if (!confirm("Delete this competition? This cannot be undone.")) return;
-    var token = getT();
-    var r = await fetch(apiEndpoint("/api/competitions/" + encodeURIComponent(id)), {
-      method: "DELETE",
-      headers: { "x-admin-token": token }
-    });
-    if (!r.ok) {
-      var j = await r.json().catch(() => ({}));
-      alert("Delete failed: " + (j.error || r.status));
-      return;
-    }
-    loadSports();
-    alert("Competition deleted!");
-  }
-
-  if(createCompetitionBtn) createCompetitionBtn.onclick = function(){ createCompetition(); };
-
-  // Sports sub-navigation
-  var sportsNavInitialized = false;
-  function initSportsNav(){
-    if(sportsNavInitialized) {
-      console.log("Sports nav already initialized");
-      return; // Already initialized
-    }
-    var sportsNavBtns = document.querySelectorAll(".sports-nav-btn");
-    var sportsSections = document.querySelectorAll(".sports-section");
-    console.log("Initializing sports nav, found buttons:", sportsNavBtns.length);
-    if(sportsNavBtns.length === 0) {
-      console.log("No sports nav buttons found");
-      return; // Elements not ready yet
-    }
-    
-    sportsNavBtns.forEach(function(btn, index){
-      console.log("Setting up button", index, btn.getAttribute("data-section"));
-      // Remove any existing handlers
-      btn.onclick = null;
-      // Use a new function to avoid closure issues
-      (function(button, sectionName){
-        button.onclick = function(e){
-          console.log("Button clicked:", sectionName);
-          if(e) {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-          var section = button.getAttribute("data-section");
-          console.log("Section:", section);
-          if(!section) return;
-          
-          // Update active states
-          document.querySelectorAll(".sports-nav-btn").forEach(function(b){ b.classList.remove("active"); });
-          document.querySelectorAll(".sports-section").forEach(function(s){ s.classList.remove("active"); });
-          button.classList.add("active");
-          
-          var targetSection = document.getElementById("sports-section-"+section);
-          console.log("Target section element:", targetSection);
-          if(targetSection) {
-            targetSection.classList.add("active");
-          }
-          
-          // Load data when switching sections
-          if(section === "contracts") {
-            loadSportsContracts();
-            populateCompetitionDropdown();
-          }
-        };
-      })(btn, btn.getAttribute("data-section"));
-    });
-    sportsNavInitialized = true;
-    console.log("Sports nav initialized");
-  }
-  
-  // Initialize sports nav when sports tab is clicked - hook into existing tab system
-  // Find the sports tab and add initialization
-  setTimeout(function(){
-    var sportsTab = document.querySelector('.tab[data-tab="sports"]');
-    if(sportsTab) {
-      var originalClick = sportsTab.onclick;
-      sportsTab.onclick = function(){
-        if(originalClick) originalClick();
-        setTimeout(function(){
-          sportsNavInitialized = false; // Reset to allow re-initialization
-          initSportsNav();
-        }, 150);
-      };
-    }
-    
-    // Also initialize on page load if sports tab is already active
-    if(document.getElementById("tab-sports") && document.getElementById("tab-sports").classList.contains("active")) {
-      setTimeout(function(){
-        sportsNavInitialized = false;
-        initSportsNav();
-      }, 200);
-    }
-  }, 100);
-
-  // Sports contract elements
-  var sportsContractQ = document.getElementById("sportsContractQ"),
-      sportsContractDesc = document.getElementById("sportsContractDesc"),
-      sportsContractCompetition = document.getElementById("sportsContractCompetition"),
-      sportsContractStatus = document.getElementById("sportsContractStatus"),
-      sportsContractExp = document.getElementById("sportsContractExp"),
-      sportsContractImg = document.getElementById("sportsContractImg"),
-      sportsContractPreview = document.getElementById("sportsContractPreview"),
-      createSportsContractBtn = document.getElementById("createSportsContract"),
-      sportsContractsList = document.getElementById("sportsContractsList");
-
-  if(sportsContractImg && sportsContractPreview) {
-    sportsContractImg.onchange = function(){
-      sportsContractPreview.innerHTML = "";
-      if (sportsContractImg.files && sportsContractImg.files[0]) {
-        var url = URL.createObjectURL(sportsContractImg.files[0]);
-        var el = document.createElement("img");
-        el.src = url; el.className = "thumb";
-        sportsContractPreview.appendChild(el);
-      }
-    };
-  }
-
-  async function populateCompetitionDropdown(){
-    var token = getT();
-    if (!token) return;
-    
-    sportsContractCompetition.innerHTML = "<option value=''>Select Competition</option>";
-    var r = await fetch(apiEndpoint("/api/competitions"), { headers: { "x-admin-token": token } });
-    if (r.ok) {
-      var j = await r.json();
-      if (j.ok && j.data && j.data.length) {
-        for (var i = 0; i < j.data.length; i++) {
-          var opt = document.createElement("option");
-          opt.value = j.data[i].id;
-          opt.textContent = j.data[i].name;
-          sportsContractCompetition.appendChild(opt);
-        }
-      }
-    }
-  }
-
-  async function uploadSportsContractImage(){
-    if (!sportsContractImg.files || !sportsContractImg.files[0]) return null;
-    var fd = new FormData();
-    fd.append("image", sportsContractImg.files[0]);
-    var r = await fetch(apiEndpoint("/api/upload"), { 
-      method: "POST", 
-      headers: { "x-admin-token": getT() }, 
-      body: fd 
-    });
-    if (!r.ok) { throw new Error("Upload failed: " + r.status); }
-    var j = await r.json();
-    if (!j.ok) { throw new Error("Upload failed: " + (j.error || "unknown")); }
-    return j.url;
-  }
-
-  async function createSportsContract(){
-    try {
-      // Prevent double-submission
-      var btn = createSportsContractBtn;
-      if (btn && btn.disabled) {
-        console.log("Sports contract creation already in progress, ignoring duplicate click");
-        return;
-      }
-      
-      var token = getT();
-      if (!token) {
-        alert("Please set admin token first (default: 'changeme')");
-        return;
-      }
-      token = String(token).trim();
-      if (!sportsContractQ.value.trim()) {
-        alert("Question required");
-        return;
-      }
-      if (!sportsContractCompetition.value) {
-        alert("Please select a competition");
-        return;
-      }
-      
-      // Disable button and show loading state
-      var originalText = btn ? btn.textContent : "";
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = "Creating...";
-      }
-      
-      try {
-        var imageUrl = await uploadSportsContractImage();
-        var expirationDate = sportsContractExp.value ? new Date(sportsContractExp.value).toISOString() : null;
-        
-        var payload = {
-          question: sportsContractQ.value.trim(),
-          description: sportsContractDesc.value.trim(),
-          category: "Sports",
-          expirationDate: expirationDate,
-          imageUrl: imageUrl,
-          competitionId: sportsContractCompetition.value,
-          status: sportsContractStatus.value || "upcoming",
-          live: false // Default to not live - admin must explicitly mark it
-        };
-        
-        var r = await fetch(apiEndpoint("/api/contracts/create"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-admin-token": token },
-          body: JSON.stringify(payload)
-        });
-        if (!r.ok) {
-          var errorText = await r.text().catch(() => "");
-          var errorJson = {};
-          try { errorJson = JSON.parse(errorText); } catch {}
-          
-          if (r.status === 401) {
-            alert("Unauthorized. Check your admin token. Make sure it matches the ADMIN_TOKEN on your server.\n\nCurrent API URL: " + getApiUrl());
-          } else if (r.status === 0 || r.status === 404) {
-          alert("Connection failed. The server at " + getApiUrl() + " is not reachable.\n\nMake sure:\n1. The API URL is correct\n2. The server is running\n3. CORS is configured properly");
-        } else {
-          alert("Create failed (Status " + r.status + "): " + (errorJson.error || errorText || "Unknown error") + "\n\nAPI URL: " + getApiUrl());
-        }
-        return;
-      }
-      var j = await r.json();
-      if (!j.ok) {
-        alert("Create failed: " + (j.error || "unknown") + "\n\nAPI URL: " + getApiUrl());
-        return;
-      }
-      sportsContractQ.value = "";
-      sportsContractDesc.value = "";
-      sportsContractCompetition.value = "";
-      sportsContractStatus.value = "upcoming";
-      sportsContractExp.value = "";
-      sportsContractImg.value = "";
-      sportsContractPreview.innerHTML = "";
-      loadSportsContracts();
-      alert("Sports bet created successfully!\n\nCreated on: " + getApiUrl() + "\nContract ID: " + (j.data?.id || "N/A") + "\n\nRefresh your website to see it.");
-      } finally {
-        // Re-enable button
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = originalText;
-        }
-      }
-    } catch (e) {
-      // Re-enable button on error
-      if (createSportsContractBtn) {
-        createSportsContractBtn.disabled = false;
-        createSportsContractBtn.textContent = "Create Sports Bet";
-      }
-      alert(e.message || "Could not create sports bet");
-    }
-  }
-
-  function sportsContractRow(c){
-    var w = document.createElement("div"); w.className = "list-item";
-    var L = document.createElement("div");
-    var top = document.createElement("div"); top.style.display = "flex"; top.style.gap = "10px"; top.style.alignItems = "center";
-    if (c.imageUrl) { var im = document.createElement("img"); im.src = c.imageUrl; im.className = "thumb"; top.appendChild(im); }
-    var title = document.createElement("div");
-    title.appendChild(document.createTextNode(c.question));
-    top.appendChild(title);
-    var meta = document.createElement("div"); meta.className = "meta";
-    var resolution = c.resolution ? " · RESOLVED: " + c.resolution.toUpperCase() : "";
-    meta.textContent = c.category + " · YES " + Math.round((c.yesPrice || 0.5) * 100) + "¢ · NO " + Math.round((c.noPrice || 0.5) * 100) + "¢ · Volume " + c.volume + resolution;
-    L.appendChild(top); L.appendChild(meta);
-
-    // Status badge
-    var status = c.status || "upcoming";
-    var statusBadge = document.createElement("div");
-    statusBadge.className = "status-badge status-" + status;
-    statusBadge.textContent = status;
-    w.appendChild(statusBadge);
-
-    var R = document.createElement("div"); R.className = "flex";
-    // Live button removed from sports bets - use status dropdown instead
-    var statusSelect = document.createElement("select");
-    statusSelect.style.marginRight = "8px";
-    statusSelect.style.padding = "4px 8px";
-    statusSelect.style.background = "#0f172a";
-    statusSelect.style.color = "#e5e7eb";
-    statusSelect.style.border = "1px solid #374151";
-    statusSelect.style.borderRadius = "4px";
-    statusSelect.style.fontSize = "12px";
-    statusSelect.value = status;
-    statusSelect.innerHTML = "<option value='upcoming'>Upcoming</option><option value='live'>Live</option><option value='finished'>Finished</option><option value='cancelled'>Cancelled</option>";
-    statusSelect.onchange = function(){
-      updateSportsBetStatus(c.id, statusSelect.value);
-    };
-    var code = document.createElement("code"); code.textContent = c.id; code.style.fontSize = "11px";
-    var del = document.createElement("button"); del.className = "danger"; del.textContent = "Delete";
-    del.onclick = function(){ removeContract(c.id); };
-    R.appendChild(statusSelect); R.appendChild(code); R.appendChild(del);
-
-    w.appendChild(L); w.appendChild(R); return w;
-  }
-
-  async function updateSportsBetStatus(contractId, newStatus){
-    try {
-      var token = getT();
-      if (!token) {
-        alert("Please set admin token first");
-        return;
-      }
-      token = String(token).trim();
-      // Automatically set live field based on status
-      // If status is "live", set live to true; otherwise set to false
-      var shouldBeLive = newStatus === "live";
-      console.log("🔵 Updating sports bet status:", { contractId: contractId, newStatus: newStatus, shouldBeLive: shouldBeLive });
-      var r = await fetch(apiEndpoint("/api/contracts/" + encodeURIComponent(contractId)), {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", "x-admin-token": token },
-        body: JSON.stringify({ 
-          status: newStatus,
-          live: shouldBeLive // Automatically set live based on status
-        })
-      });
-      if (!r.ok) {
-        var errorText = await r.text().catch(() => "");
-        var j = {};
-        try { j = JSON.parse(errorText); } catch {}
-        console.error("❌ Status update failed:", { status: r.status, error: j.error || errorText });
-        alert("Update failed: " + (j.error || r.status || "Unknown error"));
-        return;
-      }
-      var j = await r.json();
-      if (!j.ok) {
-        console.error("❌ Response not ok:", j);
-        alert("Update failed: " + (j.error || "unknown"));
-        return;
-      }
-      console.log("✅ Status update successful:", j.data);
-      await loadSportsContracts();
-      // Small delay to ensure UI updates
-      await new Promise(resolve => setTimeout(resolve, 100));
-      alert("✅ Status updated to: " + newStatus);
-    } catch (e) {
-      console.error("❌ Error updating status:", e);
-      alert("Could not update status: " + e.message);
-    }
-  }
-
-  async function loadSportsContracts(){
-    var token = getT();
-    if (!token) {
-      sportsContractsList.innerHTML = "<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
-      return;
-    }
-    var r = await fetch(apiEndpoint("/api/contracts"), { headers: { "x-admin-token": token } });
-    if (!r.ok) {
-      if (r.status === 401) {
-        sportsContractsList.innerHTML = "<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
-      } else {
-        sportsContractsList.innerHTML = "<div class='meta'>Failed to load contracts: " + r.status + "</div>";
-      }
-      return;
-    }
-    var j = await r.json();
-    if (!j.ok) {
-      sportsContractsList.innerHTML = "<div class='meta'>Failed: " + (j.error || "unknown") + "</div>";
-      return;
-    }
-    // Filter only Sports contracts
-    var sportsContracts = (j.data || []).filter(function(c) {
-      return (c.category || "").toLowerCase() === "sports";
-    });
-    sportsContractsList.innerHTML = "";
-    if (!sportsContracts.length) {
-      var e = document.createElement("div");
-      e.className = "meta";
-      e.textContent = "No sports bets yet.";
-      sportsContractsList.appendChild(e);
-      return;
-    }
-    for (var i = 0; i < sportsContracts.length; i++) {
-      sportsContractsList.appendChild(sportsContractRow(sportsContracts[i]));
-    }
-  }
-
-  if(createSportsContractBtn) createSportsContractBtn.onclick = function(){ createSportsContract(); };
+  // Subjects elements
 
   // Subjects elements
   var subjectName = document.getElementById("subjectName"),
@@ -2717,10 +2086,17 @@
 
   if(createFooterContentBtn) createFooterContentBtn.onclick = function(){ createFooterContent(); };
 
-  // Initial load
+  // Initial load - load all data for the active tab
   loadStats();
   loadContracts();
   loadNews();
+  // Also load features and other tabs data on initial load so they're ready when user switches tabs
+  loadFeatures();
+  loadSports();
+  loadSubjects();
+  loadAccounts();
+  loadBlog();
+  loadFooterContent();
 })();
 </script>
 
