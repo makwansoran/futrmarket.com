@@ -210,7 +210,7 @@ export default function CashButton({
               <button
                 onClick={() => {
                   handleClose();
-                  navigate("/account");
+                  navigate("/account?tab=wallet");
                 }}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${
                   isLight

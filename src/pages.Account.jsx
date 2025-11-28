@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { User, Mail, Image as ImageIcon, Save, X, Wallet, Shield, Lock, DollarSign, TrendingUp, Copy, Check, ArrowDown, ArrowUp, ExternalLink } from "lucide-react";
 import { saveSession } from "./lib.session.js";
 import { getApiUrl } from "/src/api.js";
@@ -9,6 +9,7 @@ import { useWallet } from "./contexts/WalletContext.jsx";
 
 export default function AccountPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { userEmail, cash, portfolio, userProfile, refreshProfile, syncBalancesFromServer } = useUser();
   const { isLight } = useTheme();
   const { isConnected, address, chain, connectWallet, disconnectWallet, isConnecting, error: walletError, needsNetworkSwitch, switchToPolygon, isWalletInstalled } = useWallet();
@@ -20,7 +21,24 @@ export default function AccountPage() {
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
-  const [activeTab, setActiveTab] = React.useState("account");
+  
+  // Get initial tab from URL query parameter, default to "account"
+  const initialTab = searchParams.get("tab") || "account";
+  const [activeTab, setActiveTab] = React.useState(initialTab);
+  
+  // Update active tab when URL changes
+  React.useEffect(() => {
+    const tab = searchParams.get("tab") || "account";
+    if (tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams, activeTab]);
+  
+  // Update URL when tab changes
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
   
   // Wallet page state
   const [walletLoading, setWalletLoading] = React.useState(false);
@@ -313,7 +331,7 @@ export default function AccountPage() {
           
           <div className="space-y-1">
             <button
-              onClick={() => setActiveTab("account")}
+              onClick={() => handleTabChange("account")}
               className={`w-full px-3 py-2 text-sm transition text-left flex items-center gap-2 border-0 ${
                 activeTab === "account"
                   ? isLight 
@@ -328,7 +346,7 @@ export default function AccountPage() {
               Account
             </button>
             <button
-              onClick={() => setActiveTab("wallet")}
+              onClick={() => handleTabChange("wallet")}
               className={`w-full px-3 py-2 text-sm transition text-left flex items-center gap-2 border-0 ${
                 activeTab === "wallet"
                   ? isLight 
@@ -343,7 +361,7 @@ export default function AccountPage() {
               Wallet
             </button>
             <button
-              onClick={() => setActiveTab("security")}
+              onClick={() => handleTabChange("security")}
               className={`w-full px-3 py-2 text-sm transition text-left flex items-center gap-2 border-0 ${
                 activeTab === "security"
                   ? isLight 
@@ -358,7 +376,7 @@ export default function AccountPage() {
               Security
             </button>
             <button
-              onClick={() => setActiveTab("privacy")}
+              onClick={() => handleTabChange("privacy")}
               className={`w-full px-3 py-2 text-sm transition text-left flex items-center gap-2 border-0 ${
                 activeTab === "privacy"
                   ? isLight 
