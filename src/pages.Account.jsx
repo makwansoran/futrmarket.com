@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Mail, Image as ImageIcon, Save, X, Wallet, Shield, Lock } from "lucide-react";
+import { User, Mail, Image as ImageIcon, Save, X, Wallet, Shield, Lock, DollarSign, TrendingUp, Copy, Check, ArrowDown, ArrowUp, ExternalLink } from "lucide-react";
 import { saveSession } from "./lib.session.js";
 import { getApiUrl } from "/src/api.js";
 import { useUser } from "./contexts/UserContext.jsx";
@@ -21,6 +21,16 @@ export default function AccountPage() {
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
   const [activeTab, setActiveTab] = React.useState("account");
+  
+  // Wallet page state
+  const [walletLoading, setWalletLoading] = React.useState(false);
+  const [userWalletAddress, setUserWalletAddress] = React.useState(null);
+  const [onChainBalance, setOnChainBalance] = React.useState(0);
+  const [depositAmount, setDepositAmount] = React.useState("");
+  const [depositing, setDepositing] = React.useState(false);
+  const [deposits, setDeposits] = React.useState([]);
+  const [transactions, setTransactions] = React.useState([]);
+  const [copiedAddress, setCopiedAddress] = React.useState(false);
 
   const loadAccountInfo = React.useCallback(async () => {
     if (!userEmail) return;
@@ -48,8 +58,136 @@ export default function AccountPage() {
     if (userProfile) {
       setUsername(userProfile.username || "");
       setProfilePicture(userProfile.profilePicture || "");
+      // Get wallet address from user profile
+      if (userProfile.wallet_address) {
+        setUserWalletAddress(userProfile.wallet_address);
+      }
     }
   }, [userProfile]);
+
+  // Load wallet data when wallet tab is active
+  React.useEffect(() => {
+    if (activeTab === "wallet" && userEmail) {
+      loadWalletData();
+    }
+  }, [activeTab, userEmail]);
+
+  async function loadWalletData() {
+    if (!userEmail) return;
+    
+    setWalletLoading(true);
+    try {
+      // Get user profile to get wallet address
+      const userRes = await fetch(getApiUrl(`/api/users?email=${encodeURIComponent(userEmail)}`));
+      const userData = await userRes.json();
+      
+      if (userData.ok && userData.data) {
+        const walletAddr = userData.data.wallet_address;
+        if (walletAddr) {
+          setUserWalletAddress(walletAddr);
+          
+          // Get balance including on-chain balance
+          const balanceRes = await fetch(getApiUrl(`/api/balances?wallet_address=${encodeURIComponent(walletAddr)}`));
+          const balanceData = await balanceRes.json();
+          
+          if (balanceData.ok && balanceData.data) {
+            setOnChainBalance(Number(balanceData.data.on_chain_balance || 0));
+          }
+          
+          // Load deposits (try wallet_address first, fallback to email)
+          try {
+            const depositsRes = await fetch(getApiUrl(`/api/deposits?${walletAddr ? `wallet_address=${encodeURIComponent(walletAddr)}` : `email=${encodeURIComponent(userEmail)}`}`));
+            const depositsData = await depositsRes.json();
+            if (depositsData.ok && depositsData.data) {
+              setDeposits(depositsData.data);
+            }
+          } catch (e) {
+            console.error("Failed to load deposits:", e);
+          }
+          
+          // Load transactions (try wallet_address first, fallback to email)
+          try {
+            const txRes = await fetch(getApiUrl(`/api/transactions?${walletAddr ? `wallet_address=${encodeURIComponent(walletAddr)}` : `email=${encodeURIComponent(userEmail)}`}`));
+            const txData = await txRes.json();
+            if (txData.ok && txData.data) {
+              setTransactions(txData.data);
+            }
+          } catch (e) {
+            console.error("Failed to load transactions:", e);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load wallet data:", e);
+      setError("Failed to load wallet information");
+    } finally {
+      setWalletLoading(false);
+    }
+  }
+
+  async function handleDeposit(e) {
+    e.preventDefault();
+    if (!depositAmount || parseFloat(depositAmount) <= 0) {
+      setError("Please enter a valid deposit amount");
+      return;
+    }
+
+    setDepositing(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      // This would integrate with your deposit system
+      // For now, this is a placeholder
+      const response = await fetch(getApiUrl("/api/deposit"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userEmail,
+          amount: parseFloat(depositAmount),
+        }),
+      });
+
+      const data = await response.json();
+      if (data.ok) {
+        setSuccess(`Deposit of $${depositAmount} initiated successfully!`);
+        setDepositAmount("");
+        await syncBalancesFromServer();
+        await loadWalletData();
+      } else {
+        setError(data.error || "Failed to process deposit");
+      }
+    } catch (e) {
+      setError("Failed to process deposit. Please try again.");
+      console.error("Deposit error:", e);
+    } finally {
+      setDepositing(false);
+    }
+  }
+
+  function copyAddress() {
+    if (userWalletAddress) {
+      navigator.clipboard.writeText(userWalletAddress);
+      setCopiedAddress(true);
+      setTimeout(() => setCopiedAddress(false), 2000);
+    }
+  }
+
+  function formatAddress(address) {
+    if (!address) return "Not available";
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  }
+
+  function formatDate(timestamp) {
+    if (!timestamp) return "N/A";
+    return new Date(timestamp).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
 
   async function handleSave(e) {
     e.preventDefault();
@@ -370,6 +508,248 @@ export default function AccountPage() {
               <Wallet className={`w-6 h-6 ${isLight ? 'text-blue-600' : 'text-blue-400'}`} />
               <h1 className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>Wallet</h1>
             </div>
+
+            {walletLoading ? (
+              <div className={`text-center py-12 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                Loading wallet information...
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Wallet Address */}
+                {userWalletAddress && (
+                  <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
+                    <label className={`block text-sm font-medium mb-3 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
+                      Wallet Address
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <code className={`flex-1 px-4 py-3 rounded-lg font-mono text-sm ${isLight ? 'bg-gray-100 text-gray-900' : 'bg-gray-800 text-gray-100'}`}>
+                        {userWalletAddress}
+                      </code>
+                      <button
+                        onClick={copyAddress}
+                        className={`px-4 py-3 rounded-lg flex items-center gap-2 transition ${
+                          copiedAddress
+                            ? 'bg-green-600 text-white'
+                            : isLight
+                            ? 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                            : 'bg-gray-800 hover:bg-gray-700 text-white'
+                        }`}
+                        title="Copy address"
+                      >
+                        {copiedAddress ? (
+                          <>
+                            <Check className="w-4 h-4" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4" />
+                            Copy
+                          </>
+                        )}
+                      </button>
+                      <a
+                        href={`https://polygonscan.com/address/${userWalletAddress}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`px-4 py-3 rounded-lg flex items-center gap-2 transition ${
+                          isLight
+                            ? 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                            : 'bg-gray-800 hover:bg-gray-700 text-white'
+                        }`}
+                        title="View on PolygonScan"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        View
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Balance Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <DollarSign className={`w-5 h-5 ${isLight ? 'text-green-600' : 'text-green-400'}`} />
+                      <span className={`text-sm font-medium ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                        Cash Balance
+                      </span>
+                    </div>
+                    <p className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                      ${cash.toFixed(2)}
+                    </p>
+                  </div>
+
+                  <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <TrendingUp className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-blue-400'}`} />
+                      <span className={`text-sm font-medium ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                        Portfolio Value
+                      </span>
+                    </div>
+                    <p className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                      ${portfolio.toFixed(2)}
+                    </p>
+                  </div>
+
+                  <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <Wallet className={`w-5 h-5 ${isLight ? 'text-purple-600' : 'text-purple-400'}`} />
+                      <span className={`text-sm font-medium ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                        On-Chain Balance
+                      </span>
+                    </div>
+                    <p className={`text-2xl font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                      ${onChainBalance.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Deposit Section */}
+                <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <ArrowDown className={`w-5 h-5 ${isLight ? 'text-blue-600' : 'text-blue-400'}`} />
+                    <h2 className={`text-lg font-semibold ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                      Deposit Funds
+                    </h2>
+                  </div>
+                  
+                  <form onSubmit={handleDeposit} className="space-y-4">
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>
+                        Amount (USD)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={depositAmount}
+                        onChange={(e) => setDepositAmount(e.target.value)}
+                        placeholder="0.00"
+                        className={`w-full px-4 py-3 border rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 ${
+                          isLight ? 'bg-white border-gray-300 text-gray-900' : 'bg-gray-800 border-gray-700 text-white'
+                        }`}
+                      />
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      disabled={depositing || !depositAmount}
+                      className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                      {depositing ? "Processing..." : "Deposit"}
+                    </button>
+                  </form>
+
+                  <p className={`text-xs mt-4 ${isLight ? 'text-gray-500' : 'text-gray-500'}`}>
+                    Funds will be added to your account balance after confirmation.
+                  </p>
+                </div>
+
+                {/* Recent Deposits */}
+                {deposits.length > 0 && (
+                  <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
+                    <h2 className={`text-lg font-semibold mb-4 ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                      Recent Deposits
+                    </h2>
+                    <div className="space-y-3">
+                      {deposits.slice(0, 5).map((deposit) => (
+                        <div
+                          key={deposit.id}
+                          className={`flex items-center justify-between p-3 rounded-lg ${
+                            isLight ? 'bg-gray-50' : 'bg-gray-800'
+                          }`}
+                        >
+                          <div>
+                            <p className={`font-medium ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                              ${Number(deposit.amount_usd || deposit.amountUSD || 0).toFixed(2)}
+                            </p>
+                            <p className={`text-xs ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>
+                              {formatDate(deposit.timestamp || deposit.created_at)}
+                            </p>
+                          </div>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              deposit.status === "completed" || deposit.status === "confirmed"
+                                ? "bg-green-500/20 text-green-400"
+                                : deposit.status === "pending"
+                                ? "bg-yellow-500/20 text-yellow-400"
+                                : "bg-gray-500/20 text-gray-400"
+                            }`}
+                          >
+                            {deposit.status || "pending"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recent Transactions */}
+                {transactions.length > 0 && (
+                  <div className={`${isLight ? 'bg-white border-gray-200' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
+                    <h2 className={`text-lg font-semibold mb-4 ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                      Recent Transactions
+                    </h2>
+                    <div className="space-y-3">
+                      {transactions.slice(0, 5).map((tx) => (
+                        <div
+                          key={tx.id}
+                          className={`flex items-center justify-between p-3 rounded-lg ${
+                            isLight ? 'bg-gray-50' : 'bg-gray-800'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {tx.type === "deposit" ? (
+                              <ArrowDown className="w-4 h-4 text-green-400" />
+                            ) : (
+                              <ArrowUp className="w-4 h-4 text-red-400" />
+                            )}
+                            <div>
+                              <p className={`font-medium ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                                {tx.type === "deposit" ? "Deposit" : "Withdrawal"}
+                              </p>
+                              <p className={`text-xs ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>
+                                {formatDate(tx.created_at || tx.timestamp)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`font-medium ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                              ${Number(tx.amount_usd || tx.amountUSD || 0).toFixed(2)}
+                            </p>
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                tx.status === "completed" || tx.status === "confirmed"
+                                  ? "text-green-400"
+                                  : tx.status === "pending"
+                                  ? "text-yellow-400"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {tx.status || "pending"}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Error/Success Messages */}
+                {error && (
+                  <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400 text-sm">
+                    {error}
+                  </div>
+                )}
+                {success && (
+                  <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4 text-green-400 text-sm">
+                    {success}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : activeTab === "security" ? (
           <div>

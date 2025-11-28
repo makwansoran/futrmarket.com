@@ -43,7 +43,11 @@ const {
   deleteFeature,
   getWallet,
   upsertWallet,
-  getUserByWalletAddress
+  getUserByWalletAddress,
+  getDeposits,
+  createDeposit,
+  getTransactions,
+  createTransaction
 } = require("./lib/db.cjs");
 const {
   getUserByWallet,
@@ -3881,6 +3885,91 @@ app.post("/api/wallet/authenticate", async (req, res) => {
   } catch (error) {
     console.error("Error authenticating wallet:", error);
     res.status(500).json({ ok: false, error: error.message || "Failed to authenticate wallet" });
+  }
+});
+
+// Get deposits by wallet address or email
+app.get("/api/deposits", async (req, res) => {
+  const walletAddress = String(req.query.wallet_address || "").trim().toLowerCase();
+  const email = String(req.query.email || "").trim().toLowerCase();
+  
+  if (!walletAddress && !email) {
+    return res.status(400).json({ ok: false, error: "wallet_address or email required" });
+  }
+  
+  try {
+    // If wallet_address is provided, we need to get email or use wallet-first functions
+    // For now, use email (will be converted to wallet_address in getDeposits)
+    const identifier = email || walletAddress;
+    const deposits = await getDeposits(identifier);
+    res.json({ ok: true, data: deposits });
+  } catch (error) {
+    console.error("Error fetching deposits:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch deposits" });
+  }
+});
+
+// Get transactions by wallet address or email
+app.get("/api/transactions", async (req, res) => {
+  const walletAddress = String(req.query.wallet_address || "").trim().toLowerCase();
+  const email = String(req.query.email || "").trim().toLowerCase();
+  
+  if (!walletAddress && !email) {
+    return res.status(400).json({ ok: false, error: "wallet_address or email required" });
+  }
+  
+  try {
+    const identifier = email || walletAddress;
+    const transactions = await getTransactions(identifier);
+    res.json({ ok: true, data: transactions });
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to fetch transactions" });
+  }
+});
+
+// Create deposit
+app.post("/api/deposit", async (req, res) => {
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const amount = Number(req.body.amount || 0);
+  
+  if (!email) {
+    return res.status(400).json({ ok: false, error: "email required" });
+  }
+  
+  if (!amount || amount <= 0) {
+    return res.status(400).json({ ok: false, error: "Valid amount required" });
+  }
+  
+  try {
+    // Create deposit record
+    const depositData = {
+      id: `dep_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      tx_hash: `pending_${Date.now()}`,
+      asset: "USD",
+      amount: amount,
+      amount_usd: amount,
+      status: "pending",
+      timestamp: Date.now(),
+      created_at: Date.now()
+    };
+    
+    const deposit = await createDeposit(email, depositData);
+    
+    // Update balance (add to cash)
+    const currentBalance = await getBalance(email);
+    await updateBalance(email, {
+      cash: (currentBalance.cash || 0) + amount
+    });
+    
+    res.json({ 
+      ok: true, 
+      data: deposit,
+      message: "Deposit initiated successfully" 
+    });
+  } catch (error) {
+    console.error("Error creating deposit:", error);
+    res.status(500).json({ ok: false, error: error.message || "Failed to create deposit" });
   }
 });
 
