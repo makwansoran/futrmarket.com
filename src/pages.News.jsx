@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { ExternalLink, Calendar, Link as LinkIcon } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import Thumb from "./ui.Thumb.jsx";
+import { useTheme } from "./contexts/ThemeContext.jsx";
 
 export default function NewsPage({ markets = [] }) {
+  const { isLight } = useTheme();
   const [news, setNews] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -48,14 +50,14 @@ export default function NewsPage({ markets = [] }) {
     <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
       <div className="flex items-center gap-3 mb-6">
         <LinkIcon className="w-6 h-6 text-blue-400" />
-        <h2 className="text-2xl font-bold text-white">News & Market Updates</h2>
+        <h2 className={`text-2xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>News & Market Updates</h2>
       </div>
 
       {loading ? (
-        <div className="text-center text-gray-500 py-12">Loading news...</div>
+        <div className={`text-center py-12 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Loading news...</div>
       ) : sortedNews.length === 0 ? (
-        <div className="text-center text-gray-500 py-12">
-          <LinkIcon className="w-12 h-12 mx-auto mb-4 text-gray-600" />
+        <div className={`text-center py-12 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
+          <LinkIcon className={`w-12 h-12 mx-auto mb-4 ${isLight ? 'text-gray-500' : 'text-gray-600'}`} />
           <p>No news articles yet. Check back soon for updates!</p>
         </div>
       ) : (
@@ -63,7 +65,7 @@ export default function NewsPage({ markets = [] }) {
           {sortedNews.map(item => {
             const contract = getLinkedContract(item);
             return (
-              <div key={item.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition">
+              <div key={item.id} className={`${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'} border rounded-xl overflow-hidden ${isLight ? 'hover:border-gray-400' : 'hover:border-gray-700'} transition`}>
                 <div className="p-6">
                   <div className="flex items-start gap-6">
                     {item.imageUrl && (
@@ -71,7 +73,7 @@ export default function NewsPage({ markets = [] }) {
                         <img 
                           src={item.imageUrl} 
                           alt={item.title}
-                          className="w-32 h-24 object-cover rounded-lg border border-gray-800"
+                          className={`w-32 h-24 object-cover rounded-lg border ${isLight ? 'border-gray-300' : 'border-gray-800'}`}
                         />
                       </div>
                     )}
@@ -80,28 +82,28 @@ export default function NewsPage({ markets = [] }) {
                         <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
                           {item.category || "News"}
                         </span>
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <span className={`text-xs flex items-center gap-1 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                           <Calendar size={12} />
                           {formatDate(item.createdAt)}
                         </span>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
-                      <p className="text-gray-300 text-sm mb-4 line-clamp-2">{item.summary}</p>
+                      <h3 className={`text-xl font-bold mb-2 ${isLight ? 'text-black' : 'text-white'}`}>{item.title}</h3>
+                      <p className={`text-sm mb-4 line-clamp-2 ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>{item.summary}</p>
                       
                       {/* Linked Contract */}
                       {contract && (
-                        <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-4">
-                          <div className="text-xs text-gray-400 mb-2">Related Market</div>
+                        <div className={`${isLight ? 'bg-gray-50 border-gray-300' : 'bg-gray-800/50 border-gray-700'} border rounded-lg p-4 mb-4`}>
+                          <div className={`text-xs mb-2 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Related Market</div>
                           <Link 
                             to={`/market/${encodeURIComponent(contract.id)}`}
                             className="flex items-center gap-3 group"
                           >
                             <Thumb src={contract.image || contract.imageUrl} alt={contract.question} size={48} />
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition line-clamp-1">
+                              <div className={`text-sm font-semibold group-hover:text-blue-400 transition line-clamp-1 ${isLight ? 'text-black' : 'text-white'}`}>
                                 {contract.question}
                               </div>
-                              <div className="text-xs text-gray-400 mt-1">
+                              <div className={`text-xs mt-1 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
                                 {Math.round((contract.yesPrice||0.5)*100)}¢ YES • {Math.round((contract.noPrice||0.5)*100)}¢ NO
                               </div>
                             </div>
@@ -120,7 +122,7 @@ export default function NewsPage({ markets = [] }) {
                           <ExternalLink size={14} />
                         </a>
                         {item.source && (
-                          <span className="text-xs text-gray-500">{item.source}</span>
+                          <span className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>{item.source}</span>
                         )}
                       </div>
                     </div>

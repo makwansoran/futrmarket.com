@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { MessageSquare, Plus, Heart, Clock, Trash2 } from "lucide-react";
 import { loadSession } from "./lib.session.js";
 import { getApiUrl } from "/src/api.js";
+import { useTheme } from "./contexts/ThemeContext.jsx";
 
 export default function ForumPage() {
+  const { isLight } = useTheme();
   const [ideas, setIdeas] = React.useState([]);
   const [userProfiles, setUserProfiles] = React.useState({});
   const [loading, setLoading] = React.useState(true);
@@ -152,7 +154,7 @@ export default function ForumPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <MessageSquare className="w-6 h-6 text-blue-400" />
-          <h2 className="text-2xl font-bold text-white">Forum - Market Ideas</h2>
+          <h2 className={`text-2xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>Forum - Market Ideas</h2>
         </div>
         {userEmail && (
           <button
@@ -167,39 +169,39 @@ export default function ForumPage() {
 
       {/* New Idea Form */}
       {showForm && userEmail && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-4">Post a New Market Idea</h3>
+        <div className={`${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6 mb-6`}>
+          <h3 className={`text-lg font-semibold mb-4 ${isLight ? 'text-black' : 'text-white'}`}>Post a New Market Idea</h3>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="block text-sm text-gray-400 mb-2">Title</label>
+              <label className={`block text-sm mb-2 ${isLight ? 'text-gray-700' : 'text-gray-400'}`}>Title</label>
               <input
                 type="text"
                 value={newIdea.title}
                 onChange={(e) => setNewIdea({ ...newIdea, title: e.target.value })}
                 placeholder="What market should we create?"
                 maxLength={200}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 ${isLight ? 'bg-white border-gray-300 text-black' : 'bg-gray-800 border-gray-700 text-white'}`}
                 required
               />
             </div>
             <div className="mb-4">
-              <label className="block text-sm text-gray-400 mb-2">Description</label>
+              <label className={`block text-sm mb-2 ${isLight ? 'text-gray-700' : 'text-gray-400'}`}>Description</label>
               <textarea
                 value={newIdea.description}
                 onChange={(e) => setNewIdea({ ...newIdea, description: e.target.value })}
                 placeholder="Describe your market idea in detail..."
                 rows={4}
                 maxLength={2000}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none ${isLight ? 'bg-white border-gray-300 text-black' : 'bg-gray-800 border-gray-700 text-white'}`}
                 required
               />
             </div>
             <div className="mb-4">
-              <label className="block text-sm text-gray-400 mb-2">Category</label>
+              <label className={`block text-sm mb-2 ${isLight ? 'text-gray-700' : 'text-gray-400'}`}>Category</label>
               <select
                 value={newIdea.category}
                 onChange={(e) => setNewIdea({ ...newIdea, category: e.target.value })}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 ${isLight ? 'bg-white border-gray-300 text-black' : 'bg-gray-800 border-gray-700 text-white'}`}
               >
                 <option>General</option>
                 <option>Politics</option>
@@ -224,7 +226,7 @@ export default function ForumPage() {
                   setShowForm(false);
                   setNewIdea({ title: "", description: "", category: "General" });
                 }}
-                className="px-6 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white font-medium"
+                className={`px-6 py-2 rounded-lg font-medium ${isLight ? 'bg-gray-200 hover:bg-gray-300 text-gray-900' : 'bg-gray-800 hover:bg-gray-700 text-white'}`}
               >
                 Cancel
               </button>
@@ -243,10 +245,10 @@ export default function ForumPage() {
 
       {/* Ideas List */}
       {loading ? (
-        <div className="text-center text-gray-500 py-12">Loading ideas...</div>
+        <div className={`text-center py-12 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Loading ideas...</div>
       ) : sortedIdeas.length === 0 ? (
-        <div className="text-center text-gray-500 py-12">
-          <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-600" />
+        <div className={`text-center py-12 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
+          <MessageSquare className={`w-12 h-12 mx-auto mb-4 ${isLight ? 'text-gray-500' : 'text-gray-600'}`} />
           <p>No ideas yet. Be the first to share a market idea!</p>
         </div>
       ) : (
@@ -259,53 +261,53 @@ export default function ForumPage() {
             const profilePicture = userProfile.profilePicture;
             
             return (
-              <div key={idea.id} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+              <div key={idea.id} className={`${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'} border rounded-xl p-6`}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
                       <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
                         {idea.category}
                       </span>
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <span className={`text-xs flex items-center gap-1 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                         <Clock size={12} />
                         {formatTime(idea.createdAt)}
                       </span>
                     </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">{idea.title}</h3>
-                    <p className="text-gray-300 text-sm whitespace-pre-wrap">{idea.description}</p>
+                    <h3 className={`text-lg font-semibold mb-2 ${isLight ? 'text-black' : 'text-white'}`}>{idea.title}</h3>
+                    <p className={`text-sm whitespace-pre-wrap ${isLight ? 'text-gray-700' : 'text-gray-300'}`}>{idea.description}</p>
                   </div>
                   {isAuthor && (
                     <button
                       onClick={() => handleDelete(idea.id)}
-                      className="text-gray-500 hover:text-red-400 transition ml-4"
+                      className={`${isLight ? 'text-gray-600 hover:text-red-500' : 'text-gray-500 hover:text-red-400'} transition ml-4`}
                     >
                       <Trash2 size={16} />
                     </button>
                   )}
                 </div>
-                <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-800">
-                  <button
-                    onClick={() => handleLike(idea.id)}
-                    className={`flex items-center gap-2 text-sm transition ${
-                      isLiked ? "text-red-400" : "text-gray-500 hover:text-red-400"
-                    }`}
-                  >
-                    <Heart size={16} className={isLiked ? "fill-current" : ""} />
-                    <span>{idea.likes || 0}</span>
-                  </button>
-                  <div className="flex items-center gap-2">
-                    {profilePicture ? (
-                      <img
-                        src={profilePicture}
-                        alt={displayName}
-                        className="w-6 h-6 rounded-full object-cover border border-gray-700"
-                      />
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-semibold border border-gray-700">
-                        {displayName.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-500">
+                <div className={`flex items-center gap-4 mt-4 pt-4 border-t ${isLight ? 'border-gray-300' : 'border-gray-800'}`}>
+                    <button
+                      onClick={() => handleLike(idea.id)}
+                      className={`flex items-center gap-2 text-sm transition ${
+                        isLiked ? "text-red-400" : isLight ? "text-gray-600 hover:text-red-500" : "text-gray-500 hover:text-red-400"
+                      }`}
+                    >
+                      <Heart size={16} className={isLiked ? "fill-current" : ""} />
+                      <span>{idea.likes || 0}</span>
+                    </button>
+                    <div className="flex items-center gap-2">
+                      {profilePicture ? (
+                        <img
+                          src={profilePicture}
+                          alt={displayName}
+                          className={`w-6 h-6 rounded-full object-cover border ${isLight ? 'border-gray-300' : 'border-gray-700'}`}
+                        />
+                      ) : (
+                        <div className={`w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-semibold border ${isLight ? 'border-gray-300' : 'border-gray-700'}`}>
+                          {displayName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    <div className={`text-xs ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>
                       by {displayName}
                     </div>
                   </div>
