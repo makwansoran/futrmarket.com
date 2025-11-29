@@ -55,8 +55,8 @@ function TypewriterText({ isLight }) {
   return (
     <div className="mb-8">
       <div className="flex items-center gap-4 flex-wrap">
-        <h2 className={`text-3xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>Predict On</h2>
-        <h3 className="text-3xl font-bold">
+        <h2 className={`text-3xl font-bold ${isLight ? '!text-black' : '!text-white'}`}>Predict On</h2>
+        <h3 className={`text-3xl font-bold ${isLight ? '!text-black' : '!text-white'}`}>
           <span className="inline-block text-blue-500">
             {displayedText}
             <motion.span
