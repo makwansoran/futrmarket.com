@@ -196,12 +196,21 @@
         <div><label>Expiration Date</label><input id="contractExp" type="date"></div>
       </div>
 
-      <div class="mt16">
-        <label>Subject (optional)</label>
-        <select id="contractSubjectId">
-          <option value="">None</option>
-        </select>
-        <div class="mt4 meta">Link this contract to a subject (e.g., Epstein, Trump, Bitcoin). Subjects appear in navigation.</div>
+      <div class="row mt16">
+        <div>
+          <label>Subject (optional)</label>
+          <select id="contractSubjectId">
+            <option value="">None</option>
+          </select>
+          <div class="mt4 meta">Link this contract to a subject (e.g., Epstein, Trump, Bitcoin). Subjects appear in navigation.</div>
+        </div>
+        <div>
+          <label>Country (required)</label>
+          <select id="contractCountry" required>
+            <option value="">Select a country</option>
+          </select>
+          <div class="mt4 meta">Select the country this contract relates to. This will appear as a red badge on the contract card.</div>
+        </div>
       </div>
 
       <div class="mt16" style="border: 2px dashed #4b5563; padding: 16px; border-radius: 8px; background: #1f2937;">
@@ -567,16 +576,6 @@
       html += "<div class='meta' style='margin-top:8px'>Total published articles</div>";
       html += "</div>";
       
-      // Orders/Bets Stats
-      html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
-      html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>Bets/Orders</h3>";
-      html += "<div style='font-size:32px;font-weight:bold;color:#fff;margin-bottom:8px'>"+stats.orders.total+"</div>";
-      html += "<div class='meta' style='margin-top:8px'>";
-      html += "<div>Buy Orders: <strong>"+stats.orders.buy+"</strong></div>";
-      html += "<div>Sell Orders: <strong>"+stats.orders.sell+"</strong></div>";
-      html += "<div>Total Volume: <strong>$"+stats.orders.totalVolume.toFixed(2)+"</strong></div>";
-      html += "</div></div>";
-      
       // Users Stats
       html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
       html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>Users</h3>";
@@ -586,13 +585,6 @@
       html += "<div>Online Users: <strong style='color:#10b981'>"+stats.users.online+"</strong> <span style='color:#6b7280;font-size:11px'>(last 5 min)</span></div>";
       html += "<div>With Positions: <strong>"+stats.users.withPositions+"</strong></div>";
       html += "</div></div>";
-      
-      // Ideas Stats
-      html += "<div style='background:#0f172a;border:1px solid #1f2937;border-radius:8px;padding:16px'>";
-      html += "<h3 style='margin:0 0 12px;font-size:18px;color:#3b82f6'>Forum Ideas</h3>";
-      html += "<div style='font-size:32px;font-weight:bold;color:#fff;margin-bottom:8px'>"+stats.ideas.total+"</div>";
-      html += "<div class='meta' style='margin-top:8px'>User-submitted ideas</div>";
-      html += "</div>";
       
       html += "</div>";
       statsContent.innerHTML = html;
@@ -988,8 +980,42 @@
   var contractQ=document.getElementById("contractQ"),contractDesc=document.getElementById("contractDesc"),
       contractCat=document.getElementById("contractCat"),contractExp=document.getElementById("contractExp"),
       contractSubjectId=document.getElementById("contractSubjectId"),
+      contractCountry=document.getElementById("contractCountry"),
       contractImg=document.getElementById("contractImg"),contractPreview=document.getElementById("contractPreview"),
       createContractBtn=document.getElementById("createContract"),contractList=document.getElementById("contractList");
+  
+  // Populate country dropdown
+  const COUNTRIES = [
+    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
+    "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
+    "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia",
+    "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica",
+    "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt",
+    "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon",
+    "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
+    "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel",
+    "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan",
+    "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar",
+    "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
+    "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
+    "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan",
+    "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar",
+    "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia",
+    "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa",
+    "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
+    "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
+    "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
+    "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+  ].sort();
+  
+  if (contractCountry) {
+    COUNTRIES.forEach(function(country) {
+      var opt = document.createElement("option");
+      opt.value = country;
+      opt.textContent = country;
+      contractCountry.appendChild(opt);
+    });
+  }
 
   contractImg.onchange = function(){
     contractPreview.innerHTML = "";
@@ -1125,13 +1151,19 @@
       try {
         var imageUrl = await uploadContractImage();
         var expirationDate = contractExp.value ? new Date(contractExp.value).toISOString() : null;
+        if (!contractCountry.value) {
+          alert("Country is required. Please select a country.");
+          return;
+        }
+        
         var payload = { 
           question: contractQ.value.trim(), 
           description: contractDesc.value.trim(), 
           category: contractCat.value, 
           expirationDate: expirationDate,
           imageUrl: imageUrl,
-          subjectId: contractSubjectId.value || null
+          subjectId: contractSubjectId.value || null,
+          country: contractCountry.value
         };
         var r=await fetch(apiEndpoint("/api/contracts/create"),{ 
           method:"POST", 
@@ -1165,7 +1197,7 @@
           alert("Create failed: " + (j.error || "unknown") + "\n\nAPI URL: " + getApiUrl());
           return;
         }
-        contractQ.value=""; contractDesc.value=""; contractExp.value=""; contractSubjectId.value=""; contractImg.value=""; contractPreview.innerHTML="";
+        contractQ.value=""; contractDesc.value=""; contractExp.value=""; contractSubjectId.value=""; contractCountry.value=""; contractImg.value=""; contractPreview.innerHTML="";
         loadContracts();
         alert("Contract created successfully!\n\nCreated on: " + getApiUrl() + "\nContract ID: " + (j.data?.id || "N/A") + "\n\nRefresh your website to see it.");
       } finally {
@@ -1243,6 +1275,8 @@
     contractDesc.value=c.description||"";
     contractCat.value=c.category||"Politics";
     contractExp.value=c.expirationDate ? new Date(c.expirationDate).toISOString().split('T')[0] : "";
+    contractCountry.value=c.country||"";
+    contractSubjectId.value=c.subjectId||"";
     contractImg.value="";
     contractPreview.innerHTML="";
     if(c.imageUrl){
@@ -1273,13 +1307,15 @@
       }
       token = String(token).trim();
       if(!contractQ.value.trim()){alert("Question required");return}
+      if(!contractCountry.value){alert("Country is required");return}
       var imageUrl = await uploadContractImage();
       var expirationDate = contractExp.value ? new Date(contractExp.value).toISOString() : null;
       var payload = { 
         question: contractQ.value.trim(), 
         description: contractDesc.value.trim(), 
         category: contractCat.value, 
-        expirationDate: expirationDate
+        expirationDate: expirationDate,
+        country: contractCountry.value
       };
       if(imageUrl) payload.imageUrl = imageUrl;
       
@@ -1298,7 +1334,7 @@
         return;
       }
       var j=await r.json(); if(!j.ok){alert("Update failed: "+(j.error||"unknown"));return}
-      contractQ.value=""; contractDesc.value=""; contractExp.value=""; contractImg.value=""; contractPreview.innerHTML="";
+      contractQ.value=""; contractDesc.value=""; contractExp.value=""; contractCountry.value=""; contractImg.value=""; contractPreview.innerHTML="";
       loadContracts();
       alert("Contract updated!");
     }catch(e){ alert(e.message || "Could not update contract"); }
@@ -1713,7 +1749,7 @@
       accountsList.innerHTML="<div class='meta' style='color:#ef4444'>Please set admin token first</div>";
       return;
     }
-    var r=await fetch(apiEndpoint("/api/users"),{headers:{"x-admin-token":token}});
+    var r=await fetch(apiEndpoint("/api/users/all"),{headers:{"x-admin-token":token}});
     if(!r.ok){
       if(r.status===401){
         accountsList.innerHTML="<div class='meta' style='color:#ef4444'>Unauthorized. Check your admin token (default: 'changeme')</div>";
@@ -2087,7 +2123,6 @@
   loadNews();
   // Also load features and other tabs data on initial load so they're ready when user switches tabs
   loadFeatures();
-  loadSports();
   loadSubjects();
   loadAccounts();
   loadBlog();

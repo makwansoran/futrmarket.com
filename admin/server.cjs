@@ -48,6 +48,11 @@ app.get("/admin", (req,res)=>{
   res.send(fs.readFileSync(path.join(__dirname,"admin.html"),"utf8"));
 });
 
+// Favicon handler (return 204 No Content to suppress 404)
+app.get("/favicon.ico", (req,res)=>{
+  res.status(204).end();
+});
+
 app.get("/api/markets", requireToken, (req,res)=> res.json({ ok:true, data:load() }));
 
 app.post("/api/upload", requireToken, upload.single("image"), (req,res)=>{

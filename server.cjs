@@ -1334,7 +1334,7 @@ function calculateSellProceeds(contract, contractsToSell) {
 // Create contract (admin only)
 app.post("/api/contracts/create", requireAdmin, async (req, res) => {
   try {
-    const { question, description, category, expirationDate, imageUrl, competitionId, subjectId, status } = req.body || {};
+    const { question, description, category, expirationDate, imageUrl, competitionId, subjectId, status, country } = req.body || {};
     const q = String(question || "").trim();
     if (!q) return res.status(400).json({ ok: false, error: "Question required" });
     
@@ -1406,6 +1406,7 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
       status: validStatus,
       live: req.body.live === true || req.body.live === "true",
       featured: false, // Always false - featured functionality removed
+      country: country ? String(country).trim() : null,
       created_at: Date.now(),
       created_by: "admin",
       // Legacy fields for backward compatibility
@@ -1471,6 +1472,7 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
       imageUrl: contract.image_url || contract.imageUrl || null,
       competitionId: contract.competition_id || contract.competitionId || null,
       subjectId: contract.subject_id || contract.subjectId || null,
+      country: contract.country || null,
       status: contract.status || null,
       live: contract.live === true,
       createdAt: contract.created_at || contract.createdAt || Date.now(),
@@ -1638,7 +1640,8 @@ app.get("/api/contracts", async (req, res) => {
             description: c.description || null,
             expirationDate: c.expiration_date || c.expirationDate || null,
             competitionId: c.competition_id || c.competitionId || null,
-            subjectId: c.subject_id || c.subjectId || null
+            subjectId: c.subject_id || c.subjectId || null,
+            country: c.country || null
           };
           
           console.log(`[CONTRACTS] ✅ Processed contract ${index + 1}: ${processed.id} - ${processed.question}${imageUrl ? ' (has image)' : ''}`);
@@ -2191,6 +2194,13 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       updates.question = question;
     }
     if (req.body.description !== undefined) updates.description = String(req.body.description || "").trim() || null;
+    if (req.body.country !== undefined) {
+      const countryStr = String(req.body.country || "").trim();
+      if (!countryStr) {
+        return res.status(400).json({ ok: false, error: "Country is required" });
+      }
+      updates.country = countryStr;
+    }
     if (req.body.category !== undefined) {
       // Validate category - only allow Politics, Geopolitics, War, and Policies
       const allowedCategories = ["Politics", "Geopolitics", "War", "Policies"];
@@ -4100,6 +4110,9 @@ app.get("/api/stats", requireAdmin, async (req, res) => {
   try {
     // Use database functions when available
     const contracts = await getAllContracts();
+    const { getAllNews } = require("./lib/db.cjs");
+    const { getAllIdeas } = require("./lib/db.cjs");
+    const { getAllCompetitions } = require("./lib/db.cjs");
     const news = await getAllNews();
     const ideas = await getAllIdeas();
     const competitions = await getAllCompetitions();
@@ -4129,20 +4142,26 @@ app.get("/api/stats", requireAdmin, async (req, res) => {
     let totalBuyOrders = 0;
     let totalSellOrders = 0;
     let totalOrderVolume = 0;
-    Object.values(orders).forEach(userOrders => {
-      if (Array.isArray(userOrders)) {
-        totalOrders += userOrders.length;
-        userOrders.forEach(order => {
-          if (order.type === "buy") {
-            totalBuyOrders++;
-            totalOrderVolume += Number(order.amountUSD || 0);
-          } else if (order.type === "sell") {
-            totalSellOrders++;
-            totalOrderVolume += Number(order.amountUSD || 0);
+    if (orders && typeof orders === 'object') {
+      try {
+        Object.values(orders).forEach(userOrders => {
+          if (Array.isArray(userOrders)) {
+            totalOrders += userOrders.length;
+            userOrders.forEach(order => {
+              if (order && order.type === "buy") {
+                totalBuyOrders++;
+                totalOrderVolume += Number(order.amountUSD || 0);
+              } else if (order && order.type === "sell") {
+                totalSellOrders++;
+                totalOrderVolume += Number(order.amountUSD || 0);
+              }
+            });
           }
         });
+      } catch (orderError) {
+        console.warn("[STATS] Error processing orders:", orderError.message);
       }
-    });
+    }
     
     // Count users - use database if available, otherwise use file
     let usersCount = 0;
@@ -4167,13 +4186,18 @@ app.get("/api/stats", requireAdmin, async (req, res) => {
     
     // Count active positions (users with positions)
     let activePositionsCount = 0;
-    if (Array.isArray(positions)) {
-      activePositionsCount = positions.length;
-    } else {
-      activePositionsCount = Object.keys(positions).filter(email => {
-        const userPositions = positions[email];
-        return userPositions && Object.keys(userPositions).length > 0;
-      }).length;
+    try {
+      if (Array.isArray(positions)) {
+        activePositionsCount = positions.length;
+      } else if (positions && typeof positions === 'object') {
+        activePositionsCount = Object.keys(positions).filter(email => {
+          const userPositions = positions[email];
+          return userPositions && Object.keys(userPositions).length > 0;
+        }).length;
+      }
+    } catch (positionError) {
+      console.warn("[STATS] Error processing positions:", positionError.message);
+      activePositionsCount = 0;
     }
     
     // Calculate total volume across all contracts
@@ -4217,6 +4241,37 @@ app.get("/api/stats", requireAdmin, async (req, res) => {
     });
   } catch (e) {
     console.error("Stats error:", e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Footer content endpoints (stub implementation)
+app.get("/api/footer-content", requireAdmin, async (req, res) => {
+  try {
+    // TODO: Implement footer content storage/retrieval
+    res.json({ ok: true, data: [] });
+  } catch (e) {
+    console.error("Footer content error:", e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post("/api/footer-content", requireAdmin, async (req, res) => {
+  try {
+    // TODO: Implement footer content creation
+    res.status(501).json({ ok: false, error: "Footer content creation not yet implemented" });
+  } catch (e) {
+    console.error("Footer content creation error:", e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.delete("/api/footer-content/:id", requireAdmin, async (req, res) => {
+  try {
+    // TODO: Implement footer content deletion
+    res.status(501).json({ ok: false, error: "Footer content deletion not yet implemented" });
+  } catch (e) {
+    console.error("Footer content deletion error:", e);
     res.status(500).json({ ok: false, error: e.message });
   }
 });

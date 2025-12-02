@@ -129,8 +129,13 @@ function MarketCard({ m }){
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs">{m.category || "General"}</span>
+            <div className="flex items-center justify-between mb-1 gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs">{m.category || "General"}</span>
+                {m.country && (
+                  <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full text-xs">{m.country}</span>
+                )}
+              </div>
               {m.ends && (
                 <span className="text-gray-500 text-xs flex items-center gap-1"><Clock size={12}/>{m.ends}</span>
               )}

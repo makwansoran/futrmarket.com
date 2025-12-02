@@ -1,11 +1,15 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getApiUrl } from "/src/api.js";
+import { COUNTRIES } from "/src/data/countries.js";
 
 export default function SubjectsNav() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [subjects, setSubjects] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [countryDropdownOpen, setCountryDropdownOpen] = React.useState(false);
+  const [countrySearch, setCountrySearch] = React.useState("");
 
   // Load subjects on all pages (they should be visible everywhere except maybe homepage)
   const isHomepage = location.pathname === "/";
@@ -68,6 +72,18 @@ export default function SubjectsNav() {
     return location.pathname === `/subjects/${slug}` || location.pathname.startsWith(`/subjects/${slug}/`);
   };
 
+  const filteredCountries = React.useMemo(() => {
+    if (!countrySearch.trim()) return COUNTRIES;
+    const searchLower = countrySearch.toLowerCase();
+    return COUNTRIES.filter(country => country.toLowerCase().includes(searchLower));
+  }, [countrySearch]);
+
+  const handleCountrySelect = (country) => {
+    setCountryDropdownOpen(false);
+    setCountrySearch("");
+    navigate(`/markets?country=${encodeURIComponent(country)}`);
+  };
+
   return (
       <nav id="subjects-nav" className="sticky z-20 border-b border-white/10 bg-gray-950/70 backdrop-blur supports-[backdrop-filter]:bg-gray-950/50" style={{ zIndex: 20, top: '100px', position: 'sticky' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -90,6 +106,52 @@ export default function SubjectsNav() {
               </Link>
             );
           })}
+          
+          {/* Country Dropdown */}
+          <div className="relative ml-2">
+            <button
+              onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+              className="px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors text-gray-400 hover:text-white border-b-2 border-transparent hover:border-red-500"
+            >
+              Countries ▼
+            </button>
+            
+            {countryDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-30" 
+                  onClick={() => setCountryDropdownOpen(false)}
+                />
+                <div className="absolute right-0 top-full mt-2 w-64 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-40 max-h-96 flex flex-col">
+                  <div className="p-2 border-b border-gray-700">
+                    <input
+                      type="text"
+                      placeholder="Search countries..."
+                      value={countrySearch}
+                      onChange={(e) => setCountrySearch(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-sm text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="overflow-y-auto flex-1" style={{ maxHeight: '320px' }}>
+                    {filteredCountries.length > 0 ? (
+                      filteredCountries.map((country) => (
+                        <button
+                          key={country}
+                          onClick={() => handleCountrySelect(country)}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                        >
+                          {country}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-2 text-sm text-gray-400">No countries found</div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>
