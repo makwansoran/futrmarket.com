@@ -1338,10 +1338,20 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
     const q = String(question || "").trim();
     if (!q) return res.status(400).json({ ok: false, error: "Question required" });
     
+    // Validate category - only allow Politics, Geopolitics, War, and Policies
+    const allowedCategories = ["Politics", "Geopolitics", "War", "Policies"];
+    const categoryStr = String(category || "").trim();
+    if (!allowedCategories.includes(categoryStr)) {
+      return res.status(400).json({ 
+        ok: false, 
+        error: `Invalid category. Only the following categories are allowed: ${allowedCategories.join(", ")}` 
+      });
+    }
+    
     const contractId = `ctr_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     
     // Validate status if provided
-    const validStatus = status && ["upcoming", "live", "finished", "cancelled"].includes(status) ? status : (category === "Sports" ? "upcoming" : null);
+    const validStatus = status && ["upcoming", "live", "finished", "cancelled"].includes(status) ? status : null;
     
     // Convert expirationDate to timestamp if provided
     let expirationTimestamp = null;
@@ -1380,7 +1390,7 @@ app.post("/api/contracts/create", requireAdmin, async (req, res) => {
       id: contractId,
       question: q,
       description: String(description || "").trim() || null,
-      category: String(category || "General").trim(),
+      category: categoryStr, // Use validated category
       market_price: 1.0, // Every contract starts at $1
       buy_volume: 0, // Total USD spent buying
       sell_volume: 0, // Total USD received from selling
@@ -2181,7 +2191,18 @@ app.patch("/api/contracts/:id", requireAdmin, async (req, res) => {
       updates.question = question;
     }
     if (req.body.description !== undefined) updates.description = String(req.body.description || "").trim() || null;
-    if (req.body.category !== undefined) updates.category = String(req.body.category || "General").trim();
+    if (req.body.category !== undefined) {
+      // Validate category - only allow Politics, Geopolitics, War, and Policies
+      const allowedCategories = ["Politics", "Geopolitics", "War", "Policies"];
+      const categoryStr = String(req.body.category || "").trim();
+      if (!allowedCategories.includes(categoryStr)) {
+        return res.status(400).json({ 
+          ok: false, 
+          error: `Invalid category. Only the following categories are allowed: ${allowedCategories.join(", ")}` 
+        });
+      }
+      updates.category = categoryStr;
+    }
     if (req.body.imageUrl !== undefined) updates.image_url = req.body.imageUrl || null;
     // Featured functionality removed - always keep as false
     if (req.body.live !== undefined) {

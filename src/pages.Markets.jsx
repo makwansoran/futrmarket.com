@@ -270,15 +270,9 @@ function MiniChart({ data }) {
 
 const CATEGORY_MAP = {
   "politics": "Politics",
-  "culture": "Culture",
-  "crypto": "Crypto",
-  "economics": "Economics",
-  "mentions": "Mentions",
-  "companies": "Companies",
-  "financials": "Financials",
-  "tech-science": "Tech & Science",
-  "health": "Health",
-  "world": "World",
+  "geopolitics": "Geopolitics",
+  "war": "War",
+  "policies": "Policies",
 };
 
 export default function MarketsPage({ markets=[], limit, category }){
@@ -755,12 +749,9 @@ export default function MarketsPage({ markets=[], limit, category }){
         // Define allowed categories - only these will be displayed
         const allowedCategories = [
           { name: "Politics", slug: "politics" },
-          { name: "Crypto", slug: "crypto" },
-          { name: "Economics", slug: "economics" },
-          { name: "Mentions", slug: "mentions" },
-          { name: "Companies", slug: "companies" },
-          { name: "Financials", slug: "financials" },
-          { name: "Tech & Science", slug: "tech-science" }
+          { name: "Geopolitics", slug: "geopolitics" },
+          { name: "War", slug: "war" },
+          { name: "Policies", slug: "policies" }
         ];
         
         // COMPLETELY REWRITTEN DUPLICATE PREVENTION

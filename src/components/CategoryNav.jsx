@@ -7,12 +7,9 @@ const CATEGORIES = [
   { id: "new", label: "New", path: "/new" },
   { id: "all", label: "All", path: "/markets" },
   { id: "politics", label: "Politics", path: "/markets/politics" },
-  { id: "crypto", label: "Crypto", path: "/markets/crypto" },
-  { id: "economics", label: "Economics", path: "/markets/economics" },
-  { id: "mentions", label: "Mentions", path: "/markets/mentions" },
-  { id: "companies", label: "Companies", path: "/markets/companies" },
-  { id: "financials", label: "Financials", path: "/markets/financials" },
-  { id: "tech-science", label: "Tech & Science", path: "/markets/tech-science" },
+  { id: "geopolitics", label: "Geopolitics", path: "/markets/geopolitics" },
+  { id: "war", label: "War", path: "/markets/war" },
+  { id: "policies", label: "Policies", path: "/markets/policies" },
 ];
 
 export default function CategoryNav() {

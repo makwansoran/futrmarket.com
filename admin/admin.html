@@ -187,15 +187,11 @@
         <div><label>Category</label>
           <select id="contractCat">
             <option>Politics</option>
-            <option>Crypto</option>
-            <option>Economics</option>
-            <option>Mentions</option>
-            <option>Companies</option>
-            <option>Financials</option>
-            <option>Tech & Science</option>
-            <option>General</option>
+            <option>Geopolitics</option>
+            <option>War</option>
+            <option>Policies</option>
           </select>
-          <div class="mt4 meta">Select a category to appear on homepage. Categories: Politics, Crypto, Economics, Mentions, Companies, Financials, Tech & Science</div>
+          <div class="mt4 meta">Select a category. This prediction market focuses on Politics, Geopolitics, War, and Policies only.</div>
         </div>
         <div><label>Expiration Date</label><input id="contractExp" type="date"></div>
       </div>
@@ -1245,7 +1241,7 @@
   function editContract(c){
     contractQ.value=c.question||"";
     contractDesc.value=c.description||"";
-    contractCat.value=c.category||"General";
+    contractCat.value=c.category||"Politics";
     contractExp.value=c.expirationDate ? new Date(c.expirationDate).toISOString().split('T')[0] : "";
     contractImg.value="";
     contractPreview.innerHTML="";
