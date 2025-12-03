@@ -30,14 +30,20 @@ export default function CategoryNav() {
 
   // Get unique countries from contracts
   const availableCountries = React.useMemo(() => {
-    if (!markets || !Array.isArray(markets)) return [];
+    if (!markets || !Array.isArray(markets)) {
+      console.log("🔵 CategoryNav: No markets or not an array", markets);
+      return [];
+    }
     const countries = new Set();
     markets.forEach(m => {
       if (m && m.country && m.country.trim()) {
         countries.add(m.country.trim());
       }
     });
-    return Array.from(countries).sort();
+    const countryList = Array.from(countries).sort();
+    console.log("🔵 CategoryNav: Found", countryList.length, "countries with contracts:", countryList);
+    console.log("🔵 CategoryNav: Total markets:", markets.length, "Markets with countries:", markets.filter(m => m && m.country).length);
+    return countryList;
   }, [markets]);
 
   const filteredCountries = React.useMemo(() => {
@@ -51,6 +57,11 @@ export default function CategoryNav() {
     setCountrySearch("");
     navigate(`/markets?country=${encodeURIComponent(country)}`);
   };
+
+  // Debug: Log when component renders
+  React.useEffect(() => {
+    console.log("🔵 CategoryNav: Component rendered. Markets:", markets?.length, "Available countries:", availableCountries.length);
+  }, [markets, availableCountries]);
 
   return (
     <nav id="category-nav" className="sticky z-40 border-b border-[var(--border-light)] backdrop-blur" style={{ zIndex: 40, top: '56px', position: 'sticky', backgroundColor: 'var(--bg-navbar)' }}>
@@ -78,20 +89,33 @@ export default function CategoryNav() {
                 </Link>
                 
                 {/* Country Dropdown - Insert right after Trending */}
-                {cat.id === "trending" && availableCountries.length > 0 && (
+                {cat.id === "trending" && (
                   <div className="relative">
                     <button
-                      onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+                      onClick={() => {
+                        console.log("🔵 CategoryNav: Countries button clicked. Available countries:", availableCountries.length);
+                        setCountryDropdownOpen(!countryDropdownOpen);
+                      }}
+                      disabled={availableCountries.length === 0}
                       className={`
                         px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors
+                        ${availableCountries.length === 0
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                        }
                         ${isLight
                           ? "text-gray-600 hover:text-black"
                           : "text-gray-400 hover:text-white"
                         }
                         border-b-2 border-transparent hover:border-red-500
                       `}
+                      title={availableCountries.length === 0 ? "No countries with contracts yet" : `Filter by country (${availableCountries.length} available)`}
                     >
-                      Countries ▼
+                      <span className="flex items-center gap-1">
+                        <span>Countries</span>
+                        {availableCountries.length > 0 && <span className="text-xs">({availableCountries.length})</span>}
+                        <span>▼</span>
+                      </span>
                     </button>
                     
                     {countryDropdownOpen && (
@@ -101,31 +125,39 @@ export default function CategoryNav() {
                           onClick={() => setCountryDropdownOpen(false)}
                         />
                         <div className={`absolute left-0 top-full mt-2 w-64 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-700'} border rounded-lg shadow-xl z-40 max-h-96 flex flex-col`}>
-                          <div className={`p-2 border-b ${isLight ? 'border-gray-300' : 'border-gray-700'}`}>
-                            <input
-                              type="text"
-                              placeholder="Search countries..."
-                              value={countrySearch}
-                              onChange={(e) => setCountrySearch(e.target.value)}
-                              className={`w-full px-3 py-2 ${isLight ? 'bg-gray-100 border-gray-300 text-black' : 'bg-gray-800 border-gray-600 text-white'} border rounded text-sm placeholder-gray-400 focus:outline-none focus:border-red-500`}
-                              autoFocus
-                            />
-                          </div>
-                          <div className="overflow-y-auto flex-1" style={{ maxHeight: '320px' }}>
-                            {filteredCountries.length > 0 ? (
-                              filteredCountries.map((country) => (
-                                <button
-                                  key={country}
-                                  onClick={() => handleCountrySelect(country)}
-                                  className={`w-full text-left px-4 py-2 text-sm ${isLight ? 'text-gray-700 hover:bg-gray-100 hover:text-black' : 'text-gray-300 hover:bg-gray-800 hover:text-white'} transition-colors`}
-                                >
-                                  {country}
-                                </button>
-                              ))
-                            ) : (
-                              <div className={`px-4 py-2 text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>No countries found</div>
-                            )}
-                          </div>
+                          {availableCountries.length === 0 ? (
+                            <div className={`p-4 text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                              No countries available. Create contracts with countries assigned to see them here.
+                            </div>
+                          ) : (
+                            <>
+                              <div className={`p-2 border-b ${isLight ? 'border-gray-300' : 'border-gray-700'}`}>
+                                <input
+                                  type="text"
+                                  placeholder="Search countries..."
+                                  value={countrySearch}
+                                  onChange={(e) => setCountrySearch(e.target.value)}
+                                  className={`w-full px-3 py-2 ${isLight ? 'bg-gray-100 border-gray-300 text-black' : 'bg-gray-800 border-gray-600 text-white'} border rounded text-sm placeholder-gray-400 focus:outline-none focus:border-red-500`}
+                                  autoFocus
+                                />
+                              </div>
+                              <div className="overflow-y-auto flex-1" style={{ maxHeight: '320px' }}>
+                                {filteredCountries.length > 0 ? (
+                                  filteredCountries.map((country) => (
+                                    <button
+                                      key={country}
+                                      onClick={() => handleCountrySelect(country)}
+                                      className={`w-full text-left px-4 py-2 text-sm ${isLight ? 'text-gray-700 hover:bg-gray-100 hover:text-black' : 'text-gray-300 hover:bg-gray-800 hover:text-white'} transition-colors`}
+                                    >
+                                      {country}
+                                    </button>
+                                  ))
+                                ) : (
+                                  <div className={`px-4 py-2 text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>No countries found</div>
+                                )}
+                              </div>
+                            </>
+                          )}
                         </div>
                       </>
                     )}
