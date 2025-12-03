@@ -55,11 +55,13 @@ export default function NewsPage({ markets = [] }) {
       </div>
 
       {/* Conflict Map - Same size as charts on contracts */}
-      <div className={`rounded-xl p-6 mb-6 ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
-        <div className="mb-4">
-          <h2 className={`text-lg font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Global Conflict Map</h2>
+      <div className="flex justify-center mb-6">
+        <div className={`rounded-xl p-6 max-w-3xl w-full ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
+          <div className="mb-4">
+            <h2 className={`text-lg font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Global Conflict Map</h2>
+          </div>
+          <ConflictMap />
         </div>
-        <ConflictMap />
       </div>
 
       {loading ? (
