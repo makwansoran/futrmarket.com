@@ -56,98 +56,21 @@ export default function NewsPage({ markets = [] }) {
         <h2 className={`text-2xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>News & Market Updates</h2>
       </div>
 
-      {/* Fixed Map and Sidebar Container */}
-      <div className="fixed top-24 left-1/2 -translate-x-1/2 flex gap-6" style={{ zIndex: 10 }}>
-        {/* Conflict Map - Fixed Position */}
-        <div className={`rounded-xl p-6 w-[768px] ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
-          <div className="mb-4">
-            <h2 className={`text-lg font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Global Conflict Map</h2>
-          </div>
-          <ConflictMap />
-        </div>
-
-        {/* Sidebar - Fixed Position Next to Map */}
-        <div className={`w-96 rounded-xl p-6 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'} border`}>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <h3 className={`text-lg font-bold ${isLight ? 'text-black' : 'text-white'}`}>Live News</h3>
-            </div>
-            
-            {loading ? (
-              <div className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Loading...</div>
-            ) : liveNews.length === 0 ? (
-              <div className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>No live news yet</div>
-            ) : (
-              <div className="space-y-4 max-h-[calc(100vh-180px)] overflow-y-auto">
-                {liveNews.map((item, index) => {
-                  const contract = getLinkedContract(item);
-                  return (
-                    <div 
-                      key={item.id} 
-                      className={`pb-4 ${index < liveNews.length - 1 ? 'border-b ' + (isLight ? 'border-gray-200' : 'border-gray-800') : ''}`}
-                    >
-                      <div className="flex items-start gap-3">
-                        {item.imageUrl && (
-                          <img 
-                            src={item.imageUrl} 
-                            alt={item.title}
-                            className={`w-16 h-12 object-cover rounded border flex-shrink-0 ${isLight ? 'border-gray-300' : 'border-gray-800'}`}
-                          />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
-                              {item.category || "News"}
-                            </span>
-                          </div>
-                          <h4 className={`text-sm font-semibold mb-1 line-clamp-2 ${isLight ? 'text-black' : 'text-white'}`}>
-                            {item.title}
-                          </h4>
-                          <p className={`text-xs line-clamp-2 mb-2 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
-                            {item.summary}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <span className={`text-xs flex items-center gap-1 ${isLight ? 'text-gray-500' : 'text-gray-500'}`}>
-                              <Calendar size={10} />
-                              {formatDate(item.createdAt)}
-                            </span>
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-400 hover:text-blue-300 text-xs font-medium"
-                            >
-                              Read →
-                            </a>
-                          </div>
-                          {contract && (
-                            <div className={`mt-2 p-2 rounded ${isLight ? 'bg-gray-50' : 'bg-gray-800/50'}`}>
-                              <Link 
-                                to={`/market/${encodeURIComponent(contract.id)}`}
-                                className="flex items-center gap-2 group"
-                              >
-                                <Thumb src={contract.image || contract.imageUrl} alt={contract.question} size={32} />
-                                <div className="flex-1 min-w-0">
-                                  <div className={`text-xs font-medium group-hover:text-blue-400 transition line-clamp-1 ${isLight ? 'text-black' : 'text-white'}`}>
-                                    {contract.question}
-                                  </div>
-                                </div>
-                              </Link>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+      <div className="flex gap-6">
+        {/* Main Content with Map */}
+        <div className="flex-1">
+          {/* Conflict Map */}
+          <div className="flex justify-center mb-6">
+            <div className={`rounded-xl p-6 max-w-3xl w-full ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
+              <div className="mb-4">
+                <h2 className={`text-lg font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Global Conflict Map</h2>
               </div>
-            )}
+              <ConflictMap />
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Main Content - News Articles */}
-      <div className="pt-[420px]">
+          {/* Main Content - News Articles */}
+          <div>
 
         {loading ? (
           <div className={`text-center py-12 ${isLight ? 'text-gray-600' : 'text-gray-500'}`}>Loading news...</div>
@@ -229,6 +152,88 @@ export default function NewsPage({ markets = [] }) {
               })}
             </div>
           )}
+          </div>
+        </div>
+
+        {/* Sidebar - Sticky on Right */}
+        <aside className="w-96 flex-shrink-0">
+          <div className={`sticky top-24 rounded-xl p-6 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'} border`}>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <h3 className={`text-lg font-bold ${isLight ? 'text-black' : 'text-white'}`}>Live News</h3>
+            </div>
+            
+            {loading ? (
+              <div className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>Loading...</div>
+            ) : liveNews.length === 0 ? (
+              <div className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>No live news yet</div>
+            ) : (
+              <div className="space-y-4 max-h-[calc(100vh-180px)] overflow-y-auto">
+                {liveNews.map((item, index) => {
+                  const contract = getLinkedContract(item);
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`pb-4 ${index < liveNews.length - 1 ? 'border-b ' + (isLight ? 'border-gray-200' : 'border-gray-800') : ''}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {item.imageUrl && (
+                          <img 
+                            src={item.imageUrl} 
+                            alt={item.title}
+                            className={`w-16 h-12 object-cover rounded border flex-shrink-0 ${isLight ? 'border-gray-300' : 'border-gray-800'}`}
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs font-medium">
+                              {item.category || "News"}
+                            </span>
+                          </div>
+                          <h4 className={`text-sm font-semibold mb-1 line-clamp-2 ${isLight ? 'text-black' : 'text-white'}`}>
+                            {item.title}
+                          </h4>
+                          <p className={`text-xs line-clamp-2 mb-2 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
+                            {item.summary}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span className={`text-xs flex items-center gap-1 ${isLight ? 'text-gray-500' : 'text-gray-500'}`}>
+                              <Calendar size={10} />
+                              {formatDate(item.createdAt)}
+                            </span>
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                            >
+                              Read →
+                            </a>
+                          </div>
+                          {contract && (
+                            <div className={`mt-2 p-2 rounded ${isLight ? 'bg-gray-50' : 'bg-gray-800/50'}`}>
+                              <Link 
+                                to={`/market/${encodeURIComponent(contract.id)}`}
+                                className="flex items-center gap-2 group"
+                              >
+                                <Thumb src={contract.image || contract.imageUrl} alt={contract.question} size={32} />
+                                <div className="flex-1 min-w-0">
+                                  <div className={`text-xs font-medium group-hover:text-blue-400 transition line-clamp-1 ${isLight ? 'text-black' : 'text-white'}`}>
+                                    {contract.question}
+                                  </div>
+                                </div>
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </aside>
       </div>
     </section>
   );
