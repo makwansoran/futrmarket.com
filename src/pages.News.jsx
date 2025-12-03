@@ -4,6 +4,7 @@ import { ExternalLink, Calendar, Link as LinkIcon } from "lucide-react";
 import { getApiUrl } from "/src/api.js";
 import Thumb from "./ui.Thumb.jsx";
 import { useTheme } from "./contexts/ThemeContext.jsx";
+import ConflictMap from "./components/ConflictMap.jsx";
 
 export default function NewsPage({ markets = [] }) {
   const { isLight } = useTheme();
@@ -51,6 +52,14 @@ export default function NewsPage({ markets = [] }) {
       <div className="flex items-center gap-3 mb-6">
         <LinkIcon className="w-6 h-6 text-blue-400" />
         <h2 className={`text-2xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>News & Market Updates</h2>
+      </div>
+
+      {/* Conflict Map - Same size as charts on contracts */}
+      <div className={`rounded-xl p-6 mb-6 ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
+        <div className="mb-4">
+          <h2 className={`text-lg font-semibold ${isLight ? 'text-black' : 'text-white'}`}>Global Conflict Map</h2>
+        </div>
+        <ConflictMap />
       </div>
 
       {loading ? (
