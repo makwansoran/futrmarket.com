@@ -331,34 +331,6 @@ const ConflictMap = () => {
           </div>
         )}
       </div>
-
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)'
-      }} className="text-white p-4 flex items-center justify-between border-t border-white/10">
-        <div className="flex gap-6 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-600 shadow-md"></div>
-            <span className="drop-shadow">Critical</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-orange-600 shadow-md"></div>
-            <span className="drop-shadow">High</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-500 shadow-md"></div>
-            <span className="drop-shadow">Medium</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-lime-500 shadow-md"></div>
-            <span className="drop-shadow">Low</span>
-          </div>
-        </div>
-        <div className="text-xs text-white/90 drop-shadow">
-          Data sources: ACLED, Crisis Group, CFR | Updated Dec 2025
-        </div>
-      </div>
     </div>
   );
 };
