@@ -427,6 +427,10 @@ export default function MarketsPage({ markets=[], limit, category }){
     );
   }
   
+  // Check for country filter in URL query params
+  const urlParams = new URLSearchParams(location.search);
+  const countryFilter = urlParams.get("country");
+  
   // Filter by subject if we're on a subject page
   if (isSubjectPage && subjectsLoaded) {
     const subject = subjects.find(s => s.slug === subjectSlug);
@@ -435,6 +439,13 @@ export default function MarketsPage({ markets=[], limit, category }){
     } else {
       filteredMarkets = [];
     }
+  }
+  // Filter by country if specified in query params
+  else if (countryFilter) {
+    filteredMarkets = safeMarkets.filter(m => 
+      m && m.country && m.country.trim().toLowerCase() === countryFilter.trim().toLowerCase()
+    );
+    console.log("🔵 MarketsPage: Filtered by country", countryFilter, "to", filteredMarkets.length, "markets");
   }
   // Filter by category if specified (but NOT for sports - we handle sports separately)
   else if (urlCategory && urlCategory !== "all" && urlCategory !== "trending" && urlCategory !== "new" && urlCategory !== "sports") {
@@ -468,6 +479,7 @@ export default function MarketsPage({ markets=[], limit, category }){
       const subject = subjects.find(s => s.slug === subjectSlug);
       return subject ? `${subject.name} Markets` : "Subject Markets";
     }
+    if (countryFilter) return `${countryFilter} Markets`;
     if (urlCategory === "trending") return "Trending Markets";
     if (urlCategory === "new") return "New Markets";
     if (urlCategory && CATEGORY_MAP[urlCategory]) return CATEGORY_MAP[urlCategory] + " Markets";
