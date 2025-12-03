@@ -50,7 +50,7 @@ export default function NewsPage({ markets = [] }) {
   const liveNews = sortedNews.slice(0, 8);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pr-[416px]">
       <div className="flex items-center gap-3 mb-6">
         <LinkIcon className="w-6 h-6 text-blue-400" />
         <h2 className={`text-2xl font-bold ${isLight ? 'text-black' : 'text-white'}`}>News & Market Updates</h2>
@@ -152,8 +152,8 @@ export default function NewsPage({ markets = [] }) {
         </div>
 
         {/* Sidebar - Right Side */}
-        <aside className="w-80 flex-shrink-0">
-          <div className={`sticky top-24 rounded-xl p-6 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'} border`}>
+        <aside className="w-96 flex-shrink-0">
+          <div className={`fixed top-24 right-4 w-[384px] rounded-xl p-6 ${isLight ? 'bg-white border-gray-300' : 'bg-gray-900 border-gray-800'} border`}>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
               <h3 className={`text-lg font-bold ${isLight ? 'text-black' : 'text-white'}`}>Live News</h3>
@@ -164,7 +164,7 @@ export default function NewsPage({ markets = [] }) {
             ) : liveNews.length === 0 ? (
               <div className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>No live news yet</div>
             ) : (
-              <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="space-y-4 max-h-[calc(100vh-180px)] overflow-y-auto">
                 {liveNews.map((item, index) => {
                   const contract = getLinkedContract(item);
                   return (
