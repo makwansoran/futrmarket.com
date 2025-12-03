@@ -57,7 +57,7 @@ export default function NewsPage({ markets = [] }) {
       </div>
 
       {/* Fixed Map and Sidebar Container */}
-      <div className="fixed top-24 left-1/2 -translate-x-1/2 flex gap-6 z-10">
+      <div className="fixed top-24 left-1/2 -translate-x-1/2 flex gap-6 z-20">
         {/* Conflict Map - Fixed Position */}
         <div className={`rounded-xl p-6 w-[768px] ${isLight ? 'bg-white' : 'bg-gray-900'}`}>
           <div className="mb-4">
